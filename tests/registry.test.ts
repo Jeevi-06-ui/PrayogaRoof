@@ -36,7 +36,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(physics?.availableExperiments).toBe(25);
 
     expect(chemistry?.totalExperiments).toBe(27);
-    expect(chemistry?.availableExperiments).toBe(11);
+    expect(chemistry?.availableExperiments).toBe(16);
   });
 
   describe('Physics Curriculum (25 Experiments)', () => {
@@ -134,9 +134,9 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(class12).toHaveLength(11);
     });
 
-    it('should have 11 Chemistry experiments marked as implemented (5 Foundation + 6 Class 11)', () => {
+    it('should have 16 Chemistry experiments marked as implemented (5 Foundation + 11 Class 11)', () => {
       const implemented = getImplementedExperimentsBySubject('chemistry');
-      expect(implemented).toHaveLength(11);
+      expect(implemented).toHaveLength(16);
 
       const titles = implemented.map((e) => e.title);
       expect(titles).toContain('pH Testing');
@@ -149,6 +149,11 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(titles).toContain('Boiling Point Determination');
       expect(titles).toContain('pH Determination');
       expect(titles).toContain('Strong vs Weak Acids');
+      expect(titles).toContain('Chemical Equilibrium');
+      expect(titles).toContain('Standard Solution Preparation');
+      expect(titles).toContain('Acid-Base Titration');
+      expect(titles).toContain('Salt Analysis');
+      expect(titles).toContain('Organic Element Detection');
 
       for (const exp of implemented) {
         expect(['foundation', 'class-11']).toContain(exp.classLevel);
@@ -156,14 +161,14 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       }
     });
 
-    it('should have 16 Class 11 & Class 12 Chemistry experiments marked as under-development with reuse mappings where applicable', () => {
+    it('should have 11 Class 12 Chemistry experiments marked as under-development with reuse mappings where applicable', () => {
       const class11 = getExperimentsByClassLevel('chemistry', 'class-11');
       const class12 = getExperimentsByClassLevel('chemistry', 'class-12');
 
       const class11UnderDev = class11.filter((e) => e.implementationStatus === 'under-development');
       const class12UnderDev = class12.filter((e) => e.implementationStatus === 'under-development');
 
-      expect(class11UnderDev).toHaveLength(5);
+      expect(class11UnderDev).toHaveLength(0);
       expect(class12UnderDev).toHaveLength(11);
 
       // Check reuse mapping
@@ -185,8 +190,8 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     const implemented = all.filter((e) => e.implementationStatus === 'implemented');
     const underDev = all.filter((e) => e.implementationStatus === 'under-development');
 
-    expect(implemented).toHaveLength(36);
-    expect(underDev).toHaveLength(16);
+    expect(implemented).toHaveLength(41);
+    expect(underDev).toHaveLength(11);
 
     for (const exp of all) {
       expect(exp.id).toBeTruthy();
@@ -236,12 +241,20 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(prism?.classLevel).toBe('class-12');
     expect(prism?.implementationStatus).toBe('implemented');
 
-    // Chemistry Under-development
+    // Implemented Class 11 Chemistry (Phase 8)
     const titration = getExperimentById('acid-base-titration');
     expect(titration).toBeDefined();
     expect(titration?.title).toBe('Acid-Base Titration');
     expect(titration?.subjectId).toBe('chemistry');
     expect(titration?.classLevel).toBe('class-11');
-    expect(titration?.implementationStatus).toBe('under-development');
+    expect(titration?.implementationStatus).toBe('implemented');
+
+    // Chemistry Class 12 Under-development
+    const kineticsExp = getExperimentById('chemical-kinetics');
+    expect(kineticsExp).toBeDefined();
+    expect(kineticsExp?.title).toBe('Chemical Kinetics');
+    expect(kineticsExp?.subjectId).toBe('chemistry');
+    expect(kineticsExp?.classLevel).toBe('class-12');
+    expect(kineticsExp?.implementationStatus).toBe('under-development');
   });
 });

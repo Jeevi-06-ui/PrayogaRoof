@@ -6125,6 +6125,664 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
         );
       }
 
+      case 'equilibrium-vessel': {
+        const sysType = String(object.properties.systemType ?? 'fe-scn');
+        const tempC = Number(object.properties.temperatureC ?? 25);
+        const colorHex = String(object.state.colorHex ?? (sysType === 'fe-scn' ? '#dc2626' : '#b45309'));
+        const shift = String(object.state.shiftDirection ?? 'at-equilibrium');
+        const shiftLabel =
+          shift === 'forward' ? 'FORWARD ➔' : shift === 'reverse' ? '⬅ REVERSE' : 'EQUILIBRIUM ⇌';
+        const shiftColor =
+          shift === 'forward' ? '#34d399' : shift === 'reverse' ? '#f87171' : '#38bdf8';
+
+        return (
+          <Group>
+            {/* Housing Enclosure */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#334155'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Header: System & Shift */}
+            <Rect x={12} y={10} width={width - 24} height={22} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={sysType === 'fe-scn' ? 'Fe³⁺ + SCN⁻ ⇌ [Fe(SCN)]²⁺' : '2 NO₂(g) ⇌ N₂O₄(g)'}
+              x={18}
+              y={16}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <Rect x={width - 100} y={12} width={85} height={18} fill="#090d16" cornerRadius={3} />
+            <KonvaText
+              text={shiftLabel}
+              x={width - 96}
+              y={16}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={shiftColor}
+            />
+
+            {/* Chamber Viewport */}
+            <Rect
+              x={20}
+              y={40}
+              width={width - 40}
+              height={height - 95}
+              fill="#020617"
+              stroke="#475569"
+              strokeWidth={1.5}
+              cornerRadius={6}
+            />
+
+            {sysType === 'fe-scn' ? (
+              // Solution complex viewport
+              <Group>
+                {/* Cuvette glass outline */}
+                <Rect
+                  x={50}
+                  y={48}
+                  width={width - 100}
+                  height={height - 112}
+                  fill={colorHex}
+                  opacity={0.88}
+                  cornerRadius={4}
+                  stroke="#94a3b8"
+                  strokeWidth={1}
+                />
+                {/* Solution Meniscus */}
+                <Line
+                  points={[50, 52, (50 + width - 50) / 2, 54, width - 50, 52]}
+                  stroke="#ffffff"
+                  strokeWidth={1.5}
+                  opacity={0.7}
+                />
+                {/* Photometer Optical Beam Simulation */}
+                <Line
+                  points={[22, (40 + height - 55) / 2, width - 22, (40 + height - 55) / 2]}
+                  stroke="#38bdf8"
+                  strokeWidth={2}
+                  dash={[4, 3]}
+                  opacity={0.6}
+                />
+                <KonvaText
+                  text={`A₄₅₀ = ${Number(object.state.absorbance450nm ?? 0.85).toFixed(3)}`}
+                  x={width / 2 - 32}
+                  y={(40 + height - 55) / 2 - 16}
+                  fontSize={10}
+                  fontFamily="Courier New, monospace"
+                  fontStyle="bold"
+                  fill="#ffffff"
+                />
+              </Group>
+            ) : (
+              // Gaseous cylinder with piston
+              <Group>
+                {/* Gas Fill */}
+                <Rect
+                  x={30}
+                  y={55}
+                  width={width - 60}
+                  height={height - 125}
+                  fill={colorHex}
+                  opacity={Math.min(0.9, Math.max(0.15, Number(object.state.brownIntensityPercent ?? 50) / 100))}
+                  cornerRadius={3}
+                />
+                {/* Movable Piston Head */}
+                <Rect
+                  x={28}
+                  y={52}
+                  width={width - 56}
+                  height={10}
+                  fill="#64748b"
+                  stroke="#94a3b8"
+                  strokeWidth={1}
+                />
+                {/* Piston Rod */}
+                <Rect x={width / 2 - 4} y={35} width={8} height={18} fill="#94a3b8" />
+                <KonvaText
+                  text={`P = ${Number(object.state.totalPressureAtm ?? 1.2).toFixed(2)} atm`}
+                  x={width / 2 - 42}
+                  y={85}
+                  fontSize={11}
+                  fontFamily="Courier New, monospace"
+                  fontStyle="bold"
+                  fill="#ffffff"
+                />
+              </Group>
+            )}
+
+            {/* Parameter Badges */}
+            <Rect x={15} y={height - 50} width={width - 30} height={20} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={`T = ${tempC}°C`}
+              x={22}
+              y={height - 45}
+              fontSize={9}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text={
+                sysType === 'fe-scn'
+                  ? `Kc = ${Number(object.state.kc ?? 138)} M⁻¹`
+                  : `Kp = ${Number(object.state.kp ?? 8.8)} atm⁻¹`
+              }
+              x={width - 130}
+              y={height - 45}
+              fontSize={9}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+
+            {/* Principle Summary */}
+            <KonvaText
+              text={
+                sysType === 'fe-scn'
+                  ? 'Exothermic (ΔH° < 0): Chill ➔ Forward | Heat ➔ Reverse | Add F⁻ ➔ Bleach'
+                  : 'Exothermic (2 mol ➔ 1 mol): Compress ➔ Forward | Heat ➔ NO₂ Brown'
+              }
+              x={16}
+              y={height - 24}
+              fontSize={7.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#94a3b8"
+            />
+          </Group>
+        );
+      }
+
+      case 'volumetric-flask': {
+        const capacity = 250;
+        const volume = Number(object.properties.liquidVolume ?? 250.0);
+        const actualM = Number(object.state.actualMolarityM ?? 0.1);
+        const soluteName = String(object.properties.soluteType ?? 'oxalic-acid') === 'oxalic-acid' ? 'Oxalic Acid' : 'Na₂CO₃';
+        const isAligned = Math.abs(volume - capacity) <= 0.5;
+
+        // Pear shape dimensions
+        const neckWidth = 24;
+        const neckHeight = 90;
+        const neckX = width / 2 - neckWidth / 2;
+        const neckY = 30;
+        const bulbCenterY = 160;
+        const bulbRadius = 52;
+
+        const liquidRatio = Math.min(1.05, Math.max(0, volume / capacity));
+        const liquidTopY = bulbCenterY + bulbRadius - liquidRatio * (bulbRadius * 2 + neckHeight * 0.7);
+
+        return (
+          <Group>
+            {/* Ground-glass Stopper */}
+            {object.properties.isStoppered !== false && (
+              <Group>
+                <Rect x={neckX + 3} y={12} width={neckWidth - 6} height={20} fill="#94a3b8" cornerRadius={3} opacity={0.8} />
+                <Circle x={width / 2} y={12} radius={7} fill="#64748b" />
+              </Group>
+            )}
+
+            {/* Flask Glass Body (Bulb + Neck) */}
+            <Circle x={width / 2} y={bulbCenterY} radius={bulbRadius} fill="#0f172a" stroke="#64748b" strokeWidth={2} />
+            <Rect x={neckX} y={neckY} width={neckWidth} height={neckHeight} fill="#0f172a" stroke="#64748b" strokeWidth={2} />
+
+            {/* Liquid Fill */}
+            <Group clipFunc={(ctx) => {
+              ctx.arc(width / 2, bulbCenterY, bulbRadius - 2, 0, Math.PI * 2, false);
+              ctx.rect(neckX + 1, neckY, neckWidth - 2, neckHeight);
+            }}>
+              <Rect
+                x={0}
+                y={liquidTopY}
+                width={width}
+                height={height - liquidTopY}
+                fill="#38bdf8"
+                opacity={0.35}
+              />
+              {/* Concave Meniscus Curve */}
+              <Line
+                points={[
+                  neckX + 2, liquidTopY,
+                  width / 2, liquidTopY + 2.5,
+                  neckX + neckWidth - 2, liquidTopY
+                ]}
+                stroke="#38bdf8"
+                strokeWidth={2}
+                opacity={0.9}
+              />
+            </Group>
+
+            {/* Etched Graduation Ring (250 mL mark) */}
+            <Line
+              points={[neckX - 4, neckY + 45, neckX + neckWidth + 4, neckY + 45]}
+              stroke={isAligned ? '#34d399' : '#ef4444'}
+              strokeWidth={2}
+            />
+            <KonvaText
+              text="250 mL Mark"
+              x={neckX + neckWidth + 6}
+              y={neckY + 40}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isAligned ? '#34d399' : '#94a3b8'}
+            />
+
+            {/* Information Plate */}
+            <Rect x={15} y={height - 40} width={width - 30} height={32} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={`${soluteName}: ${actualM.toFixed(4)} M`}
+              x={22}
+              y={height - 35}
+              fontSize={9}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text={isAligned ? '✓ MENISCUS ALIGNED (Class A)' : `V = ${volume.toFixed(1)} mL`}
+              x={22}
+              y={height - 20}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isAligned ? '#34d399' : '#f59e0b'}
+            />
+          </Group>
+        );
+      }
+
+      case 'titration-bench': {
+        const titrantV = Number(object.properties.titrantDeliveredMl ?? 0.0);
+        const eqV = Number(object.state.equivalenceVolumeMl ?? 40.0);
+        const ph = Number(object.state.ph ?? 1.85);
+        const isEndpoint = object.state.isAtEndpoint === true;
+        const colorHex = String(object.state.solutionColorHex ?? '#f8fafc');
+        const indicator = String(object.properties.indicator ?? 'phenolphthalein');
+
+        // Burette geometry
+        const buretteX = 85;
+        const buretteY = 20;
+        const buretteW = 22;
+        const buretteH = 140;
+
+        // Conical flask geometry
+        const flaskCenterX = 96;
+        const flaskY = 175;
+
+        return (
+          <Group>
+            {/* Workbench Base */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#334155'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Retort Stand (Iron base + steel rod + clamp) */}
+            <Rect x={18} y={height - 45} width={130} height={14} fill="#334155" cornerRadius={3} />
+            <Rect x={40} y={15} width={8} height={height - 60} fill="#64748b" />
+            <Rect x={40} y={75} width={45} height={6} fill="#475569" />
+
+            {/* Burette Glass Column */}
+            <Rect
+              x={buretteX}
+              y={buretteY}
+              width={buretteW}
+              height={buretteH}
+              fill="#090d16"
+              stroke="#94a3b8"
+              strokeWidth={1.5}
+              cornerRadius={2}
+            />
+
+            {/* Burette Titrant Liquid Level */}
+            <Rect
+              x={buretteX + 2}
+              y={buretteY + (titrantV / 50.0) * buretteH}
+              width={buretteW - 4}
+              height={buretteH - (titrantV / 50.0) * buretteH}
+              fill="#38bdf8"
+              opacity={0.4}
+            />
+
+            {/* Burette Graduations */}
+            {[0, 10, 20, 30, 40, 50].map((v) => (
+              <Group key={v}>
+                <Line
+                  points={[
+                    buretteX + buretteW - 7,
+                    buretteY + (v / 50.0) * buretteH,
+                    buretteX + buretteW - 1,
+                    buretteY + (v / 50.0) * buretteH,
+                  ]}
+                  stroke="#e2e8f0"
+                  strokeWidth={1}
+                />
+              </Group>
+            ))}
+
+            {/* Burette Stopcock Valve & Tip */}
+            <Line points={[buretteX + buretteW / 2, buretteY + buretteH, buretteX + buretteW / 2, buretteY + buretteH + 15]} stroke="#94a3b8" strokeWidth={3} />
+            <Circle x={buretteX + buretteW / 2} y={buretteY + buretteH + 8} radius={5} fill="#0284c7" />
+
+            {/* Dropping stream */}
+            <Circle x={buretteX + buretteW / 2} y={buretteY + buretteH + 22} radius={2} fill="#38bdf8" />
+            <Circle x={buretteX + buretteW / 2} y={buretteY + buretteH + 28} radius={2.5} fill="#38bdf8" />
+
+            {/* Erlenmeyer Conical Flask */}
+            <Line
+              points={[
+                flaskCenterX - 12, flaskY,
+                flaskCenterX + 12, flaskY,
+                flaskCenterX + 38, flaskY + 55,
+                flaskCenterX - 38, flaskY + 55,
+              ]}
+              closed
+              fill={colorHex}
+              stroke="#cbd5e1"
+              strokeWidth={2}
+              opacity={0.9}
+            />
+
+            {/* Swirling lines inside flask */}
+            <Line
+              points={[flaskCenterX - 15, flaskY + 42, flaskCenterX, flaskY + 46, flaskCenterX + 15, flaskY + 42]}
+              stroke="#ffffff"
+              strokeWidth={1.5}
+              opacity={0.6}
+            />
+
+            {/* Digital pH & Titre Display Panel */}
+            <Rect x={150} y={20} width={width - 165} height={height - 40} fill="#1e293b" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+            <KonvaText text="TITRATION MONITOR" x={160} y={28} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#94a3b8" />
+
+            <KonvaText text="pH Readout" x={160} y={46} fontSize={8} fontFamily="sans-serif" fill="#64748b" />
+            <KonvaText text={`pH ${ph.toFixed(2)}`} x={160} y={58} fontSize={16} fontFamily="Courier New, monospace" fontStyle="bold" fill="#38bdf8" />
+
+            <KonvaText text={`Delivered: ${titrantV.toFixed(1)} mL`} x={160} y={88} fontSize={10} fontFamily="sans-serif" fontStyle="bold" fill="#f8fafc" />
+            <KonvaText text={`Equiv Veq: ${eqV.toFixed(1)} mL`} x={160} y={104} fontSize={9} fontFamily="sans-serif" fill="#94a3b8" />
+            <KonvaText text={`Indicator: ${indicator === 'phenolphthalein' ? 'Phenolphthalein' : 'Methyl Orange'}`} x={160} y={120} fontSize={8.5} fontFamily="sans-serif" fill="#cbd5e1" />
+
+            {/* Endpoint Status Pill */}
+            <Rect
+              x={160}
+              y={145}
+              width={width - 185}
+              height={26}
+              fill={isEndpoint ? '#065f46' : '#1e1b4b'}
+              stroke={isEndpoint ? '#10b981' : '#6366f1'}
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+            <KonvaText
+              text={isEndpoint ? '★ ENDPOINT REACHED' : titrantV > eqV ? 'OVER-TITRATED' : 'TITRATION ACTIVE'}
+              x={168}
+              y={152}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isEndpoint ? '#34d399' : '#a5b4fc'}
+            />
+
+            <KonvaText
+              text={isEndpoint ? 'Permanent pale pink tinge' : 'Transient flashes on swirling'}
+              x={160}
+              y={182}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fill="#94a3b8"
+            />
+          </Group>
+        );
+      }
+
+      case 'salt-analysis-bench': {
+        const saltName = String(object.properties.selectedSalt ?? 'nh4cl');
+        const testName = String(object.state.testName ?? 'Physical Examination');
+        const tubeColor = String(object.state.tubeColorHex ?? '#f1f5f9');
+        const pptColor = String(object.state.precipitateColorHex ?? '');
+        const pptLabel = String(object.state.precipitateLabel ?? '');
+        const gasEvol = String(object.state.gasEvolution ?? '');
+        const flameColor = String(object.state.flameColorHex ?? '');
+        const inference = String(object.state.inference ?? 'Investigating unknown salt');
+
+        return (
+          <Group>
+            {/* Workbench Base */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#334155'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Header: Selected Salt */}
+            <Rect x={12} y={10} width={width - 24} height={20} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={`Qualitative Analysis: ${saltName.toUpperCase()} sample`}
+              x={18}
+              y={15}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+
+            {/* Test Tube Rack & Reaction Tube */}
+            <Rect x={20} y={40} width={100} height={height - 65} fill="#1e293b" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+
+            {/* Glass Test Tube in Rack */}
+            <Rect
+              x={55}
+              y={50}
+              width={30}
+              height={120}
+              fill="#090d16"
+              stroke="#94a3b8"
+              strokeWidth={1.5}
+              cornerRadius={[0, 0, 15, 15]}
+            />
+
+            {/* Liquid / Solution column */}
+            <Rect
+              x={56}
+              y={95}
+              width={28}
+              height={74}
+              fill={tubeColor}
+              opacity={0.85}
+              cornerRadius={[0, 0, 14, 14]}
+            />
+
+            {/* Precipitate layer at bottom */}
+            {pptColor && (
+              <Rect
+                x={56}
+                y={150}
+                width={28}
+                height={19}
+                fill={pptColor}
+                opacity={0.95}
+                cornerRadius={[0, 0, 14, 14]}
+              />
+            )}
+
+            {/* Rising gas bubbles */}
+            {gasEvol && (
+              <Group>
+                <Circle x={65} y={130} radius={2.5} fill="#ffffff" opacity={0.8} />
+                <Circle x={75} y={115} radius={3} fill="#ffffff" opacity={0.9} />
+                <Circle x={68} y={100} radius={2} fill="#ffffff" opacity={0.8} />
+                <KonvaText text="♨ GAS" x={58} y={78} fontSize={7} fontFamily="sans-serif" fontStyle="bold" fill="#fca5a5" />
+              </Group>
+            )}
+
+            {/* Flame Test Glow Simulation */}
+            {flameColor && (
+              <Group>
+                <Circle x={70} y={190} radius={18} fill={flameColor} opacity={0.6} />
+                <Circle x={70} y={190} radius={10} fill="#ffffff" opacity={0.8} />
+                <KonvaText text="FLAME" x={58} y={185} fontSize={7} fontFamily="sans-serif" fontStyle="bold" fill="#0f172a" />
+              </Group>
+            )}
+
+            {/* Analytical Results Card */}
+            <Rect x={130} y={40} width={width - 145} height={height - 65} fill="#090d16" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+            <KonvaText text="DIAGNOSTIC TEST OUTCOME" x={140} y={48} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#38bdf8" />
+            <KonvaText text={testName} x={140} y={64} fontSize={11} fontFamily="sans-serif" fontStyle="bold" fill="#ffffff" />
+
+            <KonvaText text="Inference / Radicals:" x={140} y={85} fontSize={8.5} fontFamily="sans-serif" fill="#94a3b8" />
+            <KonvaText text={inference} x={140} y={98} width={width - 160} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#34d399" />
+
+            {pptLabel && (
+              <Group>
+                <KonvaText text="Precipitate:" x={140} y={130} fontSize={8.5} fontFamily="sans-serif" fill="#94a3b8" />
+                <KonvaText text={pptLabel} x={140} y={142} width={width - 160} fontSize={8.5} fontFamily="sans-serif" fill="#fde047" />
+              </Group>
+            )}
+
+            {/* Chemical Equation Bar */}
+            <Rect x={135} y={height - 45} width={width - 155} height={18} fill="#1e293b" cornerRadius={3} />
+            <KonvaText
+              text={String(object.state.chemicalEquation ?? 'Systematic precipitation & complexation')}
+              x={140}
+              y={height - 41}
+              width={width - 165}
+              fontSize={7.5}
+              fontFamily="Courier New, monospace"
+              fill="#cbd5e1"
+            />
+          </Group>
+        );
+      }
+
+      case 'element-detection-bench': {
+        const sampleId = String(object.properties.selectedSample ?? 'urea');
+        const testName = String(object.state.testName ?? 'Prussian Blue Test for Nitrogen');
+        const targetElement = String(object.state.targetElement ?? 'Nitrogen');
+        const isPos = object.state.isPositive === true;
+        const tubeColor = String(object.state.tubeColorHex ?? '#1e3a8a');
+        const pptLabel = String(object.state.precipitateLabel ?? '');
+        const inference = String(object.state.inference ?? 'Analyzing extract');
+
+        return (
+          <Group>
+            {/* Workbench Base */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#334155'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Header: Compound & Safe Lassaigne Aliquot */}
+            <Rect x={12} y={10} width={width - 24} height={20} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={`Lassaigne Extract: ${sampleId.toUpperCase()}`}
+              x={18}
+              y={15}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text="SAFE VIRTUAL FILTRATE"
+              x={width - 130}
+              y={15}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#34d399"
+            />
+
+            {/* 3 Parallel Micro-Test Tubes Rack */}
+            <Rect x={20} y={40} width={120} height={height - 65} fill="#1e293b" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+
+            {/* Tube 1: Nitrogen */}
+            <Rect x={30} y={55} width={22} height={100} fill="#090d16" stroke="#94a3b8" strokeWidth={1} cornerRadius={[0, 0, 11, 11]} />
+            <Rect x={31} y={95} width={20} height={59} fill={targetElement.includes('Nitrogen') ? tubeColor : '#1e3a8a'} opacity={0.85} cornerRadius={[0, 0, 10, 10]} />
+            <KonvaText text="N" x={38} y={160} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#38bdf8" />
+
+            {/* Tube 2: Sulphur */}
+            <Rect x={68} y={55} width={22} height={100} fill="#090d16" stroke="#94a3b8" strokeWidth={1} cornerRadius={[0, 0, 11, 11]} />
+            <Rect x={69} y={95} width={20} height={59} fill={targetElement.includes('Sulphur') ? tubeColor : '#7e22ce'} opacity={0.85} cornerRadius={[0, 0, 10, 10]} />
+            <KonvaText text="S" x={76} y={160} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#a855f7" />
+
+            {/* Tube 3: Halogen */}
+            <Rect x={106} y={55} width={22} height={100} fill="#090d16" stroke="#94a3b8" strokeWidth={1} cornerRadius={[0, 0, 11, 11]} />
+            <Rect x={107} y={95} width={20} height={59} fill={targetElement.includes('Halogen') ? tubeColor : '#fde047'} opacity={0.85} cornerRadius={[0, 0, 10, 10]} />
+            <KonvaText text="X" x={113} y={160} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#eab308" />
+
+            {/* Diagnostic Results Card */}
+            <Rect x={150} y={40} width={width - 165} height={height - 65} fill="#090d16" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+            <KonvaText text="ELEMENT IDENTIFICATION" x={160} y={48} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#38bdf8" />
+            <KonvaText text={testName} x={160} y={64} fontSize={10} fontFamily="sans-serif" fontStyle="bold" fill="#ffffff" />
+
+            {/* Positive / Negative Result Badge */}
+            <Rect
+              x={160}
+              y={85}
+              width={100}
+              height={22}
+              fill={isPos ? '#065f46' : '#7f1d1d'}
+              stroke={isPos ? '#10b981' : '#ef4444'}
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+            <KonvaText
+              text={isPos ? `✓ POSITIVE (${targetElement})` : `✗ NEGATIVE (${targetElement})`}
+              x={166}
+              y={90}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isPos ? '#34d399' : '#fca5a5'}
+            />
+
+            <KonvaText text={inference} x={160} y={118} width={width - 180} fontSize={8.5} fontFamily="sans-serif" fill="#e2e8f0" />
+            {pptLabel && (
+              <KonvaText text={pptLabel} x={160} y={145} width={width - 180} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#38bdf8" />
+            )}
+
+            {/* Chemical Equation */}
+            <Rect x={155} y={height - 45} width={width - 175} height={18} fill="#1e293b" cornerRadius={3} />
+            <KonvaText
+              text={String(object.state.chemicalEquation ?? 'Ionic conversion in Lassaigne fusion')}
+              x={160}
+              y={height - 41}
+              width={width - 185}
+              fontSize={7.5}
+              fontFamily="Courier New, monospace"
+              fill="#cbd5e1"
+            />
+          </Group>
+        );
+      }
+
       case 'generic-box':
       default: {
         const displayVal =

@@ -237,6 +237,36 @@ test.describe('PrayogaProof E2E Test Suite', () => {
     await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
   });
 
+  test('Loads Chemical Equilibrium workspace and verifies Le Chatelier reaction chamber', async ({ page }) => {
+    await page.goto('/workspace/chemical-equilibrium');
+    await expect(page.getByText(/Chemical Equilibrium/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Standard Solution Preparation workspace and verifies volumetric flask & balance', async ({ page }) => {
+    await page.goto('/workspace/standard-solution-prep');
+    await expect(page.getByText(/Preparation of a Standard Solution of Oxalic Acid/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Acid-Base Titration workspace and verifies burette, conical flask & endpoint', async ({ page }) => {
+    await page.goto('/workspace/acid-base-titration');
+    await expect(page.getByText(/Determination of NaOH Strength by Titration/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Salt Analysis workspace and verifies qualitative testing workbench', async ({ page }) => {
+    await page.goto('/workspace/salt-analysis-class11');
+    await expect(page.getByText(/Qualitative Analysis of Inorganic Salts/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Organic Element Detection workspace and verifies Lassaigne extract workbench', async ({ page }) => {
+    await page.goto('/workspace/organic-element-detection');
+    await expect(page.getByText(/Qualitative Detection of Nitrogen, Sulphur, and Halogens/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
   test('Handles 404 route gracefully with return navigation', async ({ page }) => {
     await page.goto('/non-existent-route');
     await expect(page.getByText(/404 - Laboratory Page Not Found/i)).toBeVisible();

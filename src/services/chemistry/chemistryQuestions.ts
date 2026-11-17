@@ -7,6 +7,13 @@ import {
   PH_DETERMINATION_QUESTIONS,
   STRONG_VS_WEAK_ACIDS_QUESTIONS,
 } from './class11Questions';
+import {
+  CHEMICAL_EQUILIBRIUM_QUESTIONS,
+  STANDARD_SOLUTION_PREP_QUESTIONS,
+  ACID_BASE_TITRATION_QUESTIONS,
+  SALT_ANALYSIS_QUESTIONS,
+  ORGANIC_ELEMENT_DETECTION_QUESTIONS,
+} from './class11Phase8Questions';
 
 export {
   BASIC_LAB_TECHNIQUES_QUESTIONS,
@@ -15,6 +22,11 @@ export {
   CRYSTALLISATION_CLASS11_QUESTIONS,
   PH_DETERMINATION_QUESTIONS,
   STRONG_VS_WEAK_ACIDS_QUESTIONS,
+  CHEMICAL_EQUILIBRIUM_QUESTIONS,
+  STANDARD_SOLUTION_PREP_QUESTIONS,
+  ACID_BASE_TITRATION_QUESTIONS,
+  SALT_ANALYSIS_QUESTIONS,
+  ORGANIC_ELEMENT_DETECTION_QUESTIONS,
 };
 
 export const PH_TESTING_QUESTIONS: ConceptualQuestion[] = [
@@ -281,6 +293,16 @@ export function getChemistryQuestions(experimentId: string): ConceptualQuestion[
       return PH_DETERMINATION_QUESTIONS;
     case 'strong-vs-weak-acids':
       return STRONG_VS_WEAK_ACIDS_QUESTIONS;
+    case 'chemical-equilibrium':
+      return CHEMICAL_EQUILIBRIUM_QUESTIONS;
+    case 'standard-solution-prep':
+      return STANDARD_SOLUTION_PREP_QUESTIONS;
+    case 'acid-base-titration':
+      return ACID_BASE_TITRATION_QUESTIONS;
+    case 'salt-analysis-class11':
+      return SALT_ANALYSIS_QUESTIONS;
+    case 'organic-element-detection':
+      return ORGANIC_ELEMENT_DETECTION_QUESTIONS;
     default:
       return [];
   }

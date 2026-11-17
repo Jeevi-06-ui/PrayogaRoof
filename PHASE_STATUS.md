@@ -11,10 +11,10 @@
 | Category | Total Experiments | Implemented (Active) | Under Development | Status |
 |----------|-------------------|----------------------|-------------------|--------|
 | **Physics** | **25** | **25** (5 Foundation + 10 Class 11 + 10 Class 12) | **0** (Physics Curriculum 100% Complete) | **100% Complete (Active Operational)** |
-| **Chemistry** | **27** | **11** (5 Foundation + 6 Class 11) | **16** (Class 11: 5, Class 12: 11) | **Active (Phase 7 Complete)** |
+| **Chemistry** | **27** | **16** (5 Foundation + 11 Class 11) | **11** (Class 12: 11) | **Active (Phase 8 Complete — Class 11 100% Complete)** |
 | **Biology** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
 | **Mathematics** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
-| **Total** | **52** | **36** (69.2%) | **16** (30.8%) | **Verified Operational Baseline** |
+| **Total** | **52** | **41** (78.8%) | **11** (21.2%) | **Verified Operational Baseline** |
 
 ---
 
@@ -70,7 +70,7 @@
 | 4 | `displacement-reaction` | Displacement Reaction | Foundation | **Implemented** | Single displacement redox kinetics ($\text{Fe} + \text{CuSO}_4 \to \text{FeSO}_4 + \text{Cu}$), copper plating visualization, solution color transition from blue to pale green. |
 | 5 | `crystallisation` | Crystallisation | Foundation | **Implemented** | Thermal evaporation engine, Bunsen burner heating, saturated copper sulphate solution preparation, cooling crystallization on watch glass. |
 
-### Class 11 Experiments — 6 of 11 Operational (Phase 7 Complete)
+### Class 11 Experiments — 11 of 11 Operational (100% Implemented — Phase 8 Complete)
 | # | ID | Title | Class Level | Status | Scientific Engine & Capabilities |
 |---|----|-------|-------------|--------|----------------------------------|
 | 6 | `basic-lab-techniques` | Basic Laboratory Techniques | Class 11 | **Implemented** | Precision 50 mL graduated burette on retort stand with stopcock valve, digital analytical balance ($d = 0.001\text{ g}$) with electronic tare subtraction, volumetric cylinder meniscus alignment, gravimetric transfer verification ($\rho \approx 1.000\text{ g/mL}$). |
@@ -79,11 +79,11 @@
 | 9 | `crystallisation-class11` | Crystallisation | Class 11 | **Implemented** | **Reuses & extends crystallisation engine** for Class 11 impure sample purification: hot solvent dissolution, hot gravity filtration with fluted filter paper, concentration to crystallisation point, undisturbed lattice growth, percentage recovery yield calculation ($82.5\%$). |
 | 10 | `ph-determination` | pH Determination | Class 11 | **Implemented** | **Reuses & extends pH engine** for Class 11: biological fruit juices (orange juice pH 3.6, tomato extract pH 4.3, apple juice pH 3.9), salt hydrolysis shifts (acidic $\text{NH}_4\text{Cl}$ pH 5.13 vs basic $\text{CH}_3\text{COONa}$ pH 8.87), Henderson-Hasselbalch equimolar acetate buffer (pH 4.74). |
 | 11 | `strong-vs-weak-acids` | Strong vs Weak Acids | Class 11 | **Implemented** | Dual comparator workstation comparing equimolar ($0.1\text{ M}, 0.01\text{ M}, 0.001\text{ M}$) $\text{HCl}$ vs $\text{CH}_3\text{COOH}$, Ostwald's dilution law ($\alpha = 100\%$ vs $\alpha = 1.31\%$), $[H^+]$ ratio ($76.1\times$), magnesium effervescence rate (vigorous vs gentle), identical stoichiometric $\text{H}_2$ volume ($24.0\text{ mL}$). |
-| 12 | `chemical-equilibrium` | Chemical Equilibrium | Class 11 | **Under Development** | $\text{Fe}^{3+} + \text{SCN}^- \rightleftharpoons [\text{Fe(SCN)}]^{2+}$ Le Chatelier perturbation response. |
-| 13 | `standard-solution-prep` | Standard Solution Preparation | Class 11 | **Under Development** | Analytical balance weighing, transfer funnel, volumetric flask dilution to mark. |
-| 14 | `acid-base-titration` | Acid-Base Titration | Class 11 | **Under Development** | Stopcock burette, conical flask swirling, phenolphthalein end-point, concordant titer calculation. |
-| 15 | `salt-analysis-class11` | Salt Analysis (Class 11) | Class 11 | **Under Development** | Systematic dry and wet tests for basic radicals and acid radicals. |
-| 16 | `organic-element-detection` | Detection of Elements in Organic Compounds | Class 11 | **Under Development** | Lassaigne's sodium fusion extract, Prussian blue test for N, lead acetate test for S, $\text{AgNO}_3$ test for halogens. |
+| 12 | `chemical-equilibrium` | Chemical Equilibrium | Class 11 | **Implemented** | Closed equilibrium chamber modeling $\text{Fe}^{3+} + \text{SCN}^- \rightleftharpoons [\text{Fe(SCN)}]^{2+}$ solution complex ($K_c = 138\text{ M}^{-1}$ at $25^\circ\text{C}$, $\Delta H^\circ = -24.2\text{ kJ/mol}$) and $2\text{NO}_2(\text{g}) \rightleftharpoons \text{N}_2\text{O}_4(\text{g})$ gas compression/temperature shifts, Beer-Lambert absorbance at 450 nm, fluoride ion sequestration. |
+| 13 | `standard-solution-prep` | Standard Solution Preparation | Class 11 | **Implemented** | Volumetric measuring flask ($250\text{ mL}$ Class A), digital analytical balance, primary standard oxalic acid dihydrate ($M_w = 126.07\text{ g/mol}$) or sodium carbonate, stoichiometric mass calculation ($w = \frac{M \cdot M_w \cdot V}{1000} = 3.152\text{ g}$), bottom-meniscus alignment, and homogenization. |
+| 14 | `acid-base-titration` | Acid-Base Titration | Class 11 | **Implemented** | Integrated titration workbench with 50 mL graduated burette on retort stand, conical flask with magnetic swirling, diprotic oxalic acid vs $\sim 0.1\text{ M }\text{NaOH}$ titration ($2\text{NaOH} + \text{H}_2\text{C}_2\text{O}_4 \to \text{Na}_2\text{C}_2\text{O}_4 + 2\text{H}_2\text{O}$), phenolphthalein end-point detection at $V_{\text{eq}} = 40.0\text{ mL}$ ($\text{pH} \approx 8.4$, pale pink), derivative slope $d(\text{pH})/dV$. |
+| 15 | `salt-analysis-class11` | Salt Analysis (Class 11) | Class 11 | **Implemented** | Multi-tube qualitative salt analysis workbench with standard catalogue of 8 salts ($\text{NH}_4\text{Cl}, \text{Pb(NO}_3)_2, \text{CuSO}_4, \text{FeSO}_4, \text{AlCl}_3, \text{ZnSO}_4, \text{CaCl}_2, \text{MgSO}_4$) across Zero through Group VI cations and dilute/conc/independent acid radicals with systematic educational decision trees. |
+| 16 | `organic-element-detection` | Detection of Elements in Organic Compounds | Class 11 | **Implemented** | Safe virtual qualitative identification testing on pre-fused Lassaigne's sodium fusion extract: Prussian blue test for Nitrogen ($\text{Fe}_4[\text{Fe(CN)}_6]_3$), sodium nitroprusside (purple) and lead acetate (black $\text{PbS}$) tests for Sulphur, and $\text{AgNO}_3$ differential solubility tests for Halogens ($\text{AgCl, AgBr, AgI}$). |
 
 ### Class 12 Experiments — 11 of 11 Registered (Under Development)
 | # | ID | Title | Class Level | Status | Reused Engine / Target Capabilities |
@@ -106,27 +106,28 @@
 
 ### Automated Test Suite Execution
 - **Unit & Integration Tests (Vitest):**
-  - **19 Test Files** evaluated.
-  - **161 Tests Passing** (100% pass rate).
+  - **36 Test Files** evaluated.
+  - **299 Tests Passing** (100% pass rate).
   - Includes full coverage of:
     - Electrical MNA nodal circuit solver.
-    - Ray optics thin-lens model.
+    - Ray optics thin-lens model and mirrors/prism.
     - Magnetic dipole field approximations.
-    - Simple pendulum mechanics & mass-independence.
+    - Mechanics & rotational/vector dynamics.
     - Volumetric container transfer & fill levels.
-    - Universal and natural indicator chromic transition rules.
-    - Capillary paper chromatography retention factors.
-    - Displacement redox reaction kinetics.
-    - Thermal evaporation crystallization model.
+    - Chemical equilibrium (Le Chatelier van 't Hoff shift).
+    - Standard solution preparation & analytical balance gravimetrics.
+    - Acid-base titration with phenolphthalein/methyl orange & titration curves.
+    - Systematic qualitative salt analysis decision trees (Groups 0 to VI).
+    - Safe virtual Lassaigne extract element identification (N, S, Halogens).
     - Central registry schema validation for all 52 curriculum experiments.
     - Error boundary isolation and IndexedDB persistence.
 - **End-to-End Tests (Playwright):**
-  - **16 Tests Passing** across Chromium, Firefox, WebKit.
-  - Validates subject navigation, class filtering, experiment loading, canvas object manipulation, mode switching, and 404 resilience.
+  - **76 Tests Passing** across Chromium, Firefox, WebKit.
+  - Validates subject navigation, class filtering, experiment loading for all implemented physics and chemistry labs, canvas object manipulation, mode switching, and 404 resilience.
 - **Static Analysis & Build Verification:**
   - TypeScript Compiler (`tsc -b`): **0 Errors**.
   - ESLint (`npm run lint`): **0 Errors**.
-  - Production Build (`npm run build`): Clean minified bundle generated in `< 2.0s`.
+  - Production Build (`npm run build`): Clean minified bundle generated in `< 1.5s`.
 
 ---
 

@@ -826,6 +826,75 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
         value: `HCl pH=${sPH} (α=100%) vs CH₃COOH pH=${wPH} (α=1.31%). [H⁺] ratio: ${ratio}×, H₂ yield: ${h2} mL`,
         unit: '',
       };
+    } else if (experimentId === 'chemical-equilibrium') {
+      const eqUpdate = Object.entries(updates).find(([id]) => id.includes('eq') || id.includes('chamber'))?.[1];
+      const sys = eqUpdate?.system ?? 'fe-scn';
+      const temp = eqUpdate?.temperatureC ?? 25;
+      const shift = eqUpdate?.shiftDirection ?? 'at-equilibrium';
+      const kVal = sys === 'fe-scn' ? `Kc = ${eqUpdate?.kc ?? 138} M⁻¹` : `Kp = ${eqUpdate?.kp ?? 8.8} atm⁻¹`;
+      const appearance = eqUpdate?.opticalAppearance ?? 'Dynamic equilibrium';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${sys === 'fe-scn' ? 'Fe³⁺/SCN⁻' : 'NO₂/N₂O₄'} (T=${temp}°C)`,
+        value: `${kVal}, Shift: ${String(shift).toUpperCase()} — ${appearance}`,
+        unit: '',
+      };
+    } else if (experimentId === 'standard-solution-prep') {
+      const flaskUpdate = Object.entries(updates).find(([id]) => id.includes('flask') || id.includes('vol'))?.[1];
+      const solute = flaskUpdate?.soluteName ?? 'Oxalic Acid Dihydrate';
+      const w = flaskUpdate?.weighedMassGrams ?? 3.152;
+      const v = flaskUpdate?.liquidVolumeMl ?? 250.0;
+      const m = flaskUpdate?.actualMolarityM ?? 0.1000;
+      const n = flaskUpdate?.actualNormalityN ?? 0.2000;
+      const err = flaskUpdate?.percentageError ?? 0.0;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${solute} Standard Solution`,
+        value: `w=${w}g, V=${v}mL ➔ ${m} M (${n} N), Error: ${err}%`,
+        unit: '',
+      };
+    } else if (experimentId === 'acid-base-titration') {
+      const titUpdate = Object.entries(updates).find(([id]) => id.includes('titration') || id.includes('bench'))?.[1];
+      const vb = titUpdate?.titrantDeliveredMl ?? 0.0;
+      const veq = titUpdate?.equivalenceVolumeMl ?? 40.0;
+      const ph = titUpdate?.ph ?? 1.85;
+      const color = titUpdate?.indicatorColorName ?? 'Colorless';
+      const isEndpoint = titUpdate?.isAtEndpoint ? '★ ENDPOINT' : vb > veq ? 'Over-titrated' : 'In progress';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Titration at V=${vb} mL`,
+        value: `pH = ${ph} [${color}] (${isEndpoint}, Veq = ${veq} mL)`,
+        unit: '',
+      };
+    } else if (experimentId === 'salt-analysis-class11') {
+      const saltUpdate = Object.entries(updates).find(([id]) => id.includes('salt'))?.[1];
+      const salt = saltUpdate?.selectedSalt ?? 'nh4cl';
+      const test = saltUpdate?.testName ?? 'Physical Examination';
+      const obs = saltUpdate?.observation ?? 'Observation recorded';
+      const inf = saltUpdate?.inference ?? 'Inference';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${String(salt).toUpperCase()} — ${test}`,
+        value: `${obs} ➔ ${inf}`,
+        unit: '',
+      };
+    } else if (experimentId === 'organic-element-detection') {
+      const orgUpdate = Object.entries(updates).find(([id]) => id.includes('element'))?.[1];
+      const sample = orgUpdate?.selectedSample ?? 'urea';
+      const elem = orgUpdate?.targetElement ?? 'Nitrogen';
+      const pos = orgUpdate?.isPositive ? 'POSITIVE' : 'NEGATIVE';
+      const inf = orgUpdate?.inference ?? 'Result';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${String(sample).toUpperCase()} (${elem})`,
+        value: `[${pos}] ${inf}`,
+        unit: '',
+      };
     } else {
       let volt = 0;
       let curr = 0;
@@ -1919,7 +1988,17 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                                                                   ? 'Prism Refraction Quick Log'
                                                                   : experimentId === 'pn-junction-diode'
                                                                     ? 'P-N Diode Quick Log'
-                                                                    : 'Active Bench Quick Log'}
+                                                                    : experimentId === 'chemical-equilibrium'
+                                                                      ? 'Equilibrium Quick Log'
+                                                                      : experimentId === 'standard-solution-prep'
+                                                                        ? 'Standard Solution Quick Log'
+                                                                        : experimentId === 'acid-base-titration'
+                                                                          ? 'Titration Quick Log'
+                                                                          : experimentId === 'salt-analysis-class11'
+                                                                            ? 'Salt Analysis Quick Log'
+                                                                            : experimentId === 'organic-element-detection'
+                                                                              ? 'Element Detection Quick Log'
+                                                                              : 'Active Bench Quick Log'}
               </span>
               <p className="text-[10px] text-blue-700/80 dark:text-blue-400 leading-snug">
                 {experimentId === 'convex-lens'
@@ -1974,7 +2053,17 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                                                                   ? 'Instantly log angle of incidence i, angle of emergence e, deviation D, and minimum deviation Dm.'
                                                                   : experimentId === 'pn-junction-diode'
                                                                     ? 'Instantly log applied voltage V, diode voltage VD, loop current (mA/µA), and dynamic resistance rac.'
-                                                                    : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
+                                                                    : experimentId === 'chemical-equilibrium'
+                                                                      ? 'Instantly log equilibrium temperature, Kc/Kp value, shift direction, and optical appearance.'
+                                                                      : experimentId === 'standard-solution-prep'
+                                                                        ? 'Instantly log weighed mass w, solution volume V, actual molarity M, and percentage error.'
+                                                                        : experimentId === 'acid-base-titration'
+                                                                          ? 'Instantly log titrant volume delivered, pH, indicator color transition, and equivalence endpoint.'
+                                                                          : experimentId === 'salt-analysis-class11'
+                                                                            ? 'Instantly log analytical test name, diagnostic visual observation, and inferred radical.'
+                                                                            : experimentId === 'organic-element-detection'
+                                                                              ? 'Instantly log Lassaigne extract test procedure, element detected, and positive/negative status.'
+                                                                              : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
               </p>
               <Button
                 type="button"

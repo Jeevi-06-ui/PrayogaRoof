@@ -36,6 +36,11 @@ import {
   CRYSTALLISATION_CLASS11_QUESTIONS,
   PH_DETERMINATION_QUESTIONS,
   STRONG_VS_WEAK_ACIDS_QUESTIONS,
+  CHEMICAL_EQUILIBRIUM_QUESTIONS,
+  STANDARD_SOLUTION_PREP_QUESTIONS,
+  ACID_BASE_TITRATION_QUESTIONS,
+  SALT_ANALYSIS_QUESTIONS,
+  ORGANIC_ELEMENT_DETECTION_QUESTIONS,
 } from '../chemistry/chemistryQuestions';
 
 export const OHMS_LAW_QUESTIONS: ConceptualQuestion[] = [
@@ -139,6 +144,11 @@ export function getConceptualQuestions(experimentId: string): ConceptualQuestion
   if (experimentId === 'crystallisation-class11') return CRYSTALLISATION_CLASS11_QUESTIONS;
   if (experimentId === 'ph-determination') return PH_DETERMINATION_QUESTIONS;
   if (experimentId === 'strong-vs-weak-acids') return STRONG_VS_WEAK_ACIDS_QUESTIONS;
+  if (experimentId === 'chemical-equilibrium') return CHEMICAL_EQUILIBRIUM_QUESTIONS;
+  if (experimentId === 'standard-solution-prep') return STANDARD_SOLUTION_PREP_QUESTIONS;
+  if (experimentId === 'acid-base-titration') return ACID_BASE_TITRATION_QUESTIONS;
+  if (experimentId === 'salt-analysis-class11') return SALT_ANALYSIS_QUESTIONS;
+  if (experimentId === 'organic-element-detection') return ORGANIC_ELEMENT_DETECTION_QUESTIONS;
   if (experimentId === 'vernier-callipers') return VERNIER_CALLIPERS_QUESTIONS;
   if (experimentId === 'screw-gauge') return SCREW_GAUGE_QUESTIONS;
   if (experimentId === 'irregular-lamina') return IRREGULAR_LAMINA_QUESTIONS;

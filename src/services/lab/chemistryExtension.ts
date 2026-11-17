@@ -24,6 +24,30 @@ import {
   calculateBoilingPointState,
 } from '../chemistry/phaseTransitionModel';
 import { compareEquimolarAcids } from '../chemistry/acidStrengthModel';
+import {
+  calculateFeSCNEquilibrium,
+  calculateNO2N2O4Equilibrium,
+  EquilibriumSystemType,
+} from '../chemistry/equilibriumModel';
+import {
+  calculateTitrationState,
+  TitrationSystemType,
+  TitrationIndicator,
+} from '../chemistry/titrationModel';
+import {
+  calculateStandardSolutionState,
+  StandardSoluteType,
+} from '../chemistry/standardSolutionModel';
+import {
+  runSaltAnalysisTest,
+  SaltSampleId,
+  SaltTestId,
+} from '../chemistry/saltAnalysisModel';
+import {
+  runOrganicElementTest,
+  OrganicSampleId,
+  OrganicElementTestId,
+} from '../chemistry/organicElementModel';
 
 export const REAGENT_OPTIONS = [
   { label: 'Pure Distilled Water (H₂O)', value: 'pure-water' },
@@ -1436,6 +1460,368 @@ export const CHEMISTRY_EQUIPMENT: EquipmentDefinition[] = [
     ],
     renderType: 'acid-bench',
     colorTheme: '#4f46e5',
+  },
+  {
+    id: 'closed-equilibrium-chamber',
+    name: 'Closed Chemical Equilibrium Reaction Chamber',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Sealed reaction cell modeling reversible dynamic chemical equilibria with Le Chatelier perturbations (Fe³⁺/SCN⁻ complexation or NO₂/N₂O₄ compression & temperature shifts).',
+    iconName: 'Activity',
+    defaultWidth: 260,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'systemType',
+        label: 'Reversible Reaction System',
+        type: 'select',
+        defaultValue: 'fe-scn',
+        options: [
+          { label: 'Fe³⁺ + SCN⁻ ⇌ [Fe(SCN)]²⁺ (Blood-Red Complex)', value: 'fe-scn' },
+          { label: '2NO₂(g) ⇌ N₂O₄(g) (Reddish-Brown Vapor to Colorless)', value: 'no2-n2o4' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'temperatureC',
+        label: 'Chamber Temperature',
+        type: 'number',
+        defaultValue: 25,
+        min: 0,
+        max: 80,
+        step: 1,
+        unit: '°C',
+        editable: true,
+      },
+      {
+        id: 'addedFe3PlusM',
+        label: 'Perturbation: Added Fe³⁺ Concentration',
+        type: 'number',
+        defaultValue: 0,
+        min: 0,
+        max: 0.01,
+        step: 0.001,
+        unit: 'M',
+        editable: true,
+      },
+      {
+        id: 'addedSCNMinusM',
+        label: 'Perturbation: Added SCN⁻ Concentration',
+        type: 'number',
+        defaultValue: 0,
+        min: 0,
+        max: 0.01,
+        step: 0.001,
+        unit: 'M',
+        editable: true,
+      },
+      {
+        id: 'addedFluorideM',
+        label: 'Perturbation: Added F⁻ (Fe³⁺ Sequestration)',
+        type: 'number',
+        defaultValue: 0,
+        min: 0,
+        max: 0.01,
+        step: 0.001,
+        unit: 'M',
+        editable: true,
+      },
+      {
+        id: 'gasVolumeL',
+        label: 'Gaseous Volume / Piston Compression',
+        type: 'number',
+        defaultValue: 1.0,
+        min: 0.2,
+        max: 4.0,
+        step: 0.1,
+        unit: 'L',
+        editable: true,
+      },
+    ],
+    renderType: 'equilibrium-vessel',
+    colorTheme: '#dc2626',
+  },
+  {
+    id: 'volumetric-flask-250ml',
+    name: 'Volumetric Measuring Flask (250mL Class A)',
+    subjectId: 'chemistry',
+    category: 'container',
+    description:
+      'Precision Class A 250 mL volumetric flask with elongated neck, ground glass stopper, and single circular graduation mark for standard solution preparation.',
+    iconName: 'FlaskConical',
+    defaultWidth: 150,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [
+      {
+        id: 'mouth',
+        name: 'Flask Mouth',
+        type: 'fluid-in',
+        xOffset: 75,
+        yOffset: 0,
+        direction: 'north',
+        color: '#0284c7',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'soluteType',
+        label: 'Primary Standard Solute',
+        type: 'select',
+        defaultValue: 'oxalic-acid',
+        options: [
+          { label: 'Oxalic Acid Dihydrate (H₂C₂O₄·2H₂O, Mw=126.07)', value: 'oxalic-acid' },
+          { label: 'Anhydrous Sodium Carbonate (Na₂CO₃, Mw=105.99)', value: 'sodium-carbonate' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'targetMolarity',
+        label: 'Target Solution Molarity',
+        type: 'number',
+        defaultValue: 0.1,
+        min: 0.05,
+        max: 0.5,
+        step: 0.05,
+        unit: 'M',
+        editable: true,
+      },
+      {
+        id: 'weighedMassGrams',
+        label: 'Weighed Solute Mass',
+        type: 'number',
+        defaultValue: 3.152,
+        min: 0,
+        max: 20,
+        step: 0.001,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'liquidVolume',
+        label: 'Dilution Liquid Volume',
+        type: 'number',
+        defaultValue: 250.0,
+        min: 0,
+        max: 260,
+        step: 0.5,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'isDissolved',
+        label: 'Solute Completely Dissolved',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'isStoppered',
+        label: 'Ground-Glass Stopper Fitted',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'isInvertedHomogeneous',
+        label: 'Inverted to Homogenize',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+    ],
+    renderType: 'volumetric-flask',
+    colorTheme: '#0284c7',
+  },
+  {
+    id: 'titration-workbench',
+    name: 'Precision Acid-Base Titration Workbench',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Integrated titration setup featuring a 50 mL graduated burette on retort stand mounted over an Erlenmeyer conical flask with magnetic swirling, drop control, and indicator spectrophotometry.',
+    iconName: 'Pipette',
+    defaultWidth: 280,
+    defaultHeight: 280,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'system',
+        label: 'Titration Reaction System',
+        type: 'select',
+        defaultValue: 'oxalic-acid-naoh',
+        options: [
+          { label: 'Oxalic Acid (H₂C₂O₄, diprotic) vs NaOH (strong base)', value: 'oxalic-acid-naoh' },
+          { label: 'Hydrochloric Acid (HCl, strong acid) vs NaOH', value: 'hcl-naoh' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'analyteVolumeMl',
+        label: 'Analyte Volume in Conical Flask',
+        type: 'number',
+        defaultValue: 20.0,
+        min: 10,
+        max: 50,
+        step: 5,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'analyteMolarityM',
+        label: 'Analyte Acid Molarity',
+        type: 'number',
+        defaultValue: 0.1,
+        min: 0.02,
+        max: 0.5,
+        step: 0.01,
+        unit: 'M',
+        editable: true,
+      },
+      {
+        id: 'titrantMolarityM',
+        label: 'Titrant (NaOH) Molarity',
+        type: 'number',
+        defaultValue: 0.1,
+        min: 0.02,
+        max: 0.5,
+        step: 0.01,
+        unit: 'M',
+        editable: true,
+      },
+      {
+        id: 'titrantDeliveredMl',
+        label: 'Titrant Delivered from Burette',
+        type: 'number',
+        defaultValue: 0.0,
+        min: 0,
+        max: 50,
+        step: 0.1,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'indicator',
+        label: 'Endpoint Indicator',
+        type: 'select',
+        defaultValue: 'phenolphthalein',
+        options: [
+          { label: 'Phenolphthalein (Colorless -> Pale Pink, pH 8.3-10)', value: 'phenolphthalein' },
+          { label: 'Methyl Orange (Red -> Yellow-Orange, pH 3.1-4.4)', value: 'methyl-orange' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'isSwirling',
+        label: 'Flask Continuous Swirling Active',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+    ],
+    renderType: 'titration-bench',
+    colorTheme: '#ec4899',
+  },
+  {
+    id: 'salt-analysis-workbench',
+    name: 'Systematic Qualitative Salt Analysis Workbench',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Multi-tube qualitative salt testing station supporting preliminary, dry heating, flame, acid radical group, and cation group separation tests (Groups 0 to VI).',
+    iconName: 'FlaskConical',
+    defaultWidth: 320,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'selectedSalt',
+        label: 'Inorganic Unknown Salt Sample',
+        type: 'select',
+        defaultValue: 'nh4cl',
+        options: [
+          { label: 'Ammonium Chloride (NH₄Cl - Group 0)', value: 'nh4cl' },
+          { label: 'Lead(II) Nitrate (Pb(NO₃)₂ - Group I)', value: 'pb-no3-2' },
+          { label: 'Copper(II) Sulphate (CuSO₄ - Group II)', value: 'cuso4' },
+          { label: 'Iron(II) Sulphate (FeSO₄ - Group III)', value: 'feso4' },
+          { label: 'Aluminium Chloride (AlCl₃ - Group III)', value: 'alcl3' },
+          { label: 'Zinc Sulphate (ZnSO₄ - Group IV)', value: 'znso4' },
+          { label: 'Calcium Chloride (CaCl₂ - Group V)', value: 'cacl2' },
+          { label: 'Magnesium Sulphate (MgSO₄ - Group VI)', value: 'mgso4' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'currentTest',
+        label: 'Systematic Analytical Test',
+        type: 'select',
+        defaultValue: 'physical',
+        options: [
+          { label: '1. Physical & Visual Examination', value: 'physical' },
+          { label: '2. Dry Heating Test', value: 'dry-heating' },
+          { label: '3. Flame Test (Conc. HCl Paste)', value: 'flame-test' },
+          { label: '4. Dilute H₂SO₄ Acid Radicals Test', value: 'dilute-acid' },
+          { label: '5. Concentrated H₂SO₄ Acid Radicals Test', value: 'conc-acid' },
+          { label: '6. Anion Confirmatory Test (AgNO₃/BaCl₂/Brown Ring)', value: 'anion-confirmatory' },
+          { label: '7. Systematic Cation Group Separation Test', value: 'cation-group-test' },
+          { label: '8. Cation Confirmatory Wet Test', value: 'cation-confirmatory' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'salt-analysis-bench',
+    colorTheme: '#10b981',
+  },
+  {
+    id: 'element-detection-workbench',
+    name: 'Organic Element Detection Workbench (Lassaigne Extract)',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Safe virtual testing station detecting Nitrogen, Sulphur, and Halogens (Cl, Br, I) in organic compounds using simulated pre-fused Lassaigne sodium extract aliquots.',
+    iconName: 'ShieldAlert',
+    defaultWidth: 320,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'selectedSample',
+        label: 'Organic Test Compound',
+        type: 'select',
+        defaultValue: 'urea',
+        options: [
+          { label: 'Urea (NH₂CONH₂ - Amide)', value: 'urea' },
+          { label: 'Thiourea (NH₂CSNH₂ - Thioamide)', value: 'thiourea' },
+          { label: 'Sulphanilic Acid (H₂N-C₆H₄-SO₃H)', value: 'sulphanilic-acid' },
+          { label: 'Chlorobenzene (C₆H₅Cl - Aryl Chloride)', value: 'chlorobenzene' },
+          { label: 'Bromobenzene (C₆H₅Br - Aryl Bromide)', value: 'bromobenzene' },
+          { label: 'Iodobenzene (C₆H₅I - Aryl Iodide)', value: 'iodobenzene' },
+          { label: 'Benzoic Acid (C₆H₅COOH - Pure C, H, O)', value: 'benzoic-acid' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'currentTest',
+        label: 'Extract Detection Procedure',
+        type: 'select',
+        defaultValue: 'nitrogen-prussian-blue',
+        options: [
+          { label: '1. Prussian Blue Test for Nitrogen (FeSO₄ + FeCl₃)', value: 'nitrogen-prussian-blue' },
+          { label: '2. Sodium Nitroprusside Test for Sulphur (Purple)', value: 'sulphur-nitroprusside' },
+          { label: '3. Lead Acetate Test for Sulphur (Black PbS)', value: 'sulphur-lead-acetate' },
+          { label: '4. Silver Nitrate Test for Halogens (AgNO₃ + NH₄OH)', value: 'halogen-silver-nitrate' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'element-detection-bench',
+    colorTheme: '#6366f1',
   },
 ];
 
@@ -2955,6 +3341,521 @@ export const CHEMISTRY_LAB_DEFINITIONS: LabDefinition[] = [
     defaultNotebookNotes:
       "Strong vs Weak Acids — Ionisation Equilibrium & Kinetics:\n\n1. Ionisation Models:\n- Strong Acid (HCl): Full dissociation (single arrow)\n  HCl(aq) + H₂O(l) ⟶ H₃O⁺(aq) + Cl⁻(aq)\n  At C = 0.1M: [H₃O⁺] = 0.100 M ==> pH = -log(0.1) = 1.00  |  α = 100%\n\n- Weak Acid (CH₃COOH): Reversible dissociation equilibrium\n  CH₃COOH(aq) + H₂O(l) ⇌ H₃O⁺(aq) + CH₃COO⁻(aq)\n  Ka = [H₃O⁺][CH₃COO⁻] / [CH₃COOH] = (C·α²) / (1 - α) ≈ C·α² = 1.75 × 10⁻⁵\n  At C = 0.1M: α = √(Ka/C) = √(1.75×10⁻⁵ / 0.1) = 0.01323 (1.32%)\n  [H₃O⁺] = C·α = 0.001314 M ==> pH = -log(0.001314) = 2.88\n\n2. Ostwald's Dilution Law:\n- As solution concentration decreases, the degree of dissociation α increases:\n  At 0.1M: α = 1.31%, pH = 2.88\n  At 0.01M: α = 4.10%, pH = 3.39\n  At 0.001M: α = 12.4%, pH = 3.91\n\n3. Reaction Kinetics with Active Metals (Magnesium Ribbon):\n  Mg(s) + 2H⁺(aq) ⟶ Mg²⁺(aq) + H₂(g)↑\n- Rate Law: Rate = k · [H⁺] · Surface_Area\n  Ratio of initial effervescence rates = [H⁺]_HCl / [H⁺]_acetic = 0.100 / 0.001314 = 76.1×\n\n4. Critical Scientific Distinction:\n- ACID STRENGTH: Governed by Ka / [H⁺], dictating initial reaction velocity and pH.\n- ACID CAPACITY / AMOUNT: Governed by total available moles (C × V), dictating total neutralisation titre and gas volume evolved.",
   },
+  {
+    experimentId: 'chemical-equilibrium',
+    title: 'Chemical Equilibrium: Le Chatelier’s Principle & Dynamic Reversibility',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'closed-equilibrium-chamber',
+      'beaker-100ml',
+      'test-tube-rack',
+      'pasteur-pipette-dropper',
+      'chemical-thermometer',
+    ],
+    initialObjects: [
+      {
+        id: 'eq-chamber-1',
+        equipmentId: 'closed-equilibrium-chamber',
+        title: 'Reaction Equilibrium Vessel',
+        x: 180,
+        y: 100,
+        rotation: 0,
+        width: 260,
+        height: 240,
+        properties: {
+          systemType: 'fe-scn',
+          temperatureC: 25,
+          addedFe3PlusM: 0,
+          addedSCNMinusM: 0,
+          addedFluorideM: 0,
+          gasVolumeL: 1.0,
+        },
+        state: {},
+      },
+      {
+        id: 'reagent-pipette-1',
+        equipmentId: 'pasteur-pipette-dropper',
+        title: 'Perturbation Dropper',
+        x: 480,
+        y: 120,
+        rotation: 0,
+        width: 45,
+        height: 160,
+        properties: {
+          drawnReagent: 'feso4',
+          dropCount: 10,
+        },
+        state: {},
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'step-baseline-eq',
+        stepNumber: 1,
+        title: 'Observe Dynamic Solution Equilibrium',
+        instruction:
+          'Observe the baseline blood-red color of the iron(III)-thiocyanate complex Fe³⁺ + SCN⁻ ⇌ [Fe(SCN)]²⁺ at 25°C with equilibrium constant Kc = 138 M⁻¹.',
+      },
+      {
+        id: 'step-concentrate-fe',
+        stepNumber: 2,
+        title: 'Perturb Reactant Concentration (Add Fe³⁺)',
+        instruction:
+          'Increase added Fe³⁺ concentration to 0.005 M. Notice how Q < Kc shifts the equilibrium forward, producing a darker deep blood-red coloration.',
+      },
+      {
+        id: 'step-sequestration-f',
+        stepNumber: 3,
+        title: 'Sequestration with Fluoride Ions (F⁻)',
+        instruction:
+          'Add fluoride ions (0.005 M). Fluoride forms the ultra-stable, colorless [FeF₆]³⁻ complex, effectively depleting free Fe³⁺ and forcing the equilibrium in reverse.',
+      },
+      {
+        id: 'step-temperature-shift',
+        stepNumber: 4,
+        title: 'Evaluate Temperature Effect (van ’t Hoff)',
+        instruction:
+          'Because the forward reaction is exothermic (ΔH° = -24.2 kJ/mol), chilling to 5°C increases Kc and shifts forward, whereas heating to 60°C shifts reverse.',
+      },
+      {
+        id: 'step-gas-compression',
+        stepNumber: 5,
+        title: 'Evaluate Gaseous Compression (2 NO₂ ⇌ N₂O₄)',
+        instruction:
+          'Switch the system to 2NO₂(g) ⇌ N₂O₄(g). Decrease volume to 0.5 L to increase pressure and observe the forward shift toward fewer gas moles (colorless N₂O₄).',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-concentration-shift',
+        description: 'Demonstrate Le Chatelier shift by perturbing reactant and complexing agent concentrations.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-temperature-shift',
+        description: 'Verify the van ’t Hoff temperature dependency for exothermic reversible systems.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-gaseous-equilibrium',
+        description: 'Verify volume and pressure shifts in 2NO₂(g) ⇌ N₂O₄(g) gas equilibrium.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Chemical Equilibrium & Le Chatelier's Principle — Experimental Record:\n\n1. Solution Complex Reversible Equilibrium:\n  Fe³⁺(aq, pale yellow) + SCN⁻(aq, colorless) ⇌ [Fe(SCN)]²⁺(aq, blood-red)\n- Equilibrium Constant: Kc = [[Fe(SCN)]²⁺] / ([Fe³⁺][SCN⁻]) = 138 M⁻¹ at 25°C (298.15 K)\n- Enthalpy Change: ΔH° = -24.2 kJ/mol (Exothermic)\n\n2. Perturbations Observed:\n- Addition of Fe³⁺ or SCN⁻: Increases reactant concentrations, causing Q < Kc. By Le Chatelier’s principle, the system shifts forward to consume excess reactants, intensifying blood-red absorbance (Beer-Lambert Law at 450 nm).\n- Addition of F⁻: Fluoride reacts with Fe³⁺ to form the extremely stable, colorless [FeF₆]³⁻ complex (Kf ~ 10¹⁵). This depletes free Fe³⁺ ions. By Le Chatelier’s principle, the equilibrium shifts in reverse, causing complete decolorization to pale yellow.\n- Effect of Temperature (van 't Hoff equation):\n  ln(Kc₂/Kc₁) = (-ΔH°/R) · (1/T₂ - 1/T₁)\n  Because ΔH° < 0: Lowering temperature increases Kc (favoring forward blood-red complex); heating decreases Kc (favoring dissociation).\n\n3. Gaseous Equilibrium System:\n  2 NO₂(g, reddish-brown) ⇌ N₂O₄(g, colorless)  |  ΔH° = -57.2 kJ/mol\n- Pressure / Volume Compression: Compressing gas volume increases total pressure. The equilibrium shifts toward the side with fewer moles of gas (2 mol NO₂ ⟶ 1 mol N₂O₄), lightening the amber vapor intensity.\n- Temperature: Heating favors endothermic reverse dissociation into dark brown NO₂; cooling favors forward synthesis of colorless N₂O₄.",
+  },
+  {
+    experimentId: 'standard-solution-prep',
+    title: 'Preparation of a Standard Solution of Oxalic Acid (0.1 M / 250 mL)',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'volumetric-flask-250ml',
+      'digital-analytical-balance',
+      'borosilicate-beaker',
+      'glass-stirring-rod',
+      'filter-funnel',
+      'pasteur-pipette-dropper',
+      'reagent-bottle',
+      'watch-glass',
+    ],
+    initialObjects: [
+      {
+        id: 'vol-flask-1',
+        equipmentId: 'volumetric-flask-250ml',
+        title: '250 mL Volumetric Flask',
+        x: 180,
+        y: 80,
+        rotation: 0,
+        width: 150,
+        height: 240,
+        properties: {
+          soluteType: 'oxalic-acid',
+          targetMolarity: 0.1,
+          weighedMassGrams: 3.152,
+          liquidVolume: 250.0,
+          isDissolved: true,
+          isStoppered: true,
+          isInvertedHomogeneous: true,
+        },
+        state: {},
+      },
+      {
+        id: 'analytical-balance-1',
+        equipmentId: 'digital-analytical-balance',
+        title: 'Analytical Balance',
+        x: 420,
+        y: 160,
+        rotation: 0,
+        width: 170,
+        height: 130,
+        properties: {
+          sampleMassGrams: 3.152,
+          tareOffsetGrams: 0,
+          tarePressed: false,
+          watchGlassPlaced: true,
+        },
+        state: {},
+      },
+      {
+        id: 'prep-beaker-1',
+        equipmentId: 'borosilicate-beaker',
+        title: 'Dissolution Beaker (250mL)',
+        x: 30,
+        y: 150,
+        rotation: 0,
+        width: 130,
+        height: 150,
+        properties: {
+          liquidVolume: 50,
+          reagentSolution: 'pure-water',
+        },
+        state: {},
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'step-calculate-mass',
+        stepNumber: 1,
+        title: 'Calculate Solute Mass Required',
+        instruction:
+          'For 250 mL of 0.1 M Oxalic Acid Dihydrate (Mw = 126.07 g/mol): w = (M * Mw * V) / 1000 = (0.1 * 126.07 * 250) / 1000 = 3.152 g.',
+      },
+      {
+        id: 'step-weigh-solute',
+        stepNumber: 2,
+        title: 'Weigh Solute on Analytical Balance',
+        instruction:
+          'Place watch glass on balance pan, press Tare to zero the reading, and weigh out exactly 3.152 g of pure oxalic acid crystals.',
+      },
+      {
+        id: 'step-dissolve-beaker',
+        stepNumber: 3,
+        title: 'Dissolve in Beaker with Stirring Rod',
+        instruction:
+          'Transfer weighed crystals into a beaker containing ~50 mL distilled water. Stir thoroughly until completely dissolved.',
+      },
+      {
+        id: 'step-transfer-dilute',
+        stepNumber: 4,
+        title: 'Transfer to Volumetric Flask & Align Meniscus',
+        instruction:
+          'Transfer quantitatively through a funnel. Rinse beaker and funnel. Add distilled water until the bottom of the curved meniscus sits tangent to the etched 250 mL line.',
+      },
+      {
+        id: 'step-homogenize-flask',
+        stepNumber: 5,
+        title: 'Stopper and Invert for Homogeneity',
+        instruction:
+          'Insert ground-glass stopper firmly and invert the flask 10 times to ensure uniform concentration throughout the 250 mL volume.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-stoichiometry-calc',
+        description: 'Accurately calculate solute mass required for target molarity and volume.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-meniscus-alignment',
+        description: 'Align the curved liquid meniscus precisely with the graduation ring.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-standard-solution-accuracy',
+        description: 'Produce standard solution with less than 0.5% concentration error.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Preparation of Standard Solution of Oxalic Acid — Experimental Record:\n\n1. Primary Standard Solute Data:\n- Solute: Oxalic Acid Dihydrate (H₂C₂O₄·2H₂O)\n- Molar Mass (Mw): 126.07 g/mol\n- Basicity: 2 (Diprotic acid: H₂C₂O₄ + 2NaOH ⟶ Na₂C₂O₄ + 2H₂O)\n- Equivalent Weight: 126.07 / 2 = 63.035 g/equiv\n\n2. Mass Calculation Formula:\n  w = (M · Mw · V) / 1000\n  For M = 0.100 M and V = 250.0 mL:\n  w = (0.100 × 126.07 × 250.0) / 1000 = 3.15175 g ≈ 3.152 g\n  (For 0.05 M solution: w = 1.576 g)\n\n3. Quantitative Analytical Steps:\n- Watch glass tared on analytical balance with 0.001 g resolution.\n- Weighed crystals dissolved in ~50 mL warm distilled water.\n- Transferred quantitatively via funnel; rinsings collected in 250 mL Class-A volumetric flask.\n- Diluted dropwise with dropper until bottom of meniscus is exactly tangent to etched ring.\n- Stoppered and inverted 10 times to ensure uniform diffusion.\n\n4. Verified Outcome:\n- Actual Molarity M = (w_actual × 1000) / (Mw × V_actual) = 0.1000 M\n- Normality N = M × basicity = 0.1000 × 2 = 0.2000 N\n- Error Percentage: < 0.1%",
+  },
+  {
+    experimentId: 'acid-base-titration',
+    title: 'Determination of NaOH Strength by Titration against Standard Oxalic Acid',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'titration-workbench',
+      'graduated-burette-50ml',
+      'conical-flask',
+      'pasteur-pipette-dropper',
+      'chemical-thermometer',
+    ],
+    initialObjects: [
+      {
+        id: 'titration-station-1',
+        equipmentId: 'titration-workbench',
+        title: 'Precision Titration Assembly',
+        x: 180,
+        y: 60,
+        rotation: 0,
+        width: 280,
+        height: 280,
+        properties: {
+          system: 'oxalic-acid-naoh',
+          analyteVolumeMl: 20.0,
+          analyteMolarityM: 0.1,
+          titrantMolarityM: 0.1,
+          titrantDeliveredMl: 0.0,
+          indicator: 'phenolphthalein',
+          isSwirling: true,
+        },
+        state: {},
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'step-setup-analyte',
+        stepNumber: 1,
+        title: 'Measure Standard Acid into Conical Flask',
+        instruction:
+          'Pipette out 20.0 mL of standard 0.1 M oxalic acid into the conical flask and add 2 drops of phenolphthalein indicator.',
+      },
+      {
+        id: 'step-zero-burette',
+        stepNumber: 2,
+        title: 'Fill Burette with Sodium Hydroxide',
+        instruction:
+          'Fill burette with ~0.1 M NaOH solution and adjust the liquid level to 0.0 mL, ensuring no air bubbles are trapped in the tip.',
+      },
+      {
+        id: 'step-approach-endpoint',
+        stepNumber: 3,
+        title: 'Titrate with Continuous Swirling',
+        instruction:
+          'Open the stopcock and deliver NaOH titrant dropwise while swirling continuously. Observe transient pink flashes disappearing as acid neutralizes base.',
+      },
+      {
+        id: 'step-detect-endpoint',
+        stepNumber: 4,
+        title: 'Detect Sharp Permanent Pale Pink Endpoint',
+        instruction:
+          'Add titrant drop-by-drop until a single drop imparts a faint permanent pale pink coloration that persists for at least 30 seconds (Veq = 40.0 mL).',
+      },
+      {
+        id: 'step-calculate-strength',
+        stepNumber: 5,
+        title: 'Calculate NaOH Molarity and Gram Strength',
+        instruction:
+          'Apply the stoichiometric relation: 2 * Ma * Va = Mb * Vb. Hence, Mb = (2 * 0.1 * 20.0) / 40.0 = 0.100 M. Strength = Mb * 40.0 = 4.00 g/L.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-detect-titration-endpoint',
+        description: 'Detect the sharp equivalence point using phenolphthalein indicator.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-concordant-titre',
+        description: 'Determine concordant titre volume within ±0.1 mL.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-calculate-molarity',
+        description: 'Calculate unknown base molarity and strength in g/L.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Determination of NaOH Molarity & Strength by Oxalic Acid Titration — Experimental Record:\n\n1. Chemical Reaction & Stoichiometry:\n  H₂C₂O₄·2H₂O + 2 NaOH ⟶ Na₂C₂O₄ + 4 H₂O\n- Stoichiometric Mole Ratio: 1 mol oxalic acid neutralizes 2 mol NaOH.\n- Acid: Oxalic acid (Diprotic weak acid, Ma = 0.100 M, Va = 20.0 mL)\n- Base: Sodium hydroxide (Strong base, Mb = ?, Vb = Titre volume)\n\n2. Mathematical Equivalence:\n  (Ma · Va) / n_acid = (Mb · Vb) / n_base\n  (0.100 × 20.0) / 1 = (Mb × Vb) / 2\n  ==> Mb = (2 × Ma × Va) / Vb = (2 × 0.100 × 20.0) / Vb = 4.00 / Vb\n\n3. Titration Observations:\n- Indicator: Phenolphthalein (2 drops)\n- Color Change: Colorless ⟶ Permanent Pale Pink\n- pH at Equivalence Point: pH ≈ 8.4 (Alkaline salt hydrolysis of C₂O₄²⁻)\n- Concordant Titre Volume Vb: 40.0 mL\n\n4. Calculations:\n- Molarity of NaOH: Mb = 4.00 / 40.0 = 0.100 M\n- Strength of NaOH: S = Mb × Mw(NaOH) = 0.100 × 40.00 = 4.00 g/L\n\n5. Precautions:\n- Avoid over-titration into deep magenta (pH > 10).\n- Ensure no air bubbles in burette nozzle before initial reading.\n- Swirl continuously to ensure rapid equilibration.",
+  },
+  {
+    experimentId: 'salt-analysis-class11',
+    title: 'Qualitative Analysis of Inorganic Salts: Systematic Radicals Identification',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'salt-analysis-workbench',
+      'test-tube-rack',
+      'pasteur-pipette-dropper',
+      'glass-stirring-rod',
+      'chemical-thermometer',
+    ],
+    initialObjects: [
+      {
+        id: 'salt-bench-1',
+        equipmentId: 'salt-analysis-workbench',
+        title: 'Qualitative Analysis Workbench',
+        x: 160,
+        y: 80,
+        rotation: 0,
+        width: 320,
+        height: 240,
+        properties: {
+          selectedSalt: 'nh4cl',
+          currentTest: 'physical',
+        },
+        state: {},
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'step-physical-exam',
+        stepNumber: 1,
+        title: 'Physical Examination of Sample',
+        instruction:
+          'Observe color, crystalline form, and odor. Blue indicates Cu²⁺; light green indicates Fe²⁺; white indicates absence of colored transition metal ions.',
+      },
+      {
+        id: 'step-dry-heating',
+        stepNumber: 2,
+        title: 'Dry Heating Test in Ignition Tube',
+        instruction:
+          'Heat a pinch of dry salt in an ignition tube. Sublimation indicates NH₄⁺; decrepitation with brown NO₂ gas indicates Pb(NO₃)₂; water vapor indicates hydrated crystals.',
+      },
+      {
+        id: 'step-flame-test',
+        stepNumber: 3,
+        title: 'Flame Test (Conc. HCl Paste)',
+        instruction:
+          'Moisten sample with concentrated HCl on a platinum/nichrome loop. Brick-red flame indicates Ca²⁺; bluish-green indicates Cu²⁺; dull bluish-white indicates Pb²⁺.',
+      },
+      {
+        id: 'step-acid-radicals',
+        stepNumber: 4,
+        title: 'Systematic Anion Tests (Dilute & Conc. H₂SO₄)',
+        instruction:
+          'Test with dilute H₂SO₄ for CO₃²⁻, then conc. H₂SO₄ for Cl⁻ (pungent fumes giving dense white clouds with NH₄OH) or NO₃⁻ (brown fumes with copper turnings).',
+      },
+      {
+        id: 'step-cation-group',
+        stepNumber: 5,
+        title: 'Systematic Cation Group Separation',
+        instruction:
+          'Determine the cation group from Original Solution (OS): Zero (NH₄⁺), Group I (Pb²⁺), Group II (Cu²⁺), Group III (Fe²⁺, Al³⁺), Group IV (Zn²⁺), Group V (Ca²⁺), Group VI (Mg²⁺).',
+      },
+      {
+        id: 'step-confirmatory-tests',
+        stepNumber: 6,
+        title: 'Perform Confirmatory Wet Tests',
+        instruction:
+          'Run wet confirmatory tests for both the identified acid radical and basic radical to establish definitive chemical identity.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-identify-anion',
+        description: 'Correctly identify the acid radical (anion) using group reagents and confirmatory tests.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-identify-cation',
+        description: 'Correctly identify the basic radical (cation) using systematic group separation.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-salt-deduction',
+        description: 'Synthesize observations and write the complete empirical formula and chemical name of the salt.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Systematic Qualitative Salt Analysis — Experimental Record:\n\n1. Standard Catalogue of Salts Investigated:\n- NH₄Cl: Zero Group cation (NH₄⁺), Conc H₂SO₄ anion (Cl⁻)\n- Pb(NO₃)₂: Group I cation (Pb²⁺), Conc H₂SO₄ anion (NO₃⁻)\n- CuSO₄·5H₂O: Group II cation (Cu²⁺), Independent anion (SO₄²⁻)\n- FeSO₄·7H₂O: Group III cation (Fe²⁺), Independent anion (SO₄²⁻)\n- AlCl₃: Group III cation (Al³⁺), Conc H₂SO₄ anion (Cl⁻)\n- ZnSO₄·7H₂O: Group IV cation (Zn²⁺), Independent anion (SO₄²⁻)\n- CaCl₂: Group V cation (Ca²⁺), Conc H₂SO₄ anion (Cl⁻)\n- MgSO₄·7H₂O: Group VI cation (Mg²⁺), Independent anion (SO₄²⁻)\n\n2. Anion Group Classification & Confirmatory Tests:\n- Chloride (Cl⁻): Conc H₂SO₄ ⟶ HCl gas (dense white fumes with NH₄OH rod).\n  Confirmatory: Acidify OS with dil HNO₃ + AgNO₃ ⟶ Curdy white AgCl precipitate soluble in dil NH₄OH.\n- Sulphate (SO₄²⁻): Independent radical.\n  Confirmatory: Acidify OS with dil HCl + BaCl₂ ⟶ Dense white BaSO₄ precipitate insoluble in conc HCl.\n- Nitrate (NO₃⁻): Conc H₂SO₄ + Cu turnings ⟶ Dense reddish-brown NO₂ gas; solution turns blue.\n  Confirmatory (Brown Ring Test): OS + freshly prepared FeSO₄ + conc H₂SO₄ along side of tube ⟶ Dark brown ring of [Fe(H₂O)₅(NO)]SO₄ at junction.\n\n3. Cation Group Separation Reagents & Outcomes:\n- Zero Group (NH₄⁺): Heat with NaOH ⟶ NH₃ gas evolved (turns Nessler's reagent brown).\n- Group I (Pb²⁺): OS + dil HCl ⟶ White PbCl₂ ppt (soluble in hot water; KI gives golden yellow PbI₂ spangles).\n- Group II (Cu²⁺): Acidified OS + H₂S ⟶ Black CuS ppt (excess NH₄OH gives deep azure-blue [Cu(NH₃)₄]²⁺).\n- Group III (Fe²⁺, Al³⁺): OS + NH₄Cl + NH₄OH ⟶ Dirty green Fe(OH)₂ (Turnbull's blue with K₃[Fe(CN)₆]) or gelatinous white Al(OH)₃ (blue lake test).\n- Group IV (Zn²⁺): Group III filtrate + H₂S ⟶ Grayish-white ZnS ppt (soluble in NaOH to clear zincate).\n- Group V (Ca²⁺): OS + NH₄Cl + NH₄OH + (NH₄)₂CO₃ ⟶ White CaCO₃ ppt (brick-red flame; ammonium oxalate gives white CaC₂O₄ ppt).\n- Group VI (Mg²⁺): Group V filtrate + NH₄OH + Na₂HPO₄ ⟶ White crystalline Mg(NH₄)PO₄ ppt (Magneson gives sky blue lake).",
+  },
+  {
+    experimentId: 'organic-element-detection',
+    title: 'Qualitative Detection of Nitrogen, Sulphur, and Halogens in Organic Compounds',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'element-detection-workbench',
+      'test-tube-rack',
+      'pasteur-pipette-dropper',
+      'glass-stirring-rod',
+    ],
+    initialObjects: [
+      {
+        id: 'element-bench-1',
+        equipmentId: 'element-detection-workbench',
+        title: 'Lassaigne Extract Testing Station',
+        x: 160,
+        y: 80,
+        rotation: 0,
+        width: 320,
+        height: 240,
+        properties: {
+          selectedSample: 'urea',
+          currentTest: 'nitrogen-prussian-blue',
+        },
+        state: {},
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'step-fusion-principle',
+        stepNumber: 1,
+        title: 'Understand Lassaigne Sodium Fusion Principle',
+        instruction:
+          'Organic elements covalently bound in compounds are converted during sodium fusion into water-soluble ionic sodium salts: C, N ⟶ NaCN; S ⟶ Na₂S; Halogens ⟶ NaX (X = Cl, Br, I).',
+      },
+      {
+        id: 'step-test-nitrogen',
+        stepNumber: 2,
+        title: 'Prussian Blue Test for Nitrogen',
+        instruction:
+          'Add FeSO₄ and NaOH to Lassaigne filtrate, boil, cool, acidify with dilute H₂SO₄, and add FeCl₃. Observe brilliant Prussian Blue precipitate Fe₄[Fe(CN)₆]₃.',
+      },
+      {
+        id: 'step-test-sulphur-nitro',
+        stepNumber: 3,
+        title: 'Sodium Nitroprusside Test for Sulphur',
+        instruction:
+          'Select Thiourea or Sulphanilic acid. Add freshly prepared Sodium Nitroprusside solution to Lassaigne filtrate. Observe immediate magnificent purple/violet coloration.',
+      },
+      {
+        id: 'step-test-sulphur-lead',
+        stepNumber: 4,
+        title: 'Lead Acetate Test for Sulphur',
+        instruction:
+          'Acidify filtrate with acetic acid, then add lead acetate solution. Observe a dense black precipitate of Lead Sulphide (PbS).',
+      },
+      {
+        id: 'step-test-halogens',
+        stepNumber: 5,
+        title: 'Silver Nitrate Test for Halogens',
+        instruction:
+          'Select Chlorobenzene, Bromobenzene, or Iodobenzene. Boil filtrate with HNO₃, cool, add AgNO₃. Differentiate Cl (curdy white, soluble in NH₄OH), Br (pale yellow), I (bright yellow).',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-detect-nitrogen',
+        description: 'Detect presence of Nitrogen via Prussian Blue coloration.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-detect-sulphur',
+        description: 'Detect presence of Sulphur using nitroprusside and lead acetate tests.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-differentiate-halogens',
+        description: 'Differentiate Chlorine, Bromine, and Iodine by silver halide precipitate colors and solubility.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Detection of Elements (N, S, Halogens) in Organic Compounds — Experimental Record:\n\n1. Principle of Lassaigne's Test (Sodium Fusion Extract):\n  Covalent organic molecules do not ionize in aqueous solution. Fusion with metallic sodium converts covalently bound extra elements into ionic sodium salts:\n- Nitrogen: Na + C + N ⟶ NaCN (Sodium cyanide)\n- Sulphur: 2 Na + S ⟶ Na₂S (Sodium sulphide)\n- Halogens: Na + X ⟶ NaX (Sodium halide, where X = Cl, Br, I)\n- Nitrogen + Sulphur together: Na + C + N + S ⟶ NaSCN (Sodium thiocyanate)\n\n2. Test for Nitrogen (Prussian Blue Reaction):\n  6 NaCN + FeSO₄ ⟶ Na₄[Fe(CN)₆] + Na₂SO₄\n  3 Na₄[Fe(CN)₆] + 4 FeCl₃ ⟶ Fe₄[Fe(CN)₆]₃(s, Prussian Blue) + 12 NaCl\n- Observation: Brilliant Prussian blue precipitate confirms Nitrogen.\n\n3. Tests for Sulphur:\n- Sodium Nitroprusside Test:\n  Na₂S + Na₂[Fe(CN)₅NO] ⟶ Na₄[Fe(CN)₅NOS] (Brilliant purple/violet complex)\n- Lead Acetate Test:\n  Na₂S + (CH₃COO)₂Pb ⟶ PbS(s, black precipitate) + 2 CH₃COONa\n\n4. Tests for Halogens (Silver Nitrate Test):\n- Boiling with conc. HNO₃ first is essential if N or S is present, to expel HCN and H₂S, which would otherwise precipitate black Ag₂S or white AgCN.\n- Chlorine: Curdy white precipitate of AgCl, completely soluble in dilute NH₄OH.\n  AgCl + 2 NH₄OH ⟶ [Ag(NH₃)₂]Cl(aq) + 2 H₂O\n- Bromine: Pale yellow precipitate of AgBr, sparingly soluble in dilute NH₄OH.\n- Iodine: Canary yellow precipitate of AgI, completely insoluble in dilute NH₄OH.\n\n5. Test Organic Samples Summary:\n- Urea (NH₂CONH₂): Nitrogen POSITIVE, Sulphur NEGATIVE, Halogens NEGATIVE\n- Thiourea (NH₂CSNH₂): Nitrogen POSITIVE, Sulphur POSITIVE, Halogens NEGATIVE\n- Sulphanilic Acid (H₂N-C₆H₄-SO₃H): Nitrogen POSITIVE, Sulphur POSITIVE, Halogens NEGATIVE\n- Chlorobenzene (C₆H₅Cl): Halogen (Chlorine) POSITIVE, Nitrogen & Sulphur NEGATIVE\n- Bromobenzene (C₆H₅Br): Halogen (Bromine) POSITIVE, Nitrogen & Sulphur NEGATIVE\n- Iodobenzene (C₆H₅I): Halogen (Iodine) POSITIVE, Nitrogen & Sulphur NEGATIVE\n- Benzoic Acid (C₆H₅COOH): All Extra Elements NEGATIVE (Pure C, H, O).",
+  },
 ];
 
 export const chemistryExtension: SubjectLabExtension = {
@@ -3404,6 +4305,205 @@ export const chemistryExtension: SubjectLabExtension = {
       messages.push(
         `Acid Comparison (${concM}M): HCl [H⁺]=${comparison.strongAcid.hydroniumConcentrationM.toFixed(3)}M vs CH₃COOH [H⁺]=${comparison.weakAcid.hydroniumConcentrationM.toExponential(2)}M.`
       );
+    }
+
+    // Evaluate closed chemical equilibrium chambers
+    const equilibriumChambers = objects.filter((o) => o.equipmentId === 'closed-equilibrium-chamber');
+    for (const chamber of equilibriumChambers) {
+      const sysType = (chamber.properties.systemType as EquilibriumSystemType) ?? 'fe-scn';
+      const tempC = Number(chamber.properties.temperatureC ?? 25);
+
+      if (sysType === 'fe-scn') {
+        const addedFe = Number(chamber.properties.addedFe3PlusM ?? 0);
+        const addedSCN = Number(chamber.properties.addedSCNMinusM ?? 0);
+        const addedF = Number(chamber.properties.addedFluorideM ?? 0);
+
+        const eqState = calculateFeSCNEquilibrium({
+          temperatureC: tempC,
+          addedFe3PlusM: addedFe,
+          addedSCNMinusM: addedSCN,
+          addedFluorideM: addedF,
+        });
+
+        updates[chamber.id] = {
+          system: 'fe-scn',
+          temperatureC: tempC,
+          kc: eqState.kc,
+          equilibriumComplexM: eqState.equilibriumComplexM,
+          absorbance450nm: eqState.absorbance450nm,
+          colorHex: eqState.colorHex,
+          shiftDirection: eqState.shiftDirection,
+          opticalAppearance: eqState.opticalAppearance,
+          explanation: eqState.explanation,
+          status: `T = ${tempC}°C, Kc = ${eqState.kc}: ${eqState.opticalAppearance}`,
+        };
+
+        messages.push(`Fe-SCN Equilibrium (T=${tempC}°C): ${eqState.opticalAppearance}`);
+      } else {
+        const gasVol = Number(chamber.properties.gasVolumeL ?? 1.0);
+        const eqState = calculateNO2N2O4Equilibrium({
+          temperatureC: tempC,
+          volumeLiters: gasVol,
+        });
+
+        updates[chamber.id] = {
+          system: 'no2-n2o4',
+          temperatureC: tempC,
+          volumeLiters: gasVol,
+          totalPressureAtm: eqState.totalPressureAtm,
+          partialPressureNO2Atm: eqState.partialPressureNO2Atm,
+          partialPressureN2O4Atm: eqState.partialPressureN2O4Atm,
+          kp: eqState.kp,
+          brownIntensityPercent: eqState.brownIntensityPercent,
+          colorHex: eqState.colorHex,
+          shiftDirection: eqState.shiftDirection,
+          opticalAppearance: eqState.opticalAppearance,
+          explanation: eqState.explanation,
+          status: `P = ${eqState.totalPressureAtm} atm, V = ${gasVol} L: ${eqState.opticalAppearance}`,
+        };
+
+        messages.push(`NO₂-N₂O₄ Equilibrium (V=${gasVol}L, P=${eqState.totalPressureAtm}atm): ${eqState.opticalAppearance}`);
+      }
+    }
+
+    // Evaluate volumetric flasks (standard solution preparation)
+    const volumetricFlasks = objects.filter((o) => o.equipmentId === 'volumetric-flask-250ml');
+    for (const flask of volumetricFlasks) {
+      const soluteType = (flask.properties.soluteType as StandardSoluteType) ?? 'oxalic-acid';
+      const targetMolarity = Number(flask.properties.targetMolarity ?? 0.1);
+      const weighedMass = Number(flask.properties.weighedMassGrams ?? 3.152);
+      const liquidVol = Number(flask.properties.liquidVolume ?? 250.0);
+      const isDissolved = flask.properties.isDissolved !== false;
+      const isStoppered = flask.properties.isStoppered !== false;
+      const isInverted = flask.properties.isInvertedHomogeneous !== false;
+
+      const solState = calculateStandardSolutionState({
+        soluteType,
+        targetMolarityM: targetMolarity,
+        flaskCapacityMl: 250.0,
+        weighedMassGrams: weighedMass,
+        actualLiquidVolumeMl: liquidVol,
+        isDissolved,
+        isStoppered,
+        isInvertedHomogeneous: isInverted,
+      });
+
+      updates[flask.id] = {
+        soluteName: solState.solute.name,
+        targetMolarityM: targetMolarity,
+        theoreticalMassGrams: solState.theoreticalMassRequiredGrams,
+        weighedMassGrams: weighedMass,
+        liquidVolumeMl: liquidVol,
+        actualMolarityM: solState.actualMolarityM,
+        actualNormalityN: solState.actualNormalityN,
+        percentageError: solState.percentageError,
+        isMeniscusAligned: solState.isMeniscusAligned,
+        stageStatus: solState.stageStatus,
+        feedbackText: solState.feedbackText,
+        status: `${solState.solute.name} Solution: ${solState.actualMolarityM} M (${solState.actualNormalityN} N) — ${solState.stageStatus.toUpperCase()}`,
+      };
+
+      messages.push(`Standard Solution: ${solState.feedbackText}`);
+    }
+
+    // Evaluate titration workbenches
+    const titrationBenches = objects.filter((o) => o.equipmentId === 'titration-workbench');
+    for (const bench of titrationBenches) {
+      const system = (bench.properties.system as TitrationSystemType) ?? 'oxalic-acid-naoh';
+      const va = Number(bench.properties.analyteVolumeMl ?? 20.0);
+      const ma = Number(bench.properties.analyteMolarityM ?? 0.1);
+      const mb = Number(bench.properties.titrantMolarityM ?? 0.1);
+      const vb = Number(bench.properties.titrantDeliveredMl ?? 0.0);
+      const indicator = (bench.properties.indicator as TitrationIndicator) ?? 'phenolphthalein';
+
+      const titState = calculateTitrationState({
+        system,
+        analyteVolumeMl: va,
+        analyteMolarityM: ma,
+        titrantMolarityM: mb,
+        titrantDeliveredMl: vb,
+        indicator,
+      });
+
+      updates[bench.id] = {
+        system,
+        analyteVolumeMl: va,
+        analyteMolarityM: ma,
+        titrantMolarityM: mb,
+        titrantDeliveredMl: vb,
+        totalVolumeMl: titState.totalVolumeMl,
+        equivalenceVolumeMl: titState.equivalenceVolumeMl,
+        ph: titState.ph,
+        hPlusM: titState.hPlusM,
+        dpH_dV: titState.dpH_dV,
+        isAtEndpoint: titState.isAtEndpoint,
+        statusLabel: titState.status,
+        indicator,
+        solutionColorHex: titState.solutionColorHex,
+        indicatorColorName: titState.indicatorColorName,
+        observation: titState.observation,
+        status: `Titre V = ${vb.toFixed(1)} mL (Veq = ${titState.equivalenceVolumeMl.toFixed(1)} mL): pH ${titState.ph.toFixed(2)} [${titState.indicatorColorName}]`,
+      };
+
+      if (titState.isAtEndpoint) {
+        messages.push(`TITRATION ENDPOINT: ${titState.observation}`);
+      } else {
+        messages.push(`Titration: ${titState.observation}`);
+      }
+    }
+
+    // Evaluate salt analysis workbenches
+    const saltBenches = objects.filter((o) => o.equipmentId === 'salt-analysis-workbench');
+    for (const bench of saltBenches) {
+      const selectedSalt = (bench.properties.selectedSalt as SaltSampleId) ?? 'nh4cl';
+      const currentTest = (bench.properties.currentTest as SaltTestId) ?? 'physical';
+
+      const outcome = runSaltAnalysisTest(selectedSalt, currentTest);
+
+      updates[bench.id] = {
+        selectedSalt,
+        currentTest,
+        testName: outcome.testName,
+        procedure: outcome.procedure,
+        observation: outcome.observation,
+        inference: outcome.inference,
+        tubeColorHex: outcome.tubeColorHex,
+        precipitateColorHex: outcome.precipitateColorHex ?? '',
+        precipitateLabel: outcome.precipitateLabel ?? '',
+        gasEvolution: outcome.gasEvolution ?? '',
+        flameColorHex: outcome.flameColorHex ?? '',
+        chemicalEquation: outcome.chemicalEquation,
+        status: `${outcome.testName}: ${outcome.observation} (Inference: ${outcome.inference})`,
+      };
+
+      messages.push(`Salt Analysis (${outcome.testName}): ${outcome.inference}`);
+    }
+
+    // Evaluate organic element detection workbenches
+    const elementBenches = objects.filter((o) => o.equipmentId === 'element-detection-workbench');
+    for (const bench of elementBenches) {
+      const selectedSample = (bench.properties.selectedSample as OrganicSampleId) ?? 'urea';
+      const currentTest = (bench.properties.currentTest as OrganicElementTestId) ?? 'nitrogen-prussian-blue';
+
+      const outcome = runOrganicElementTest(selectedSample, currentTest);
+
+      updates[bench.id] = {
+        selectedSample,
+        currentTest,
+        testName: outcome.testName,
+        targetElement: outcome.targetElement,
+        procedure: outcome.procedure,
+        observation: outcome.observation,
+        inference: outcome.inference,
+        isPositive: outcome.isPositive,
+        tubeColorHex: outcome.tubeColorHex,
+        precipitateColorHex: outcome.precipitateColorHex ?? '',
+        precipitateLabel: outcome.precipitateLabel ?? '',
+        chemicalEquation: outcome.chemicalEquation,
+        status: `${outcome.testName}: ${outcome.observation} (${outcome.isPositive ? 'POSITIVE' : 'NEGATIVE'})`,
+      };
+
+      messages.push(`Organic Element Test (${outcome.targetElement}): ${outcome.inference}`);
     }
 
     return {

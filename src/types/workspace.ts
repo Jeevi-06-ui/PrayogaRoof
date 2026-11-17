@@ -130,6 +130,11 @@ export interface EquipmentDefinition {
     | 'chemical-balance'
     | 'graduated-burette'
     | 'acid-bench'
+    | 'equilibrium-vessel'
+    | 'volumetric-flask'
+    | 'titration-bench'
+    | 'salt-analysis-bench'
+    | 'element-detection-bench'
     | 'generic-box'
     | 'sensor-probe';
   colorTheme?: string;
