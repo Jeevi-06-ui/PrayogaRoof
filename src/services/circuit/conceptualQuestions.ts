@@ -18,6 +18,11 @@ import {
   GALVANOMETER_FOM_QUESTIONS,
   GALVANOMETER_VOLTMETER_QUESTIONS,
   GALVANOMETER_AMMETER_QUESTIONS,
+  CONCAVE_MIRROR_QUESTIONS,
+  CONVEX_MIRROR_QUESTIONS,
+  CONCAVE_LENS_QUESTIONS,
+  PRISM_REFRACTION_QUESTIONS,
+  PN_DIODE_QUESTIONS,
 } from '../physics/physicsQuestions';
 import {
   PH_TESTING_QUESTIONS,
@@ -137,5 +142,10 @@ export function getConceptualQuestions(experimentId: string): ConceptualQuestion
   if (experimentId === 'galvanometer-figure-of-merit') return GALVANOMETER_FOM_QUESTIONS;
   if (experimentId === 'galvanometer-voltmeter') return GALVANOMETER_VOLTMETER_QUESTIONS;
   if (experimentId === 'galvanometer-ammeter') return GALVANOMETER_AMMETER_QUESTIONS;
+  if (experimentId === 'concave-mirror-focal-length') return CONCAVE_MIRROR_QUESTIONS;
+  if (experimentId === 'convex-mirror-focal-length') return CONVEX_MIRROR_QUESTIONS;
+  if (experimentId === 'concave-lens-focal-length') return CONCAVE_LENS_QUESTIONS;
+  if (experimentId === 'prism-refractive-index') return PRISM_REFRACTION_QUESTIONS;
+  if (experimentId === 'pn-junction-diode') return PN_DIODE_QUESTIONS;
   return [...OHMS_LAW_QUESTIONS, ...SERIES_PARALLEL_QUESTIONS];
 }

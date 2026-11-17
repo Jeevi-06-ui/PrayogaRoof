@@ -120,6 +120,11 @@ export interface EquipmentDefinition {
     | 'moving-coil-galvanometer'
     | 'decade-resistance-box'
     | 'ammeter-voltmeter-calibrator'
+    | 'concave-mirror'
+    | 'convex-mirror'
+    | 'concave-lens'
+    | 'optical-prism'
+    | 'pn-diode-board'
     | 'generic-box'
     | 'sensor-probe';
   colorTheme?: string;

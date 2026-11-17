@@ -153,6 +153,36 @@ test.describe('PrayogaProof E2E Test Suite', () => {
     await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
   });
 
+  test('Loads Concave Mirror workspace and verifies optical bench setup', async ({ page }) => {
+    await page.goto('/workspace/concave-mirror-focal-length');
+    await expect(page.getByText(/Focal Length of a Concave Mirror/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Convex Mirror workspace and verifies auxiliary lens retro-reflection setup', async ({ page }) => {
+    await page.goto('/workspace/convex-mirror-focal-length');
+    await expect(page.getByText(/Focal Length of a Convex Mirror/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Concave Lens workspace and verifies compound lens setup', async ({ page }) => {
+    await page.goto('/workspace/concave-lens-focal-length');
+    await expect(page.getByText(/Focal Length of a Concave Lens/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Optical Prism workspace and verifies spectrometer table setup', async ({ page }) => {
+    await page.goto('/workspace/prism-refractive-index');
+    await expect(page.getByText(/Refractive Index of a Prism – Minimum Deviation/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads P-N Junction Diode workspace and verifies semiconductor test bench', async ({ page }) => {
+    await page.goto('/workspace/pn-junction-diode');
+    await expect(page.getByText(/P-N Junction Diode – I-V Characteristics/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
   test('Loads Paper Chromatography workspace and inspects paper strip properties', async ({ page }) => {
     await page.goto('/workspace/paper-chromatography');
 

@@ -10,11 +10,11 @@
 
 | Category | Total Experiments | Implemented (Active) | Under Development | Status |
 |----------|-------------------|----------------------|-------------------|--------|
-| **Physics** | **25** | **20** (5 Foundation + 10 Class 11 + 5 Class 12) | **5** (Class 12 Optics & Semiconductor: 5) | Active Operational |
+| **Physics** | **25** | **25** (5 Foundation + 10 Class 11 + 10 Class 12) | **0** (Physics Curriculum 100% Complete) | **100% Complete (Active Operational)** |
 | **Chemistry** | **27** | **5** (Foundation) | **22** (Class 11: 11, Class 12: 11) | Active Hybrid |
 | **Biology** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
 | **Mathematics** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
-| **Total** | **52** | **25** (48.1%) | **27** (51.9%) | **Verified Operational Baseline** |
+| **Total** | **52** | **30** (57.7%) | **22** (42.3%) | **Verified Operational Baseline** |
 
 ---
 
@@ -43,7 +43,7 @@
 | 14 | `hookes-law` | Hooke's Law and Spring Constant | Class 11 | **Implemented** | Coiled helical spring with real-time elastic extension, vertical mirror scale (anti-parallax), linear $F = k \cdot x$ slope determination, elastic potential energy $U = \frac{1}{2}kx^2$, dynamic harmonic oscillation $T = 2\pi\sqrt{m/k}$, and plastic yield limit. |
 | 15 | `boyles-law` | Boyle's Law | Class 11 | **Implemented** | Airtight graduated gas cylinder (15–120 mL), movable piston, connected dial pressure gauge (0–300 kPa), isothermal $P \cdot V = \text{Constant}$ verification, manometer mercury head $\Delta h$, and linear $P$ vs $1/V$ plotting. |
 
-### Class 12 Experiments — 5 of 10 Operational (First 5 Complete, 5 Remaining)
+### Class 12 Experiments — 10 of 10 Operational (100% Implemented)
 | # | ID | Title | Class Level | Status | Scientific Engine & Capabilities |
 |---|----|-------|-------------|--------|----------------------------------|
 | 16 | `resistivity-vi-method` | Resistivity of a Wire Using the V-I Method | Class 12 | **Implemented** | Calibrated wire board (Constantan, Nichrome, Copper, Manganin), screw gauge diameter measurement ($d = 0.50\text{ mm}$), millimeter ruler active length ($L = 100\text{ cm}$), regulated DC source, digital ammeter & voltmeter, Ohm's law slope resistance $R = V/I$, and specific resistivity $\rho = \frac{R \cdot A}{L} = \frac{R \pi d^2}{4L}$. |
@@ -51,11 +51,11 @@
 | 18 | `galvanometer-figure-of-merit` | Galvanometer Resistance and Figure of Merit | Class 12 | **Implemented** | Deadbeat Weston moving-coil galvanometer (30-0-30 scale), high resistance box $R = 4900\ \Omega$ (key $K_1$), low shunt resistance box $S = 100\ \Omega$ (key $K_2$), half-deflection model ($\theta \to \theta/2$), coil resistance $G = \frac{RS}{R-S} \approx S$, and Figure of Merit $k = \frac{E}{(R+G)\theta}$. |
 | 19 | `galvanometer-voltmeter` | Conversion of Galvanometer into a Voltmeter | Class 12 | **Implemented** | Calibration test bench, target range selector (0.5–10V), theoretical series multiplier calculation $R_s = \frac{V}{I_g} - G$, effective voltmeter resistance $R_v = R_s + G$, multi-point test signal calibration against reference digital voltmeter, and overload alert detection ($V_{\text{test}} > V_{\max}$). |
 | 20 | `galvanometer-ammeter` | Conversion of Galvanometer into an Ammeter | Class 12 | **Implemented** | Calibration test bench, target current range selector (0.1–10A), theoretical parallel shunt calculation $S = \frac{I_g \cdot G}{I - I_g}$, effective ammeter resistance $R_a = \frac{GS}{G+S}$, multi-point current calibration against reference digital ammeter, and current overload alert detection ($I_{\text{test}} > I_{\max}$). |
-| 21 | `concave-mirror-focal-length` | Focal Length of a Concave Mirror | Class 12 | **Under Development** | Optical bench, two-pin parallax removal method, $u$-$v$ observation and focal length $f = \frac{uv}{u+v}$. |
-| 22 | `convex-mirror-focal-length` | Focal Length of a Convex Mirror | Class 12 | **Under Development** | Auxiliary convex lens combination, virtual image reflection back-tracing method. |
-| 23 | `concave-lens-focal-length` | Focal Length of a Concave Lens | Class 12 | **Under Development** | Concave lens paired with auxiliary convex lens, composite focal length determination. |
-| 24 | `prism-refractive-index` | Refractive Index of a Prism – Minimum Deviation | Class 12 | **Under Development** | Virtual drawing board ray tracing, angle of incidence $i$ vs deviation $D$, $\mu = \frac{\sin((A+D_m)/2)}{\sin(A/2)}$. |
-| 25 | `pn-junction-diode` | P-N Junction Diode – I-V Characteristics | Class 12 | **Under Development** | Forward bias knee threshold (0.7V Si), reverse bias microammeter breakdown characteristics. |
+| 21 | `concave-mirror-focal-length` | Focal Length of a Concave Mirror | Class 12 | **Implemented** | Front-silvered concave mirror bench, optical axis, focus $F$ and center of curvature $C$ indicators, object needle ($u$), real inverted image on screen or virtual erect image behind mirror ($u < f$), mirror formula $1/f = 1/v + 1/u$, linear magnification $m = -v/u$, paraxial ray tracing. |
+| 22 | `convex-mirror-focal-length` | Focal Length of a Convex Mirror | Class 12 | **Implemented** | Bulging convex mirror bench, virtual focus ($f > 0$) behind mirror, virtual erect diminished image ($v > 0, 0 < m < 1$), auxiliary convex lens retro-reflection setup ($R = 2f$), normal incidence ray reversal at center of curvature $C$. |
+| 23 | `concave-lens-focal-length` | Focal Length of a Concave Lens | Class 12 | **Implemented** | Diverging biconcave lens bench ($f < 0$), virtual ray back-tracing, virtual erect diminished image on incident side, auxiliary convex lens combination method ($1/f_2 = 1/F_{\text{comb}} - 1/f_1$). |
+| 24 | `prism-refractive-index` | Refractive Index of a Prism – Minimum Deviation | Class 12 | **Implemented** | Equilateral crown glass prism ($A = 60^\circ$) on graduated angle turntable, Snell's law refraction at both faces, minimum deviation condition ($i = e, r = A/2$), total internal reflection when $r_2 > \theta_c$, refractive index formula $\mu = \frac{\sin((A+D_m)/2)}{\sin(A/2)}$. |
+| 25 | `pn-junction-diode` | P-N Junction Diode – I-V Characteristics | Class 12 | **Implemented** | Semiconductor characterization test bench, Silicon ($V_k \approx 0.7\text{ V}$) and Germanium ($V_k \approx 0.3\text{ V}$) crystals, forward/reverse bias polarity switch, series protective resistor $R_s$, dynamic AC resistance $r_{\text{ac}} = \Delta V / \Delta I$, reverse saturation leakage ($I_0 \approx 0.15\ \mu\text{A}$), avalanche breakdown ($V_{\text{br}} \approx 25\text{ V}$), interactive plotted I-V curve with active operating point. |
 
 ---
 

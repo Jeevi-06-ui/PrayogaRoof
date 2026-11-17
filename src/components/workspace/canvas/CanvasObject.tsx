@@ -4670,6 +4670,796 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
         );
       }
 
+      case 'concave-mirror': {
+        const f = Number(object.properties.focalLength ?? 15.0);
+        const u = Number(object.properties.objectDistance ?? 30.0);
+        const ho = Number(object.properties.objectHeight ?? 4.0);
+        const v = Number(object.state.imageDistanceCm ?? (u > f ? -((u * f) / (u - f)) : 999));
+        const m = Number(object.state.linearMagnification ?? (v / u));
+        const hi = Number(object.state.imageHeightCm ?? (m * ho));
+        const isVirtual = u < f;
+        const isAtInf = Math.abs(u - f) < 0.2;
+
+        const mirrorX = width - 70;
+        const axisY = 135;
+        const scale = 2.4;
+
+        const objX = Math.max(30, mirrorX - u * scale);
+        const objY = axisY - ho * 7;
+        const fX = mirrorX - f * scale;
+        const cX = mirrorX - 2 * f * scale;
+
+        const imgX = isAtInf ? 20 : isVirtual ? mirrorX + Math.abs(v) * scale : mirrorX - Math.abs(v) * scale;
+        const imgY = axisY - hi * 7;
+
+        return (
+          <Group>
+            {/* Dark Bench Housing */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#090d16"
+              stroke={isSelected ? '#38bdf8' : '#1e293b'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={10}
+              shadowColor="#0284c7"
+              shadowBlur={6}
+              shadowOpacity={0.15}
+            />
+
+            {/* Bench Header */}
+            <KonvaText
+              text="CONCAVE SPHERICAL MIRROR OPTICAL BENCH"
+              x={16}
+              y={12}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+            <KonvaText
+              text={`f = -${f.toFixed(1)} cm | R = -${(2 * f).toFixed(1)} cm`}
+              x={width - 150}
+              y={12}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#94a3b8"
+            />
+
+            {/* Optical Axis */}
+            <Line points={[20, axisY, width - 20, axisY]} stroke="#334155" strokeWidth={1.5} dash={[6, 4]} />
+            <KonvaText text="Principal Axis" x={24} y={axisY + 4} fontSize={8} fontFamily="sans-serif" fill="#64748b" />
+
+            {/* Concave Mirror Arc (Reflecting towards left) */}
+            <Line
+              points={[
+                mirrorX + 16, axisY - 80,
+                mirrorX + 4, axisY - 45,
+                mirrorX, axisY,
+                mirrorX + 4, axisY + 45,
+                mirrorX + 16, axisY + 80,
+              ]}
+              stroke="#38bdf8"
+              strokeWidth={3.5}
+              tension={0.3}
+              lineCap="round"
+            />
+            {/* Mirror Silvered Back Hatching */}
+            {[-70, -45, -20, 0, 20, 45, 70].map((offsetY, idx) => (
+              <Line
+                key={`cm-hatch-${idx}`}
+                points={[mirrorX + 8, axisY + offsetY - 4, mirrorX + 18, axisY + offsetY + 6]}
+                stroke="#64748b"
+                strokeWidth={1.5}
+              />
+            ))}
+            <KonvaText text="Pole (P)" x={mirrorX - 10} y={axisY + 8} fontSize={8.5} fontFamily="sans-serif" fill="#38bdf8" />
+
+            {/* Focal Point F and Center of Curvature C */}
+            <Circle x={fX} y={axisY} radius={3.5} fill="#f43f5e" />
+            <KonvaText text="F" x={fX - 4} y={axisY + 6} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#f43f5e" />
+            <Circle x={cX} y={axisY} radius={3.5} fill="#a855f7" />
+            <KonvaText text="C (2F)" x={cX - 8} y={axisY + 6} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#a855f7" />
+
+            {/* Object Arrow (Upright Amber) */}
+            <Line points={[objX, axisY, objX, objY]} stroke="#f59e0b" strokeWidth={3} lineCap="round" />
+            <Line points={[objX - 4, objY + 6, objX, objY, objX + 4, objY + 6]} stroke="#f59e0b" strokeWidth={2.5} />
+            <KonvaText text={`Object (u=-${u}cm)`} x={objX - 25} y={objY - 14} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#fbbf24" />
+
+            {/* Image Arrow */}
+            {!isAtInf && (
+              <Group>
+                <Line
+                  points={[imgX, axisY, imgX, imgY]}
+                  stroke={isVirtual ? '#a855f7' : '#10b981'}
+                  strokeWidth={2.5}
+                  dash={isVirtual ? [4, 3] : undefined}
+                  lineCap="round"
+                />
+                <Line
+                  points={
+                    isVirtual
+                      ? [imgX - 4, imgY + 5, imgX, imgY, imgX + 4, imgY + 5]
+                      : [imgX - 4, imgY - 5, imgX, imgY, imgX + 4, imgY - 5]
+                  }
+                  stroke={isVirtual ? '#a855f7' : '#10b981'}
+                  strokeWidth={2}
+                />
+                <KonvaText
+                  text={`Image (${isVirtual ? 'Virtual' : 'Real'})`}
+                  x={imgX - 25}
+                  y={imgY > axisY ? imgY + 4 : imgY - 14}
+                  fontSize={8}
+                  fontFamily="sans-serif"
+                  fontStyle="bold"
+                  fill={isVirtual ? '#c084fc' : '#34d399'}
+                />
+              </Group>
+            )}
+
+            {/* Principal Rays: Ray 1 (Parallel -> Focus) */}
+            <Line points={[objX, objY, mirrorX, objY, fX, axisY, 25, axisY + ((axisY - objY) / (mirrorX - fX)) * (fX - 25)]} stroke="#ef4444" strokeWidth={1.5} opacity={0.7} />
+            {isVirtual && (
+              <Line points={[mirrorX, objY, imgX, imgY]} stroke="#ef4444" strokeWidth={1.5} dash={[3, 3]} opacity={0.6} />
+            )}
+
+            {/* Principal Rays: Ray 2 (Through Pole or Center) */}
+            <Line points={[objX, objY, mirrorX, axisY, 25, axisY + (axisY - objY) * ((mirrorX - 25) / (mirrorX - objX))]} stroke="#3b82f6" strokeWidth={1.5} opacity={0.7} />
+            {isVirtual && (
+              <Line points={[mirrorX, axisY, imgX, imgY]} stroke="#3b82f6" strokeWidth={1.5} dash={[3, 3]} opacity={0.6} />
+            )}
+
+            {/* Optical Formula & Telemetry Footer */}
+            <Rect x={16} y={height - 48} width={width - 32} height={34} fill="#0f172a" stroke="#1e293b" strokeWidth={1} cornerRadius={6} />
+            <KonvaText
+              text={
+                isAtInf
+                  ? '⚠️ OBJECT AT FOCUS: Reflected rays emerge parallel; image formed at infinity.'
+                  : `1/f = 1/v + 1/u  =>  v = ${v.toFixed(1)} cm | m = ${m.toFixed(2)} | Image: ${isVirtual ? 'Virtual, Erect' : 'Real, Inverted'}`
+              }
+              x={26}
+              y={height - 38}
+              fontSize={9.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isVirtual ? '#c084fc' : '#38bdf8'}
+            />
+          </Group>
+        );
+      }
+
+      case 'convex-mirror': {
+        const f = Number(object.properties.focalLength ?? 15.0);
+        const u = Number(object.properties.objectDistance ?? 30.0);
+        const ho = Number(object.properties.objectHeight ?? 4.0);
+        const auxF = Number(object.properties.auxiliaryLensFocalLength ?? 15.0);
+        const v = Number(object.state.imageDistanceCm ?? ((u * f) / (u + f)));
+        const m = Number(object.state.linearMagnification ?? (v / u));
+        const hi = Number(object.state.imageHeightCm ?? (m * ho));
+
+        const mirrorX = 220;
+        const axisY = 135;
+        const scale = 2.4;
+
+        const objX = Math.max(25, mirrorX - u * scale);
+        const objY = axisY - ho * 7;
+        const fX = mirrorX + f * scale;
+        const cX = mirrorX + 2 * f * scale;
+        const imgX = mirrorX + v * scale;
+        const imgY = axisY - hi * 7;
+
+        return (
+          <Group>
+            {/* Bench Housing */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#090d16"
+              stroke={isSelected ? '#38bdf8' : '#0369a1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={10}
+              shadowColor="#0369a1"
+              shadowBlur={6}
+              shadowOpacity={0.15}
+            />
+
+            {/* Bench Header */}
+            <KonvaText
+              text="CONVEX SPHERICAL MIRROR OPTICAL BENCH"
+              x={16}
+              y={12}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+            <KonvaText
+              text={`f = +${f.toFixed(1)} cm | Auxiliary Convex Lens f = ${auxF.toFixed(1)} cm`}
+              x={width - 240}
+              y={12}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#94a3b8"
+            />
+
+            {/* Optical Axis */}
+            <Line points={[20, axisY, width - 20, axisY]} stroke="#334155" strokeWidth={1.5} dash={[6, 4]} />
+
+            {/* Convex Mirror Arc (Bulging towards left) */}
+            <Line
+              points={[
+                mirrorX - 16, axisY - 80,
+                mirrorX - 4, axisY - 45,
+                mirrorX, axisY,
+                mirrorX - 4, axisY + 45,
+                mirrorX - 16, axisY + 80,
+              ]}
+              stroke="#38bdf8"
+              strokeWidth={3.5}
+              tension={0.3}
+              lineCap="round"
+            />
+            {/* Silvered Interior Hatching (Right face) */}
+            {[-70, -45, -20, 0, 20, 45, 70].map((offsetY, idx) => (
+              <Line
+                key={`cv-hatch-${idx}`}
+                points={[mirrorX - 6, axisY + offsetY - 4, mirrorX + 4, axisY + offsetY + 6]}
+                stroke="#64748b"
+                strokeWidth={1.5}
+              />
+            ))}
+            <KonvaText text="Pole (P)" x={mirrorX - 25} y={axisY + 8} fontSize={8.5} fontFamily="sans-serif" fill="#38bdf8" />
+
+            {/* Virtual Focus F and Center C behind mirror */}
+            <Circle x={fX} y={axisY} radius={3.5} fill="#f43f5e" />
+            <KonvaText text="Virtual F" x={fX - 12} y={axisY + 6} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#f43f5e" />
+            <Circle x={cX} y={axisY} radius={3.5} fill="#a855f7" />
+            <KonvaText text="Virtual C" x={cX - 12} y={axisY + 6} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#a855f7" />
+
+            {/* Real Object Arrow */}
+            <Line points={[objX, axisY, objX, objY]} stroke="#f59e0b" strokeWidth={3} lineCap="round" />
+            <Line points={[objX - 4, objY + 6, objX, objY, objX + 4, objY + 6]} stroke="#f59e0b" strokeWidth={2.5} />
+            <KonvaText text={`Object (u=-${u}cm)`} x={objX - 25} y={objY - 14} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#fbbf24" />
+
+            {/* Virtual Diminished Erect Image Arrow behind mirror */}
+            <Line points={[imgX, axisY, imgX, imgY]} stroke="#c084fc" strokeWidth={2.5} dash={[3, 2]} lineCap="round" />
+            <Line points={[imgX - 3, imgY + 4, imgX, imgY, imgX + 3, imgY + 4]} stroke="#c084fc" strokeWidth={2} />
+            <KonvaText text={`Virtual Image (v=+${v.toFixed(1)}cm)`} x={imgX - 20} y={imgY - 14} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#c084fc" />
+
+            {/* Ray 1: Parallel to axis, diverges as if from F */}
+            <Line points={[objX, objY, mirrorX, objY, mirrorX - 60, objY - 30]} stroke="#ef4444" strokeWidth={1.5} />
+            <Line points={[mirrorX, objY, fX, axisY]} stroke="#ef4444" strokeWidth={1.5} dash={[4, 3]} opacity={0.6} />
+
+            {/* Ray 2: Directed towards C, reflects back */}
+            <Line points={[objX, objY, mirrorX, axisY + ((objY - axisY) * (mirrorX - cX)) / (objX - cX)]} stroke="#3b82f6" strokeWidth={1.5} />
+            <Line points={[mirrorX, axisY + ((objY - axisY) * (mirrorX - cX)) / (objX - cX), cX, axisY]} stroke="#3b82f6" strokeWidth={1.5} dash={[4, 3]} opacity={0.6} />
+
+            {/* Optical Telemetry Footer */}
+            <Rect x={16} y={height - 48} width={width - 32} height={34} fill="#0f172a" stroke="#1e293b" strokeWidth={1} cornerRadius={6} />
+            <KonvaText
+              text={`Convex Mirror Formula: 1/f = 1/v + 1/u  =>  v = +${v.toFixed(1)} cm,  m = +${m.toFixed(2)} (Virtual, Erect, Diminished)`}
+              x={26}
+              y={height - 38}
+              fontSize={9.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+          </Group>
+        );
+      }
+
+      case 'concave-lens': {
+        const f = Number(object.properties.focalLength ?? 15.0);
+        const u = Number(object.properties.objectDistance ?? 30.0);
+        const ho = Number(object.properties.objectHeight ?? 4.0);
+        const auxF = Number(object.properties.auxiliaryConvexFocalLength ?? 10.0);
+        const v = Number(object.state.imageDistanceCm ?? -((u * f) / (u + f)));
+        const m = Number(object.state.linearMagnification ?? (Math.abs(v) / u));
+        const hi = Number(object.state.imageHeightCm ?? (m * ho));
+        const combF = Number(object.state.combinedFocalLengthCm ?? ((auxF * f) / (f - auxF)));
+
+        const lensX = 220;
+        const axisY = 135;
+        const scale = 2.4;
+
+        const objX = Math.max(25, lensX - u * scale);
+        const objY = axisY - ho * 7;
+        const f1X = lensX - f * scale; // Virtual focus on front side
+        const f2X = lensX + f * scale;
+        const imgX = lensX - Math.abs(v) * scale;
+        const imgY = axisY - hi * 7;
+
+        return (
+          <Group>
+            {/* Bench Housing */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#090d16"
+              stroke={isSelected ? '#38bdf8' : '#0284c7'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={10}
+              shadowColor="#0284c7"
+              shadowBlur={6}
+              shadowOpacity={0.15}
+            />
+
+            {/* Bench Header */}
+            <KonvaText
+              text="DIVERGING CONCAVE LENS BENCH & AUXILIARY COMBO"
+              x={16}
+              y={12}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+            <KonvaText
+              text={`f = -${f.toFixed(1)} cm | Aux f = +${auxF.toFixed(1)} cm => Fcomb = ${combF.toFixed(1)} cm`}
+              x={width - 260}
+              y={12}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#94a3b8"
+            />
+
+            {/* Optical Axis */}
+            <Line points={[20, axisY, width - 20, axisY]} stroke="#334155" strokeWidth={1.5} dash={[6, 4]} />
+
+            {/* Concave (Hourglass) Lens Profile */}
+            <Line
+              points={[
+                lensX - 10, axisY - 80,
+                lensX - 3, axisY - 30,
+                lensX - 2, axisY,
+                lensX - 3, axisY + 30,
+                lensX - 10, axisY + 80,
+                lensX + 10, axisY + 80,
+                lensX + 3, axisY + 30,
+                lensX + 2, axisY,
+                lensX + 3, axisY - 30,
+                lensX + 10, axisY - 80,
+              ]}
+              closed
+              fill="#0369a1"
+              opacity={0.35}
+              stroke="#38bdf8"
+              strokeWidth={2}
+            />
+            <KonvaText text="Optical Center O" x={lensX - 26} y={axisY + 8} fontSize={8.5} fontFamily="sans-serif" fill="#38bdf8" />
+
+            {/* Front and Rear Foci */}
+            <Circle x={f1X} y={axisY} radius={3.5} fill="#f43f5e" />
+            <KonvaText text="F₁" x={f1X - 4} y={axisY + 6} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#f43f5e" />
+            <Circle x={f2X} y={axisY} radius={3.5} fill="#f43f5e" />
+            <KonvaText text="F₂" x={f2X - 4} y={axisY + 6} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#f43f5e" />
+
+            {/* Object Arrow */}
+            <Line points={[objX, axisY, objX, objY]} stroke="#f59e0b" strokeWidth={3} lineCap="round" />
+            <Line points={[objX - 4, objY + 6, objX, objY, objX + 4, objY + 6]} stroke="#f59e0b" strokeWidth={2.5} />
+            <KonvaText text={`Object (u=-${u}cm)`} x={objX - 25} y={objY - 14} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#fbbf24" />
+
+            {/* Virtual Image Arrow */}
+            <Line points={[imgX, axisY, imgX, imgY]} stroke="#c084fc" strokeWidth={2.5} dash={[3, 2]} lineCap="round" />
+            <Line points={[imgX - 3, imgY + 4, imgX, imgY, imgX + 3, imgY + 4]} stroke="#c084fc" strokeWidth={2} />
+            <KonvaText text={`Virtual Image (v=${v.toFixed(1)}cm)`} x={imgX - 25} y={imgY - 14} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#c084fc" />
+
+            {/* Ray 1: Parallel to axis -> refracts diverging outward as if from F1 */}
+            <Line points={[objX, objY, lensX, objY, width - 40, objY - 45]} stroke="#ef4444" strokeWidth={1.5} />
+            <Line points={[lensX, objY, f1X, axisY]} stroke="#ef4444" strokeWidth={1.5} dash={[4, 3]} opacity={0.6} />
+
+            {/* Ray 2: Central ray through O undeviated */}
+            <Line points={[objX, objY, lensX, axisY, width - 40, axisY + ((axisY - objY) / (lensX - objX)) * (width - 40 - lensX)]} stroke="#3b82f6" strokeWidth={1.5} />
+
+            {/* Telemetry Footer */}
+            <Rect x={16} y={height - 48} width={width - 32} height={34} fill="#0f172a" stroke="#1e293b" strokeWidth={1} cornerRadius={6} />
+            <KonvaText
+              text={`Concave Lens: 1/f = 1/v - 1/u  =>  v = ${v.toFixed(1)} cm,  m = +${m.toFixed(2)} (Virtual, Erect, Diminished)`}
+              x={26}
+              y={height - 38}
+              fontSize={9.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+          </Group>
+        );
+      }
+
+      case 'optical-prism': {
+        const i1 = Number(object.properties.angleOfIncidence ?? 49.5);
+        const aDeg = Number(object.properties.prismAngle ?? 60.0);
+        const mu = Number(object.properties.refractiveIndex ?? 1.52);
+        const r1 = Number(object.state.firstRefractionAngleDeg ?? 29.3);
+        const r2 = Number(object.state.secondIncidentAngleDeg ?? 30.7);
+        const eDeg = Number(object.state.angleOfEmergenceDeg ?? 49.5);
+        const devDeg = Number(object.state.angleOFDeviationDeg ?? 39.0);
+        const dmDeg = Number(object.state.minimumDeviationDeg ?? 39.0);
+        const isMinDev = Boolean(object.state.isMinimumDeviation);
+        const isTir = Boolean(object.state.isTotalInternalReflection);
+
+        const prismCenterX = width / 2;
+        const prismBaseY = height - 70;
+        const prismSide = 170;
+        const prismHeight = (Math.sqrt(3) / 2) * prismSide;
+        const prismTopY = prismBaseY - prismHeight;
+
+        const apexX = prismCenterX;
+        const apexY = prismTopY;
+        const leftBaseX = prismCenterX - prismSide / 2;
+        const rightBaseX = prismCenterX + prismSide / 2;
+
+        // Incident ray hit point on left face (around mid-point)
+        const hit1X = (apexX + leftBaseX) / 2;
+        const hit1Y = (apexY + prismBaseY) / 2;
+
+        // Emergent ray exit point on right face
+        const hit2X = (apexX + rightBaseX) / 2;
+        const hit2Y = (apexY + prismBaseY) / 2;
+
+        const sourceX = 35;
+        const sourceY = hit1Y - Math.tan((i1 - 30) * (Math.PI / 180)) * (hit1X - sourceX);
+
+        const outX = width - 40;
+        const outY = hit2Y + Math.tan((eDeg - 30) * (Math.PI / 180)) * (outX - hit2X);
+
+        return (
+          <Group>
+            {/* Optical Turntable Board */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#090d16"
+              stroke={isSelected ? '#38bdf8' : '#7c3aed'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={10}
+              shadowColor="#7c3aed"
+              shadowBlur={6}
+              shadowOpacity={0.15}
+            />
+
+            {/* Header */}
+            <KonvaText
+              text="OPTICAL SPECTROMETER PRISM TABLE"
+              x={16}
+              y={12}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#a78bfa"
+            />
+            <KonvaText
+              text={`Angle of Prism A = ${aDeg.toFixed(0)}° | Glass Index μ = ${mu.toFixed(2)}`}
+              x={width - 240}
+              y={12}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#94a3b8"
+            />
+
+            {/* Graduated Turntable Circle */}
+            <Circle
+              x={prismCenterX}
+              y={(apexY + prismBaseY) / 2 + 10}
+              radius={105}
+              fill="#0f172a"
+              stroke="#334155"
+              strokeWidth={1}
+              dash={[3, 5]}
+            />
+
+            {/* Equilateral Glass Prism */}
+            <Line
+              points={[apexX, apexY, rightBaseX, prismBaseY, leftBaseX, prismBaseY]}
+              closed
+              fill="#c4b5fd"
+              opacity={0.3}
+              stroke="#a78bfa"
+              strokeWidth={2.5}
+            />
+            <KonvaText text="A" x={apexX - 4} y={apexY - 14} fontSize={9.5} fontFamily="sans-serif" fontStyle="bold" fill="#c4b5fd" />
+            <KonvaText text="Glass (μ = 1.52)" x={prismCenterX - 35} y={(apexY + prismBaseY) / 2 + 15} fontSize={8.5} fontFamily="sans-serif" fill="#e2e8f0" />
+
+            {/* Face Normals (Dashed) */}
+            <Line points={[hit1X - 25, hit1Y - 45, hit1X + 25, hit1Y + 45]} stroke="#64748b" strokeWidth={1} dash={[3, 3]} />
+            <Line points={[hit2X - 25, hit2Y + 45, hit2X + 25, hit2Y - 45]} stroke="#64748b" strokeWidth={1} dash={[3, 3]} />
+
+            {/* Incident Light Beam (Yellow) */}
+            <Line points={[sourceX, sourceY, hit1X, hit1Y]} stroke="#facc15" strokeWidth={2.5} lineCap="round" />
+            <KonvaText text={`i₁ = ${i1.toFixed(1)}°`} x={sourceX + 10} y={sourceY - 14} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#fde047" />
+
+            {/* Refracted Beam Traversing Inside Prism */}
+            <Line points={[hit1X, hit1Y, hit2X, hit2Y]} stroke="#facc15" strokeWidth={2.5} lineCap="round" />
+            <KonvaText text={`r₁ = ${r1.toFixed(1)}°`} x={hit1X + 8} y={hit1Y - 10} fontSize={8} fontFamily="sans-serif" fill="#fde047" />
+            <KonvaText text={`r₂ = ${r2.toFixed(1)}°`} x={hit2X - 32} y={hit2Y - 10} fontSize={8} fontFamily="sans-serif" fill="#fde047" />
+
+            {/* Emergent Light Beam or Total Internal Reflection */}
+            {isTir ? (
+              <Group>
+                <Line points={[hit2X, hit2Y, prismCenterX, prismBaseY]} stroke="#ef4444" strokeWidth={2.5} />
+                <KonvaText text="TIR Reflected" x={hit2X - 10} y={hit2Y + 16} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#f87171" />
+              </Group>
+            ) : (
+              <Group>
+                <Line points={[hit2X, hit2Y, outX, outY]} stroke="#facc15" strokeWidth={2.5} lineCap="round" />
+                <KonvaText text={`e = ${eDeg.toFixed(1)}°`} x={outX - 45} y={outY - 14} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#fde047" />
+                {/* Continuation of incident ray for deviation comparison */}
+                <Line points={[hit1X, hit1Y, hit2X + 50, hit1Y + (hit1Y - sourceY) * 0.6]} stroke="#94a3b8" strokeWidth={1} dash={[4, 4]} opacity={0.5} />
+              </Group>
+            )}
+
+            {/* Status / Minimum Deviation Badge */}
+            <Rect
+              x={16}
+              y={height - 48}
+              width={width - 32}
+              height={34}
+              fill={isTir ? '#450a0a' : isMinDev ? '#064e3b' : '#0f172a'}
+              stroke={isTir ? '#ef4444' : isMinDev ? '#10b981' : '#1e293b'}
+              strokeWidth={1.5}
+              cornerRadius={6}
+            />
+            <KonvaText
+              text={
+                isTir
+                  ? '⚠️ TOTAL INTERNAL REFLECTION: Angle r₂ exceeds critical angle θc (no emergent ray)!'
+                  : isMinDev
+                    ? `✓ MINIMUM DEVIATION REACHED: D = Dm = ${devDeg.toFixed(1)}° (i = e = ${i1.toFixed(1)}°, r = A/2 = ${(aDeg / 2).toFixed(1)}°) | μ = ${mu.toFixed(2)}`
+                    : `Deviation D = i + e - A = ${devDeg.toFixed(1)}° (Dm = ${dmDeg.toFixed(1)}°) | μ = sin((A+Dm)/2) / sin(A/2)`
+              }
+              x={26}
+              y={height - 38}
+              fontSize={9.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isTir ? '#f87171' : isMinDev ? '#34d399' : '#a78bfa'}
+            />
+          </Group>
+        );
+      }
+
+      case 'pn-diode-board': {
+        const mat = String(object.properties.semiconductorMaterial ?? 'silicon');
+        const mode = String(object.properties.biasMode ?? 'forward');
+        const vApplied = Number(object.properties.appliedVoltage ?? 1.5);
+        const rSeries = Number(object.properties.seriesResistance ?? 100.0);
+        const vDiode = Number(object.state.diodeVoltageVolts ?? (mode === 'forward' ? 0.72 : vApplied));
+        const currMa = Number(object.state.circuitCurrentMilliAmps ?? (mode === 'forward' ? 7.8 : 0.00015));
+        const currUa = Number(object.state.circuitCurrentMicroAmps ?? (mode === 'forward' ? 7800 : 0.15));
+        const rDyn = Number(object.state.dynamicResistanceOhms ?? (mode === 'forward' ? 15.0 : 500000));
+        const isConducting = Boolean(object.state.isConducting);
+        const isBreakdown = Boolean(object.state.isBreakdown);
+        const vk = mat === 'silicon' ? 0.7 : 0.3;
+
+        return (
+          <Group>
+            {/* Electronic Chassis */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#090d16"
+              stroke={isSelected ? '#38bdf8' : '#0d9488'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={10}
+              shadowColor="#0d9488"
+              shadowBlur={6}
+              shadowOpacity={0.15}
+            />
+
+            {/* Header */}
+            <KonvaText
+              text="P-N JUNCTION SEMICONDUCTOR TEST BENCH"
+              x={16}
+              y={12}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#2dd4bf"
+            />
+            {/* Bias Mode Badge */}
+            <Rect
+              x={width - 165}
+              y={10}
+              width={145}
+              height={20}
+              fill={mode === 'forward' ? '#042f2e' : '#450a0a'}
+              stroke={mode === 'forward' ? '#14b8a6' : '#f87171'}
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+            <KonvaText
+              text={mode === 'forward' ? 'FORWARD BIAS (P+, N-)' : 'REVERSE BIAS (P-, N+)'}
+              x={width - 158}
+              y={14}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={mode === 'forward' ? '#2dd4bf' : '#fca5a5'}
+            />
+
+            {/* Schematic Diode Circuit Section (Left side) */}
+            <Rect x={20} y={40} width={210} height={170} fill="#0f172a" stroke="#1e293b" strokeWidth={1} cornerRadius={6} />
+            <KonvaText text="CIRCUIT SCHEMATIC" x={28} y={48} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#64748b" />
+
+            {/* Wire Loop */}
+            <Line points={[45, 115, 80, 115]} stroke="#94a3b8" strokeWidth={2} />
+            {/* Diode Symbol: Triangle + Bar */}
+            {mode === 'forward' ? (
+              <Group>
+                {/* Anode (P) on Left, Cathode (N) on Right */}
+                <Line points={[80, 95, 80, 135, 115, 115]} closed fill="#14b8a6" stroke="#2dd4bf" strokeWidth={2} />
+                <Line points={[115, 95, 115, 135]} stroke="#2dd4bf" strokeWidth={3} lineCap="round" />
+                <KonvaText text="P (+)" x={65} y={140} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#2dd4bf" />
+                <KonvaText text="N (-)" x={110} y={140} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#f87171" />
+              </Group>
+            ) : (
+              <Group>
+                {/* Reverse: Cathode on Left, Anode on Right */}
+                <Line points={[115, 95, 115, 135, 80, 115]} closed fill="#f87171" stroke="#ef4444" strokeWidth={2} />
+                <Line points={[80, 95, 80, 135]} stroke="#ef4444" strokeWidth={3} lineCap="round" />
+                <KonvaText text="N (+)" x={65} y={140} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#f87171" />
+                <KonvaText text="P (-)" x={110} y={140} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#2dd4bf" />
+              </Group>
+            )}
+            <Line points={[115, 115, 140, 115]} stroke="#94a3b8" strokeWidth={2} />
+            {/* Series Resistor Zig-Zag */}
+            <Line points={[140, 115, 145, 108, 153, 122, 161, 108, 169, 122, 177, 108, 182, 115, 205, 115]} stroke="#e2e8f0" strokeWidth={2} />
+            <KonvaText text={`Rs = ${rSeries}Ω`} x={145} y={128} fontSize={8} fontFamily="sans-serif" fill="#94a3b8" />
+
+            {/* Material & Knee Info */}
+            <KonvaText
+              text={`Material: ${mat.toUpperCase()} (Knee Vk = ${vk.toFixed(1)} V)`}
+              x={28}
+              y={185}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#e2e8f0"
+            />
+
+            {/* Mini I-V Characteristic Display (Right side) */}
+            <Rect x={245} y={40} width={width - 265} height={170} fill="#022c22" stroke="#134e4a" strokeWidth={1} cornerRadius={6} />
+            <KonvaText text="I-V CHARACTERISTIC CURVE" x={255} y={48} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#2dd4bf" />
+
+            {/* Axes */}
+            <Line points={[260, 175, width - 35, 175]} stroke="#065f46" strokeWidth={1.5} />
+            <Line points={[285, 55, 285, 190]} stroke="#065f46" strokeWidth={1.5} />
+            <KonvaText text="VD (V)" x={width - 65} y={178} fontSize={8} fontFamily="sans-serif" fill="#6ee7b7" />
+            <KonvaText text="I" x={270} y={55} fontSize={8} fontFamily="sans-serif" fill="#6ee7b7" />
+
+            {/* Plotted Characteristic Curve */}
+            {mode === 'forward' ? (
+              <Group>
+                {/* Forward exponential curve */}
+                <Line
+                  points={[
+                    285, 175,
+                    285 + 25 * vk, 175,
+                    285 + 40 * vk, 165,
+                    285 + 60 * vk, 130,
+                    285 + 85 * vk, 70,
+                  ]}
+                  stroke="#34d399"
+                  strokeWidth={2.5}
+                  tension={0.2}
+                />
+                {/* Operating Point Marker */}
+                <Circle
+                  x={Math.min(width - 40, 285 + 75 * vDiode)}
+                  y={Math.max(65, 175 - currMa * 8)}
+                  radius={4.5}
+                  fill="#fbbf24"
+                  stroke="#ffffff"
+                  strokeWidth={1.5}
+                />
+              </Group>
+            ) : (
+              <Group>
+                {/* Reverse saturation and breakdown line */}
+                <Line
+                  points={[
+                    width - 50, 175,
+                    320, 175,
+                    310, 176,
+                    300, 195,
+                  ]}
+                  stroke="#f87171"
+                  strokeWidth={2.5}
+                />
+                <Circle
+                  x={Math.max(265, width - 50 - (vApplied / 25) * 80)}
+                  y={isBreakdown ? 190 : 175}
+                  radius={4.5}
+                  fill="#fbbf24"
+                  stroke="#ffffff"
+                  strokeWidth={1.5}
+                />
+              </Group>
+            )}
+
+            {/* Digital Readout Tiles */}
+            <Rect x={20} y={220} width={width - 40} height={42} fill="#0f172a" stroke="#1e293b" strokeWidth={1} cornerRadius={6} />
+            <KonvaText
+              text={`V_applied: ${vApplied.toFixed(2)} V`}
+              x={30}
+              y={228}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#e2e8f0"
+            />
+            <KonvaText
+              text={`Diode V_D: ${vDiode.toFixed(2)} V`}
+              x={135}
+              y={228}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+            <KonvaText
+              text={`Current: ${mode === 'forward' ? `${currMa.toFixed(2)} mA` : `${currUa.toFixed(2)} µA`}`}
+              x={255}
+              y={228}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={mode === 'forward' ? '#34d399' : '#f87171'}
+            />
+            <KonvaText
+              text={`Dynamic rac = ΔV/ΔI: ${rDyn.toFixed(1)} Ω`}
+              x={30}
+              y={246}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fill="#94a3b8"
+            />
+            <KonvaText
+              text={`Knee Voltage: ${vk.toFixed(1)} V (${mat})`}
+              x={255}
+              y={246}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fill="#94a3b8"
+            />
+
+            {/* Status Footer */}
+            <Rect
+              x={20}
+              y={height - 46}
+              width={width - 40}
+              height={32}
+              fill={isBreakdown ? '#450a0a' : isConducting ? '#042f2e' : '#0f172a'}
+              stroke={isBreakdown ? '#ef4444' : isConducting ? '#10b981' : '#1e293b'}
+              strokeWidth={1.5}
+              cornerRadius={6}
+            />
+            <KonvaText
+              text={
+                isBreakdown
+                  ? `⚠️ AVALANCHE BREAKDOWN! V_applied (${vApplied.toFixed(1)} V) >= V_br (25 V) => Sharp reverse current surge!`
+                  : isConducting
+                    ? `✓ FORWARD CONDUCTION ACTIVE: V_D (${vDiode.toFixed(2)} V) > Knee (${vk} V) => I_F = ${currMa.toFixed(2)} mA`
+                    : mode === 'forward'
+                      ? `SUB-THRESHOLD: V_D (${vDiode.toFixed(2)} V) < Knee (${vk} V) => Negligible current flow (< 0.1 mA)`
+                      : `REVERSE SATURATION: Reverse leakage current I_0 = ${currUa.toFixed(2)} µA (High reverse resistance)`
+              }
+              x={30}
+              y={height - 35}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isBreakdown ? '#fca5a5' : isConducting ? '#34d399' : '#94a3b8'}
+            />
+          </Group>
+        );
+      }
+
       case 'generic-box':
       default: {
         const displayVal =

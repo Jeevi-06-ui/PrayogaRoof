@@ -21,6 +21,13 @@ import {
   GALVANOMETER_VOLTMETER_QUESTIONS,
   GALVANOMETER_AMMETER_QUESTIONS,
 } from './class12QuestionsPart1';
+import {
+  CONCAVE_MIRROR_QUESTIONS,
+  CONVEX_MIRROR_QUESTIONS,
+  CONCAVE_LENS_QUESTIONS,
+  PRISM_REFRACTION_QUESTIONS,
+  PN_DIODE_QUESTIONS,
+} from './class12QuestionsPart2';
 
 export {
   VERNIER_CALLIPERS_QUESTIONS,
@@ -38,6 +45,11 @@ export {
   GALVANOMETER_FOM_QUESTIONS,
   GALVANOMETER_VOLTMETER_QUESTIONS,
   GALVANOMETER_AMMETER_QUESTIONS,
+  CONCAVE_MIRROR_QUESTIONS,
+  CONVEX_MIRROR_QUESTIONS,
+  CONCAVE_LENS_QUESTIONS,
+  PRISM_REFRACTION_QUESTIONS,
+  PN_DIODE_QUESTIONS,
 };
 
 export const CONVEX_LENS_QUESTIONS: ConceptualQuestion[] = [
@@ -226,6 +238,16 @@ export function getPhysicsQuestions(experimentId: string): ConceptualQuestion[] 
       return GALVANOMETER_VOLTMETER_QUESTIONS;
     case 'galvanometer-ammeter':
       return GALVANOMETER_AMMETER_QUESTIONS;
+    case 'concave-mirror-focal-length':
+      return CONCAVE_MIRROR_QUESTIONS;
+    case 'convex-mirror-focal-length':
+      return CONVEX_MIRROR_QUESTIONS;
+    case 'concave-lens-focal-length':
+      return CONCAVE_LENS_QUESTIONS;
+    case 'prism-refractive-index':
+      return PRISM_REFRACTION_QUESTIONS;
+    case 'pn-junction-diode':
+      return PN_DIODE_QUESTIONS;
     default:
       return [];
   }

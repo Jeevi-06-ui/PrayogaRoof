@@ -112,7 +112,7 @@ flowchart TD
 
 ### Phase 10: Physics Class 12 — Electromagnetism, Advanced Optics & Semiconductors (10 Experiments)
 **Focus:** Bridge circuits, galvanometer conversion, ray optics in mirrors/prisms, and semiconductor physics.
-**Current Status:** First 5 Electromagnetism & Metrology Experiments Implemented & Operational (50% Complete).
+**Current Status:** All 10 of 10 Experiments Implemented and Operational (100% Complete).
 
 | # | Experiment ID | Title | Status | Core Scientific Model Implemented / Operational |
 |---|---------------|-------|--------|-------------------------------------------------|
@@ -121,11 +121,11 @@ flowchart TD
 | 3 | `galvanometer-figure-of-merit` | Galvanometer Resistance and Figure of Merit | **Implemented** | Deadbeat Weston moving-coil galvanometer (30-0-30 scale), high resistance box $R = 4900\ \Omega$ (key $K_1$), low shunt resistance box $S = 100\ \Omega$ (key $K_2$), half-deflection model ($\theta \to \theta/2$), coil resistance $G = \frac{RS}{R-S} \approx S$, and Figure of Merit $k = \frac{E}{(R+G)\theta}$. |
 | 4 | `galvanometer-voltmeter` | Conversion of Galvanometer into a Voltmeter | **Implemented** | Calibration test bench, target range selector (0.5–10V), theoretical series multiplier calculation $R_s = \frac{V}{I_g} - G$, effective voltmeter resistance $R_v = R_s + G$, multi-point test signal calibration against reference digital voltmeter, and overload alert detection ($V_{\text{test}} > V_{\max}$). |
 | 5 | `galvanometer-ammeter` | Conversion of Galvanometer into an Ammeter | **Implemented** | Calibration test bench, target current range selector (0.1–10A), theoretical parallel shunt calculation $S = \frac{I_g \cdot G}{I - I_g}$, effective ammeter resistance $R_a = \frac{GS}{G+S}$, multi-point current calibration against reference digital ammeter, and current overload alert detection ($I_{\text{test}} > I_{\max}$). |
-| 6 | `concave-mirror-focal-length` | Focal Length of a Concave Mirror | Under Development | Optical bench with two upright pins, parallax removal method, $u$-$v$ observation table, and focal length formula $f = \frac{uv}{u+v}$. |
-| 7 | `convex-mirror-focal-length` | Focal Length of a Convex Mirror | Under Development | Auxiliary convex lens combination setup to project a real image behind the mirror, reflection back-tracing method. |
-| 8 | `concave-lens-focal-length` | Focal Length of a Concave Lens | Under Development | Concave lens paired with a convex lens of higher optical power, composite focal length determination. |
-| 9 | `prism-refractive-index` | Refractive Index of a Prism – Minimum Deviation | Under Development | Optical pin ray tracing on virtual drawing board, angle of incidence ($i$) vs angle of deviation ($D$) curve, calculation $\mu = \frac{\sin(\frac{A + D_m}{2})}{\sin(\frac{A}{2})}$. |
-| 10 | `pn-junction-diode` | P-N Junction Diode – I-V Characteristics | Under Development | Dual variable DC supply, forward bias knee voltage ($\sim 0.7\text{ V}$ Si, $\sim 0.3\text{ V}$ Ge), reverse bias microammeter breakdown characteristics. |
+| 6 | `concave-mirror-focal-length` | Focal Length of a Concave Mirror | **Implemented** | Front-silvered concave mirror bench, optical axis, focus $F$ and center of curvature $C$ indicators, object needle ($u$), real inverted image on screen or virtual erect image behind mirror ($u < f$), mirror formula $1/f = 1/v + 1/u$, linear magnification $m = -v/u$, paraxial ray tracing. |
+| 7 | `convex-mirror-focal-length` | Focal Length of a Convex Mirror | **Implemented** | Bulging convex mirror bench, virtual focus ($f > 0$) behind mirror, virtual erect diminished image ($v > 0, 0 < m < 1$), auxiliary convex lens retro-reflection setup ($R = 2f$), normal incidence ray reversal at center of curvature $C$. |
+| 8 | `concave-lens-focal-length` | Focal Length of a Concave Lens | **Implemented** | Diverging biconcave lens bench ($f < 0$), virtual ray back-tracing, virtual erect diminished image on incident side, auxiliary convex lens combination method ($1/f_2 = 1/F_{\text{comb}} - 1/f_1$). |
+| 9 | `prism-refractive-index` | Refractive Index of a Prism – Minimum Deviation | **Implemented** | Equilateral crown glass prism ($A = 60^\circ$) on graduated angle turntable, Snell's law refraction at both faces, minimum deviation condition ($i = e, r = A/2$), total internal reflection when $r_2 > \theta_c$, refractive index formula $\mu = \frac{\sin((A+D_m)/2)}{\sin(A/2)}$. |
+| 10 | `pn-junction-diode` | P-N Junction Diode – I-V Characteristics | **Implemented** | Semiconductor characterization test bench, Silicon ($V_k \approx 0.7\text{ V}$) and Germanium ($V_k \approx 0.3\text{ V}$) crystals, forward/reverse bias polarity switch, series protective resistor $R_s$, dynamic AC resistance $r_{\text{ac}} = \Delta V / \Delta I$, reverse saturation leakage ($I_0 \approx 0.15\ \mu\text{A}$), avalanche breakdown ($V_{\text{br}} \approx 25\text{ V}$), interactive plotted I-V curve with active operating point. |
 
 ---
 

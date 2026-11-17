@@ -33,7 +33,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(math?.status).toBe('coming-soon');
 
     expect(physics?.totalExperiments).toBe(25);
-    expect(physics?.availableExperiments).toBe(20);
+    expect(physics?.availableExperiments).toBe(25);
 
     expect(chemistry?.totalExperiments).toBe(27);
     expect(chemistry?.availableExperiments).toBe(5);
@@ -55,9 +55,9 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(class12).toHaveLength(10);
     });
 
-    it('should have 20 Physics experiments marked as implemented (5 Foundation + 10 Class 11 + 5 Class 12)', () => {
+    it('should have all 25 Physics experiments marked as implemented (5 Foundation + 10 Class 11 + 10 Class 12)', () => {
       const implemented = getImplementedExperimentsBySubject('physics');
-      expect(implemented).toHaveLength(20);
+      expect(implemented).toHaveLength(25);
 
       const titles = implemented.map((e) => e.title);
       expect(titles).toContain("Ohm's Law");
@@ -80,6 +80,11 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(titles).toContain('Galvanometer Resistance and Figure of Merit');
       expect(titles).toContain('Conversion of Galvanometer into a Voltmeter');
       expect(titles).toContain('Conversion of Galvanometer into an Ammeter');
+      expect(titles).toContain('Focal Length of a Concave Mirror');
+      expect(titles).toContain('Focal Length of a Convex Mirror');
+      expect(titles).toContain('Focal Length of a Concave Lens');
+      expect(titles).toContain('Refractive Index of a Prism – Minimum Deviation');
+      expect(titles).toContain('P-N Junction Diode – I-V Characteristics');
 
       for (const exp of implemented) {
         expect(['foundation', 'class-11', 'class-12']).toContain(exp.classLevel);
@@ -87,7 +92,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       }
     });
 
-    it('should have first 5 Class 12 Physics experiments implemented and 5 remaining under-development', () => {
+    it('should have all 10 Class 12 Physics experiments implemented and 0 remaining under-development', () => {
       const class11 = getExperimentsByClassLevel('physics', 'class-11');
       const class12 = getExperimentsByClassLevel('physics', 'class-12');
 
@@ -96,8 +101,8 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
 
       const class12Implemented = class12.filter((e) => e.implementationStatus === 'implemented');
       const class12UnderDev = class12.filter((e) => e.implementationStatus === 'under-development');
-      expect(class12Implemented).toHaveLength(5);
-      expect(class12UnderDev).toHaveLength(5);
+      expect(class12Implemented).toHaveLength(10);
+      expect(class12UnderDev).toHaveLength(0);
 
       const implementedTitles = class12Implemented.map((e) => e.title);
       expect(implementedTitles).toContain('Resistivity of a Wire Using the V-I Method');
@@ -105,13 +110,11 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(implementedTitles).toContain('Galvanometer Resistance and Figure of Merit');
       expect(implementedTitles).toContain('Conversion of Galvanometer into a Voltmeter');
       expect(implementedTitles).toContain('Conversion of Galvanometer into an Ammeter');
-
-      const underDevTitles = class12UnderDev.map((e) => e.title);
-      expect(underDevTitles).toContain('Focal Length of a Concave Mirror');
-      expect(underDevTitles).toContain('Focal Length of a Convex Mirror');
-      expect(underDevTitles).toContain('Focal Length of a Concave Lens');
-      expect(underDevTitles).toContain('Refractive Index of a Prism – Minimum Deviation');
-      expect(underDevTitles).toContain('P-N Junction Diode – I-V Characteristics');
+      expect(implementedTitles).toContain('Focal Length of a Concave Mirror');
+      expect(implementedTitles).toContain('Focal Length of a Convex Mirror');
+      expect(implementedTitles).toContain('Focal Length of a Concave Lens');
+      expect(implementedTitles).toContain('Refractive Index of a Prism – Minimum Deviation');
+      expect(implementedTitles).toContain('P-N Junction Diode – I-V Characteristics');
     });
   });
 
@@ -177,8 +180,8 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     const implemented = all.filter((e) => e.implementationStatus === 'implemented');
     const underDev = all.filter((e) => e.implementationStatus === 'under-development');
 
-    expect(implemented).toHaveLength(25);
-    expect(underDev).toHaveLength(27);
+    expect(implemented).toHaveLength(30);
+    expect(underDev).toHaveLength(22);
 
     for (const exp of all) {
       expect(exp.id).toBeTruthy();
@@ -220,13 +223,13 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(vectorLaw?.classLevel).toBe('class-11');
     expect(vectorLaw?.implementationStatus).toBe('implemented');
 
-    // Under-development Class 12
+    // Implemented Class 12 (Phase 6)
     const prism = getExperimentById('prism-refractive-index');
     expect(prism).toBeDefined();
     expect(prism?.title).toBe('Refractive Index of a Prism – Minimum Deviation');
     expect(prism?.subjectId).toBe('physics');
     expect(prism?.classLevel).toBe('class-12');
-    expect(prism?.implementationStatus).toBe('under-development');
+    expect(prism?.implementationStatus).toBe('implemented');
 
     // Chemistry Under-development
     const titration = getExperimentById('acid-base-titration');

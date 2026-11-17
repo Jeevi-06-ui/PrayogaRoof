@@ -682,6 +682,75 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
         value: `Signal I=${iMeas}A, θ=${Number(theta).toFixed(1)}/30div${ov ? ' (OVERLOAD)' : ''}`,
         unit: '',
       };
+    } else if (experimentId === 'concave-mirror-focal-length') {
+      const cmUpdate = Object.entries(updates).find(([id]) => id.includes('mirror') || id.includes('cm'))?.[1];
+      const u = cmUpdate?.objectDistanceCm ?? 30.0;
+      const v = cmUpdate?.imageDistanceCm ?? -30.0;
+      const m = cmUpdate?.linearMagnification ?? -1.0;
+      const f = cmUpdate?.magnitudeFocalLengthCm ?? 15.0;
+      const nature = cmUpdate?.imageNature ?? 'Real, Inverted';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Concave Mirror (u=-${u}cm)`,
+        value: `f=-${f}cm, u=-${u}cm => v=${v}cm, m=${m} (${nature})`,
+        unit: '',
+      };
+    } else if (experimentId === 'convex-mirror-focal-length') {
+      const cvUpdate = Object.entries(updates).find(([id]) => id.includes('mirror') || id.includes('cv'))?.[1];
+      const u = cvUpdate?.objectDistanceCm ?? 30.0;
+      const v = cvUpdate?.imageDistanceCm ?? 10.0;
+      const m = cvUpdate?.linearMagnification ?? 0.33;
+      const f = cvUpdate?.magnitudeFocalLengthCm ?? 15.0;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Convex Mirror (u=-${u}cm)`,
+        value: `f=+${f}cm, u=-${u}cm => v=+${v}cm, m=+${m} (Virtual, Erect)`,
+        unit: '',
+      };
+    } else if (experimentId === 'concave-lens-focal-length') {
+      const clUpdate = Object.entries(updates).find(([id]) => id.includes('lens') || id.includes('concave'))?.[1];
+      const u = clUpdate?.objectDistanceCm ?? 30.0;
+      const v = clUpdate?.imageDistanceCm ?? -10.0;
+      const m = clUpdate?.linearMagnification ?? 0.33;
+      const f = clUpdate?.magnitudeFocalLengthCm ?? 15.0;
+      const combF = clUpdate?.combinedFocalLengthCm ?? 30.0;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Concave Lens (u=-${u}cm)`,
+        value: `f=-${f}cm, u=-${u}cm => v=${v}cm, m=+${m} (Fcomb=${combF}cm)`,
+        unit: '',
+      };
+    } else if (experimentId === 'prism-refractive-index') {
+      const ptUpdate = Object.entries(updates).find(([id]) => id.includes('prism') || id.includes('table'))?.[1];
+      const i1 = ptUpdate?.angleOfIncidenceDeg ?? 49.5;
+      const dev = ptUpdate?.angleOFDeviationDeg ?? 39.0;
+      const dm = ptUpdate?.minimumDeviationDeg ?? 39.0;
+      const mu = ptUpdate?.calculatedRefractiveIndex ?? 1.52;
+      const isMin = ptUpdate?.isMinimumDeviation ?? false;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Prism (i₁=${i1}°)`,
+        value: `i₁=${i1}°, D=${dev}°${isMin ? ' (MIN DEVIATION)' : ''} => Dm=${dm}°, μ=${mu}`,
+        unit: '',
+      };
+    } else if (experimentId === 'pn-junction-diode') {
+      const dbUpdate = Object.entries(updates).find(([id]) => id.includes('diode') || id.includes('pn'))?.[1];
+      const mode = dbUpdate?.biasMode ?? 'forward';
+      const vApp = dbUpdate?.appliedVoltageVolts ?? 1.5;
+      const vD = dbUpdate?.diodeVoltageVolts ?? 0.72;
+      const curr = mode === 'forward' ? `${dbUpdate?.circuitCurrentMilliAmps ?? 7.8} mA` : `${dbUpdate?.circuitCurrentMicroAmps ?? 0.15} µA`;
+      const rac = dbUpdate?.dynamicResistanceOhms ?? 15.0;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: P-N Diode (${String(mode).toUpperCase()})`,
+        value: `Vapp=${vApp}V, VD=${vD}V, I=${curr}, rac=${rac}Ω`,
+        unit: '',
+      };
     } else {
       let volt = 0;
       let curr = 0;
@@ -1765,7 +1834,17 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                                                         ? 'Voltmeter Conversion Quick Log'
                                                         : experimentId === 'galvanometer-ammeter'
                                                           ? 'Ammeter Conversion Quick Log'
-                                                          : 'Active Bench Quick Log'}
+                                                          : experimentId === 'concave-mirror-focal-length'
+                                                            ? 'Concave Mirror Quick Log'
+                                                            : experimentId === 'convex-mirror-focal-length'
+                                                              ? 'Convex Mirror Quick Log'
+                                                              : experimentId === 'concave-lens-focal-length'
+                                                                ? 'Concave Lens Quick Log'
+                                                                : experimentId === 'prism-refractive-index'
+                                                                  ? 'Prism Refraction Quick Log'
+                                                                  : experimentId === 'pn-junction-diode'
+                                                                    ? 'P-N Diode Quick Log'
+                                                                    : 'Active Bench Quick Log'}
               </span>
               <p className="text-[10px] text-blue-700/80 dark:text-blue-400 leading-snug">
                 {experimentId === 'convex-lens'
@@ -1810,7 +1889,17 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                                                         ? 'Instantly log multiplier Rs, test voltage, pointer deflection, and measured voltage.'
                                                         : experimentId === 'galvanometer-ammeter'
                                                           ? 'Instantly log shunt S, test current, pointer deflection, and measured current.'
-                                                          : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
+                                                          : experimentId === 'concave-mirror-focal-length'
+                                                            ? 'Instantly log mirror focal length f, object distance u, image distance v, and magnification m.'
+                                                            : experimentId === 'convex-mirror-focal-length'
+                                                              ? 'Instantly log convex mirror focal length f, virtual image distance v, and auxiliary lens parameters.'
+                                                              : experimentId === 'concave-lens-focal-length'
+                                                                ? 'Instantly log diverging lens virtual image position v, magnification, and combination focal length F.'
+                                                                : experimentId === 'prism-refractive-index'
+                                                                  ? 'Instantly log angle of incidence i, angle of emergence e, deviation D, and minimum deviation Dm.'
+                                                                  : experimentId === 'pn-junction-diode'
+                                                                    ? 'Instantly log applied voltage V, diode voltage VD, loop current (mA/µA), and dynamic resistance rac.'
+                                                                    : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
               </p>
               <Button
                 type="button"

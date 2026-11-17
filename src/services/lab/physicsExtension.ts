@@ -38,6 +38,13 @@ import {
   calculateGalvanometerToAmmeter,
   WireMaterial,
 } from '../physics/advancedElectromagnetismModel';
+import {
+  calculateConcaveMirror,
+  calculateConvexMirror,
+  calculateConcaveLens,
+  calculatePrismRefraction,
+  calculateDiodeCharacteristics,
+} from '../physics/advancedOpticsAndSemiconductorModel';
 
 export const PHYSICS_EQUIPMENT: EquipmentDefinition[] = [
   {
@@ -2288,6 +2295,372 @@ export const PHYSICS_EQUIPMENT: EquipmentDefinition[] = [
     ],
     renderType: 'ammeter-voltmeter-calibrator',
     colorTheme: '#0284c7',
+  },
+  {
+    id: 'concave-mirror-bench',
+    name: 'Concave Spherical Mirror & Bench',
+    subjectId: 'physics',
+    category: 'optics',
+    description: 'Front-silvered concave spherical mirror mounted on calibrated optical bench carrier with screen and upright pin targets.',
+    iconName: 'SunMedium',
+    defaultWidth: 440,
+    defaultHeight: 280,
+    rotatable: false,
+    ports: [
+      {
+        id: 'opt-in',
+        name: 'Optical Reflection Face',
+        type: 'optical-axis',
+        xOffset: 410,
+        yOffset: 140,
+        direction: 'west',
+        color: '#38bdf8',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'focalLength',
+        label: 'Focal Length (f)',
+        type: 'number',
+        defaultValue: 15.0,
+        min: 5.0,
+        max: 40.0,
+        step: 1.0,
+        unit: 'cm',
+        editable: true,
+      },
+      {
+        id: 'objectDistance',
+        label: 'Object Distance (u)',
+        type: 'number',
+        defaultValue: 30.0,
+        min: 5.0,
+        max: 80.0,
+        step: 1.0,
+        unit: 'cm',
+        editable: true,
+      },
+      {
+        id: 'objectHeight',
+        label: 'Object Height (ho)',
+        type: 'number',
+        defaultValue: 4.0,
+        min: 1.0,
+        max: 10.0,
+        step: 0.5,
+        unit: 'cm',
+        editable: true,
+      },
+      {
+        id: 'benchPosition',
+        label: 'Bench Carrier Position',
+        type: 'number',
+        defaultValue: 75.0,
+        min: 20.0,
+        max: 150.0,
+        step: 1.0,
+        unit: 'cm',
+        editable: true,
+      },
+    ],
+    renderType: 'concave-mirror',
+    colorTheme: '#0284c7',
+  },
+  {
+    id: 'convex-mirror-bench',
+    name: 'Convex Spherical Mirror & Bench',
+    subjectId: 'physics',
+    category: 'optics',
+    description: 'Curved convex mirror assembly with virtual ray construction and auxiliary convex lens parallax alignment.',
+    iconName: 'SunMedium',
+    defaultWidth: 440,
+    defaultHeight: 280,
+    rotatable: false,
+    ports: [
+      {
+        id: 'opt-in',
+        name: 'Convex Reflection Face',
+        type: 'optical-axis',
+        xOffset: 300,
+        yOffset: 140,
+        direction: 'west',
+        color: '#38bdf8',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'focalLength',
+        label: 'Focal Length (f)',
+        type: 'number',
+        defaultValue: 15.0,
+        min: 5.0,
+        max: 40.0,
+        step: 1.0,
+        unit: 'cm',
+        editable: true,
+      },
+      {
+        id: 'objectDistance',
+        label: 'Object Distance (u)',
+        type: 'number',
+        defaultValue: 30.0,
+        min: 5.0,
+        max: 80.0,
+        step: 1.0,
+        unit: 'cm',
+        editable: true,
+      },
+      {
+        id: 'objectHeight',
+        label: 'Object Height (ho)',
+        type: 'number',
+        defaultValue: 4.0,
+        min: 1.0,
+        max: 10.0,
+        step: 0.5,
+        unit: 'cm',
+        editable: true,
+      },
+      {
+        id: 'auxiliaryLensFocalLength',
+        label: 'Auxiliary Convex Lens Focal Length',
+        type: 'number',
+        defaultValue: 15.0,
+        min: 5.0,
+        max: 30.0,
+        step: 1.0,
+        unit: 'cm',
+        editable: true,
+      },
+    ],
+    renderType: 'convex-mirror',
+    colorTheme: '#0369a1',
+  },
+  {
+    id: 'concave-lens-bench',
+    name: 'Diverging Concave Lens Bench',
+    subjectId: 'physics',
+    category: 'optics',
+    description: 'Biconcave diverging glass lens with virtual ray back-tracing and auxiliary converging lens combination.',
+    iconName: 'SunMedium',
+    defaultWidth: 440,
+    defaultHeight: 280,
+    rotatable: false,
+    ports: [
+      {
+        id: 'opt-in',
+        name: 'Front Optical Face',
+        type: 'optical-axis',
+        xOffset: 50,
+        yOffset: 140,
+        direction: 'west',
+        color: '#38bdf8',
+      },
+      {
+        id: 'opt-out',
+        name: 'Rear Optical Face',
+        type: 'optical-axis',
+        xOffset: 390,
+        yOffset: 140,
+        direction: 'east',
+        color: '#38bdf8',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'focalLength',
+        label: 'Focal Length (f)',
+        type: 'number',
+        defaultValue: 15.0,
+        min: 5.0,
+        max: 40.0,
+        step: 1.0,
+        unit: 'cm',
+        editable: true,
+      },
+      {
+        id: 'objectDistance',
+        label: 'Object Distance (u)',
+        type: 'number',
+        defaultValue: 30.0,
+        min: 5.0,
+        max: 80.0,
+        step: 1.0,
+        unit: 'cm',
+        editable: true,
+      },
+      {
+        id: 'objectHeight',
+        label: 'Object Height (ho)',
+        type: 'number',
+        defaultValue: 4.0,
+        min: 1.0,
+        max: 10.0,
+        step: 0.5,
+        unit: 'cm',
+        editable: true,
+      },
+      {
+        id: 'auxiliaryConvexFocalLength',
+        label: 'Auxiliary Convex Lens Focal Length',
+        type: 'number',
+        defaultValue: 10.0,
+        min: 5.0,
+        max: 20.0,
+        step: 1.0,
+        unit: 'cm',
+        editable: true,
+      },
+    ],
+    renderType: 'concave-lens',
+    colorTheme: '#0284c7',
+  },
+  {
+    id: 'optical-prism-table',
+    name: 'Optical Prism & Angle Table',
+    subjectId: 'physics',
+    category: 'optics',
+    description: 'Equilateral optical crown glass prism on angular graduated table with variable angle of incidence and ray deviation.',
+    iconName: 'Triangle',
+    defaultWidth: 460,
+    defaultHeight: 300,
+    rotatable: false,
+    ports: [
+      {
+        id: 'opt-in',
+        name: 'Incident Light Beam',
+        type: 'optical-axis',
+        xOffset: 30,
+        yOffset: 150,
+        direction: 'west',
+        color: '#facc15',
+      },
+      {
+        id: 'opt-out',
+        name: 'Emergent Light Beam',
+        type: 'optical-axis',
+        xOffset: 430,
+        yOffset: 150,
+        direction: 'east',
+        color: '#facc15',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'angleOfIncidence',
+        label: 'Angle of Incidence (i₁)',
+        type: 'number',
+        defaultValue: 49.5,
+        min: 25.0,
+        max: 80.0,
+        step: 0.5,
+        unit: '°',
+        editable: true,
+      },
+      {
+        id: 'prismAngle',
+        label: 'Angle of Prism (A)',
+        type: 'number',
+        defaultValue: 60.0,
+        min: 30.0,
+        max: 90.0,
+        step: 1.0,
+        unit: '°',
+        editable: true,
+      },
+      {
+        id: 'refractiveIndex',
+        label: 'Glass Refractive Index (μ)',
+        type: 'number',
+        defaultValue: 1.52,
+        min: 1.3,
+        max: 1.8,
+        step: 0.01,
+        unit: '',
+        editable: true,
+      },
+    ],
+    renderType: 'optical-prism',
+    colorTheme: '#7c3aed',
+  },
+  {
+    id: 'pn-diode-board',
+    name: 'P-N Junction Diode Test Bench',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Semiconductor diode characterization board with Forward/Reverse bias toggle, variable DC driver, and dynamic I-V plot.',
+    iconName: 'Activity',
+    defaultWidth: 460,
+    defaultHeight: 320,
+    rotatable: false,
+    ports: [
+      {
+        id: 'anode',
+        name: 'Diode Anode (P)',
+        type: 'electrical-positive',
+        xOffset: 40,
+        yOffset: 160,
+        direction: 'west',
+        color: '#ef4444',
+      },
+      {
+        id: 'cathode',
+        name: 'Diode Cathode (N)',
+        type: 'electrical-negative',
+        xOffset: 420,
+        yOffset: 160,
+        direction: 'east',
+        color: '#1e293b',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'semiconductorMaterial',
+        label: 'Semiconductor Crystal Material',
+        type: 'select',
+        defaultValue: 'silicon',
+        options: [
+          { label: 'Silicon Diode (Knee ~ 0.7 V)', value: 'silicon' },
+          { label: 'Germanium Diode (Knee ~ 0.3 V)', value: 'germanium' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'biasMode',
+        label: 'Operating Bias Configuration',
+        type: 'select',
+        defaultValue: 'forward',
+        options: [
+          { label: 'Forward Bias (P to +, N to -)', value: 'forward' },
+          { label: 'Reverse Bias (P to -, N to +)', value: 'reverse' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'appliedVoltage',
+        label: 'Applied Voltage (V)',
+        type: 'number',
+        defaultValue: 1.5,
+        min: 0.0,
+        max: 35.0,
+        step: 0.1,
+        unit: 'V',
+        editable: true,
+      },
+      {
+        id: 'seriesResistance',
+        label: 'Series Limiting Resistor (Rs)',
+        type: 'number',
+        defaultValue: 100.0,
+        min: 10.0,
+        max: 1000.0,
+        step: 10.0,
+        unit: 'Ω',
+        editable: true,
+      },
+    ],
+    renderType: 'pn-diode-board',
+    colorTheme: '#0d9488',
   },
 ];
 
@@ -4602,6 +4975,572 @@ export const PHYSICS_LAB_DEFINITIONS: LabDefinition[] = [
     defaultNotebookNotes:
       "Conversion of Galvanometer into an Ammeter:\n- Principle: A galvanometer is converted into an ammeter by connecting a low resistance (shunt S) in parallel with its coil.\n\nFormulas:\n- Potential Difference Across Coil and Shunt:\n  Ig · G = (I - Ig) · S\n  => S = (Ig · G) / (I - Ig)\n- Total Ammeter Resistance:\n  RA = (G · S) / (G + S) ≈ S (since S ≪ G)\n- Current Sensitivity: Si = θ / I = n / I\n\nCharacteristics of an Ideal Ammeter:\n- An ideal ammeter has zero electrical resistance (RA → 0) so that connecting it in series does not disturb the circuit current.",
   },
+  {
+    experimentId: 'concave-mirror-focal-length',
+    title: 'Focal Length of a Concave Mirror',
+    subjectId: 'physics',
+    allowedEquipmentIds: [
+      'concave-mirror-bench',
+      'optical-target-light',
+      'projection-screen',
+      'optical-bench-rail',
+    ],
+    initialObjects: [
+      {
+        id: 'cm-mirror-1',
+        equipmentId: 'concave-mirror-bench',
+        title: 'Concave Spherical Mirror & Bench',
+        x: 60,
+        y: 60,
+        rotation: 0,
+        width: 440,
+        height: 280,
+        properties: {
+          focalLength: 15.0,
+          objectDistance: 30.0,
+          objectHeight: 4.0,
+          benchPosition: 75.0,
+        },
+        state: {
+          imageDistanceCm: -30.0,
+          imageHeightCm: -4.0,
+          linearMagnification: -1.0,
+          imageNature: 'Real, Inverted',
+          canCatchOnScreen: true,
+          status: 'Concave Mirror: u = -30 cm, f = -15 cm => v = -30 cm, m = -1 (Real, Inverted at C)',
+        },
+      },
+      {
+        id: 'light-cm-1',
+        equipmentId: 'optical-target-light',
+        title: 'Illuminated Object Source',
+        x: 530,
+        y: 60,
+        rotation: 0,
+        width: 140,
+        height: 140,
+        properties: { objectDistance: 30.0, lampIntensity: 100 },
+        state: { intensity: 100 },
+      },
+      {
+        id: 'screen-cm-1',
+        equipmentId: 'projection-screen',
+        title: 'Image Ground Glass Screen',
+        x: 530,
+        y: 220,
+        rotation: 0,
+        width: 140,
+        height: 140,
+        properties: { screenPosition: 45.0 },
+        state: { imageSharpness: 100 },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'cm-step-1',
+        stepNumber: 1,
+        title: 'Determine Approximate Focal Length by Distant Object Method',
+        instruction:
+          'Direct the concave mirror towards a distant building or tree and focus the sharp inverted image on a screen. Measured distance is f ≈ 15.0 cm.',
+      },
+      {
+        id: 'cm-step-2',
+        stepNumber: 2,
+        title: 'Place Object at Center of Curvature C (u = 2f = 30 cm)',
+        instruction:
+          'Set object distance u = 30.0 cm. Notice that the real, inverted image forms at v = -30.0 cm with equal magnitude (m = -1.0).',
+      },
+      {
+        id: 'cm-step-3',
+        stepNumber: 3,
+        title: 'Move Object Beyond C (u = 40.0 cm)',
+        instruction:
+          'Position object at u = 40.0 cm (> 2f). The real, inverted image moves between F and C at v = -24.0 cm with magnification m = -0.60.',
+      },
+      {
+        id: 'cm-step-4',
+        stepNumber: 4,
+        title: 'Move Object Between C and F (u = 20.0 cm)',
+        instruction:
+          'Position object at u = 20.0 cm. The real, inverted image moves beyond C to v = -60.0 cm, enlarged to m = -3.00.',
+      },
+      {
+        id: 'cm-step-5',
+        stepNumber: 5,
+        title: 'Calculate Focal Length using Mirror Formula',
+        instruction:
+          'Apply the mirror formula: 1/f = 1/v + 1/u => f = (u × v) / (u + v). Across all data pairs, mean focal length is confirmed as f = -15.0 cm.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-cm-curvature',
+        description: 'Locate center of curvature C (u = 2f) by eliminating parallax between object and image pins.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-cm-screen-capture',
+        description: 'Project sharp real inverted images on the screen for object positions u > f.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-cm-calc-f',
+        description: 'Calculate mean focal length f using mirror formula 1/f = 1/v + 1/u with proper sign convention.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Focal Length of a Concave Mirror:\n- Mirror Formula (Cartesian Convention): 1/f = 1/v + 1/u\n- Sign Convention: Incident direction positive. Object on left (u < 0). Focus on left (f < 0).\n- Transverse Linear Magnification: m = -v / u = h_i / h_o\n\nImage Characteristics:\n- Object beyond C (u > 2f): Real, inverted, diminished, between F and C (v < 0).\n- Object at C (u = 2f): Real, inverted, same size, at C (v = -2f, m = -1).\n- Object between C and F: Real, inverted, magnified, beyond C.\n- Object at F: Reflected rays emerge parallel; image at infinity.\n- Object inside F (u < f): Virtual, erect, magnified behind mirror (v > 0, m > 1).",
+  },
+  {
+    experimentId: 'convex-mirror-focal-length',
+    title: 'Focal Length of a Convex Mirror',
+    subjectId: 'physics',
+    allowedEquipmentIds: [
+      'convex-mirror-bench',
+      'convex-lens-bench',
+      'optical-target-light',
+      'projection-screen',
+    ],
+    initialObjects: [
+      {
+        id: 'cvm-mirror-1',
+        equipmentId: 'convex-mirror-bench',
+        title: 'Convex Spherical Mirror & Bench',
+        x: 60,
+        y: 60,
+        rotation: 0,
+        width: 440,
+        height: 280,
+        properties: {
+          focalLength: 15.0,
+          objectDistance: 30.0,
+          objectHeight: 4.0,
+          auxiliaryLensFocalLength: 15.0,
+        },
+        state: {
+          imageDistanceCm: 10.0,
+          imageHeightCm: 1.33,
+          linearMagnification: 0.33,
+          imageNature: 'Virtual, Erect',
+          radiusOfCurvatureCm: 30.0,
+          status: 'Convex Mirror: u = -30 cm, f = +15 cm => Virtual Image at v = +10 cm, m = +0.33 (R = 30 cm)',
+        },
+      },
+      {
+        id: 'lens-aux-1',
+        equipmentId: 'convex-lens-bench',
+        title: 'Auxiliary Convex Lens Carrier',
+        x: 530,
+        y: 60,
+        rotation: 0,
+        width: 140,
+        height: 140,
+        properties: { focalLength: 15.0, benchPosition: 45.0 },
+        state: { imageDistance: 30.0 },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'cvm-step-1',
+        stepNumber: 1,
+        title: 'Produce Real Image using Auxiliary Convex Lens',
+        instruction:
+          'Place object source and auxiliary convex lens on the optical bench to form a sharp real inverted image on the screen at point I.',
+      },
+      {
+        id: 'cvm-step-2',
+        stepNumber: 2,
+        title: 'Interpose Convex Mirror Between Lens and Screen',
+        instruction:
+          'Place the convex mirror between lens and screen with reflecting face facing the lens, intercepting converging rays before point I.',
+      },
+      {
+        id: 'cvm-step-3',
+        stepNumber: 3,
+        title: 'Adjust Mirror Position for Parallax Removal',
+        instruction:
+          'Slide the mirror along the bench until reflected rays retrace their path and form a coincident sharp image at the object needle.',
+      },
+      {
+        id: 'cvm-step-4',
+        stepNumber: 4,
+        title: 'Measure Radius of Curvature R',
+        instruction:
+          'The distance between the convex mirror pole P and the original real screen image point I equals the radius of curvature R = 30.0 cm.',
+      },
+      {
+        id: 'cvm-step-5',
+        stepNumber: 5,
+        title: 'Calculate Focal Length f = R / 2',
+        instruction:
+          'Calculate focal length: f = R / 2 = 30.0 cm / 2 = +15.0 cm, confirming that a convex mirror has a positive virtual focus.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-cvm-virtual-image',
+        description: 'Observe virtual, erect, diminished image formation for all real object distances.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-cvm-ray-reversal',
+        description: 'Apply auxiliary convex lens method to achieve normal incidence ray reversal at center of curvature C.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-cvm-calc-f',
+        description: 'Measure radius of curvature R and compute focal length f = R / 2.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Focal Length of a Convex Mirror (Auxiliary Lens Method):\n- Principle: A convex mirror always forms a virtual, erect, diminished image that cannot be received directly on a screen:\n  1/f = 1/v + 1/u  =>  v = (|u|·f) / (|u| + f) > 0\n\nAuxiliary Convex Lens Method:\n- An auxiliary convex lens projects converging rays towards a real focal point I.\n- Interposing a convex mirror such that rays strike normally causes them to retrace their path, forming a coincident image at the object.\n- Distance from mirror pole to screen position I is the radius of curvature R = 2f.\n- Focal Length: f = R / 2.",
+  },
+  {
+    experimentId: 'concave-lens-focal-length',
+    title: 'Focal Length of a Concave Lens',
+    subjectId: 'physics',
+    allowedEquipmentIds: [
+      'concave-lens-bench',
+      'convex-lens-bench',
+      'optical-target-light',
+      'projection-screen',
+    ],
+    initialObjects: [
+      {
+        id: 'cl-lens-1',
+        equipmentId: 'concave-lens-bench',
+        title: 'Diverging Concave Lens Bench',
+        x: 60,
+        y: 60,
+        rotation: 0,
+        width: 440,
+        height: 280,
+        properties: {
+          focalLength: 15.0,
+          objectDistance: 30.0,
+          objectHeight: 4.0,
+          auxiliaryConvexFocalLength: 10.0,
+        },
+        state: {
+          imageDistanceCm: -10.0,
+          imageHeightCm: 1.33,
+          linearMagnification: 0.33,
+          combinedFocalLengthCm: 30.0,
+          status: 'Concave Lens: u = -30 cm, f = -15 cm => Virtual Image at v = -10 cm, m = +0.33 (Combined F = 30 cm)',
+        },
+      },
+      {
+        id: 'lens-conv-1',
+        equipmentId: 'convex-lens-bench',
+        title: 'Auxiliary Converging Lens (f = 10 cm)',
+        x: 530,
+        y: 60,
+        rotation: 0,
+        width: 140,
+        height: 140,
+        properties: { focalLength: 10.0, benchPosition: 50.0 },
+        state: { imageDistance: 15.0 },
+      },
+      {
+        id: 'screen-cl-1',
+        equipmentId: 'projection-screen',
+        title: 'Projection Screen',
+        x: 530,
+        y: 220,
+        rotation: 0,
+        width: 140,
+        height: 140,
+        properties: { screenPosition: 80.0 },
+        state: { imageSharpness: 100 },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'cl-step-1',
+        stepNumber: 1,
+        title: 'Produce Real Image using Strong Convex Lens',
+        instruction:
+          'Place illuminated object and auxiliary convex lens (f1 = 10.0 cm) on the bench to produce a sharp real image on the screen at I1.',
+      },
+      {
+        id: 'cl-step-2',
+        stepNumber: 2,
+        title: 'Place Concave Lens in Coaxial Contact',
+        instruction:
+          'Mount the test concave lens in coaxial contact with the convex lens. The combination acts as a net converging lens if |f2| > f1.',
+      },
+      {
+        id: 'cl-step-3',
+        stepNumber: 3,
+        title: 'Observe Divergence Shifting Image Outward',
+        instruction:
+          'Because the concave lens diverges rays, the focal point is pushed further back along the bench rail to screen position I2.',
+      },
+      {
+        id: 'cl-step-4',
+        stepNumber: 4,
+        title: 'Measure Combined Equivalent Focal Length F',
+        instruction:
+          'Measure the distance from lens combination to the sharp image on the screen: F_comb = 30.0 cm.',
+      },
+      {
+        id: 'cl-step-5',
+        stepNumber: 5,
+        title: 'Calculate Concave Lens Focal Length f2',
+        instruction:
+          'Compute: 1/f2 = 1/F_comb - 1/f1 = 1/30 - 1/10 = -2/30 = -1/15 => f2 = -15.0 cm, confirming negative focal length.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-cl-virtual-action',
+        description: 'Demonstrate diverging action of concave lens and explain why it cannot project real images alone.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-cl-combination',
+        description: 'Form real image on screen using convex-concave combination with net positive focal length.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-cl-calc-f',
+        description: 'Determine concave lens focal length f2 from combination equation 1/f2 = 1/F - 1/f1.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Focal Length of a Concave Lens (Combination Method):\n- Principle: A concave lens alone always forms a virtual, erect, diminished image on the incident side:\n  1/f = 1/v - 1/u  =>  v = -(u · |f|) / (u + |f|) < 0\n\nLens Combination Method:\n- To obtain a real image on a screen, the concave lens is paired with a convex lens of stronger power (|f_concave| > f_convex).\n- Thin lenses in contact formula: 1/F = 1/f_convex + 1/f_concave\n  => 1/f_concave = 1/F - 1/f_convex\n- Combined focal length F is positive and greater than f_convex.",
+  },
+  {
+    experimentId: 'prism-refractive-index',
+    title: 'Refractive Index of a Prism – Minimum Deviation',
+    subjectId: 'physics',
+    allowedEquipmentIds: [
+      'optical-prism-table',
+      'optical-target-light',
+    ],
+    initialObjects: [
+      {
+        id: 'prism-tab-1',
+        equipmentId: 'optical-prism-table',
+        title: 'Optical Prism & Angle Table',
+        x: 60,
+        y: 60,
+        rotation: 0,
+        width: 460,
+        height: 300,
+        properties: {
+          angleOfIncidence: 49.5,
+          prismAngle: 60.0,
+          refractiveIndex: 1.52,
+        },
+        state: {
+          angleOfIncidenceDeg: 49.5,
+          firstRefractionAngleDeg: 30.0,
+          secondIncidentAngleDeg: 30.0,
+          angleOfEmergenceDeg: 49.5,
+          angleOFDeviationDeg: 38.9,
+          minimumDeviationDeg: 38.9,
+          isMinimumDeviation: true,
+          calculatedRefractiveIndex: 1.52,
+          status: 'MINIMUM DEVIATION REACHED! D = Dm = 38.9° (i = e = 49.5°, r = 30.0°)',
+        },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'prism-step-1',
+        stepNumber: 1,
+        title: 'Mount Prism and Verify Geometric Parameters',
+        instruction:
+          'Place equilateral crown glass prism (A = 60.0°) on table. Critical angle is θc = arcsin(1/1.52) ≈ 41.1°.',
+      },
+      {
+        id: 'prism-step-2',
+        stepNumber: 2,
+        title: 'Set Incidence Angle i1 = 35.0° and Observe Deviation',
+        instruction:
+          'Rotate incident beam to i1 = 35.0°. Refracted ray inside prism makes r1 = 22.2°, r2 = 37.8°, emerging at e = 69.3° with deviation D = 44.3°.',
+      },
+      {
+        id: 'prism-step-3',
+        stepNumber: 3,
+        title: 'Sweep Angle of Incidence in 5° Increments',
+        instruction:
+          'Vary i from 35° to 65°. Observe that deviation D first decreases, passes through a minimum, and then increases.',
+      },
+      {
+        id: 'prism-step-4',
+        stepNumber: 4,
+        title: 'Locate Angle of Minimum Deviation (Dm)',
+        instruction:
+          'At i = 49.5°, ray travels parallel to base: i = e = 49.5°, r1 = r2 = 30.0°, and minimum deviation is Dm = 38.9°.',
+      },
+      {
+        id: 'prism-step-5',
+        stepNumber: 5,
+        title: 'Calculate Refractive Index of Glass (μ)',
+        instruction:
+          'Calculate: μ = sin((A + Dm)/2) / sin(A/2) = sin(49.46°) / sin(30°) = 0.7600 / 0.5000 = 1.520.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-prism-snell',
+        description: 'Verify Snell’s Law at both refracting faces and confirm total deviation D = i1 + i2 - A.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-prism-id-curve',
+        description: 'Trace U-shaped i-D curve and accurately identify minimum deviation angle Dm.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-prism-calc-mu',
+        description: 'Calculate refractive index μ using prism formula μ = sin((A+Dm)/2) / sin(A/2).',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Refractive Index of a Prism (Minimum Deviation Method):\n- Principle: When a light ray traverses a triangular prism, total angle of deviation is:\n  D = (i₁ + i₂) - A\n- Refraction at Face 1: sin(i₁) = μ · sin(r₁)\n- Interior angles: r₁ + r₂ = A\n- Refraction at Face 2: μ · sin(r₂) = sin(i₂)\n\nMinimum Deviation Condition (D = D_m):\n- At D = D_m: i₁ = i₂ = i_m  and  r₁ = r₂ = r_m = A / 2\n- Refracted ray travels parallel to prism base.\n- Prism Formula:\n  μ = sin((A + D_m) / 2) / sin(A / 2)\n\nCrown Glass Reference: For A = 60°, D_m ≈ 38.9° gives μ ≈ 1.52.",
+  },
+  {
+    experimentId: 'pn-junction-diode',
+    title: 'P-N Junction Diode – I-V Characteristics',
+    subjectId: 'physics',
+    allowedEquipmentIds: [
+      'pn-diode-board',
+      'dc-power-supply',
+      'dc-voltmeter',
+      'dc-ammeter',
+      'standard-resistor',
+    ],
+    initialObjects: [
+      {
+        id: 'diode-board-1',
+        equipmentId: 'pn-diode-board',
+        title: 'P-N Junction Diode Test Bench',
+        x: 60,
+        y: 60,
+        rotation: 0,
+        width: 460,
+        height: 320,
+        properties: {
+          semiconductorMaterial: 'silicon',
+          biasMode: 'forward',
+          appliedVoltage: 1.5,
+          seriesResistance: 100.0,
+        },
+        state: {
+          diodeVoltageVolts: 0.81,
+          circuitCurrentMilliAmps: 6.96,
+          circuitCurrentMicroAmps: 6956.5,
+          dynamicResistanceOhms: 15.0,
+          staticResistanceOhms: 116.4,
+          isBreakdown: false,
+          isConducting: true,
+          status: 'FORWARD CONDUCTION: V_D = 0.81 V (> Knee 0.7 V) => I_F = 6.96 mA (r_ac = 15.0 Ω)',
+        },
+      },
+      {
+        id: 'dc-ps-d1',
+        equipmentId: 'dc-power-supply',
+        title: 'Regulated DC Power Supply',
+        x: 550,
+        y: 60,
+        rotation: 0,
+        width: 160,
+        height: 140,
+        properties: { voltage: 1.5, maxCurrent: 0.1 },
+        state: { outputVoltage: 1.5 },
+      },
+      {
+        id: 'ammeter-d1',
+        equipmentId: 'dc-ammeter',
+        title: 'DC Milliammeter',
+        x: 550,
+        y: 220,
+        rotation: 0,
+        width: 140,
+        height: 140,
+        properties: { currentRange: '0-50mA' },
+        state: { current: 0.007 },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'pnd-step-1',
+        stepNumber: 1,
+        title: 'Connect Circuit in Forward Bias Configuration',
+        instruction:
+          'Connect P-type anode to battery positive and N-type cathode to battery negative through series protective resistor Rs = 100 Ω.',
+      },
+      {
+        id: 'pnd-step-2',
+        stepNumber: 2,
+        title: 'Observe Sub-Threshold Region Below Knee Voltage',
+        instruction:
+          'Increase applied voltage from 0.0 V to 0.5 V. Note that diode current remains near zero (IF < 0.05 mA) as barrier potential opposes carrier drift.',
+      },
+      {
+        id: 'pnd-step-3',
+        stepNumber: 3,
+        title: 'Exceed Knee Voltage (0.7V for Silicon) and Measure Current',
+        instruction:
+          'Raise voltage past 0.7 V to 1.5 V. Observe exponential conduction: diode voltage VD reaches ~0.81 V and current climbs to ~6.96 mA.',
+      },
+      {
+        id: 'pnd-step-4',
+        stepNumber: 4,
+        title: 'Calculate Dynamic Forward AC Resistance (r_ac)',
+        instruction:
+          'From the linear conducting slope above the knee, calculate dynamic resistance: r_ac = ΔVD / ΔIF ≈ 15.0 Ω.',
+      },
+      {
+        id: 'pnd-step-5',
+        stepNumber: 5,
+        title: 'Switch to Reverse Bias and Observe Saturation & Breakdown',
+        instruction:
+          'Toggle switch to Reverse Bias. Observe tiny leakage current (IR < 1 µA) until reaching breakdown voltage Vbr = 25.0 V.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-pnd-knee',
+        description: 'Identify knee/cut-in voltage (Vk ≈ 0.7V for Silicon, 0.3V for Germanium) under Forward Bias.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-pnd-forward-r',
+        description: 'Plot forward I-V characteristic curve and calculate dynamic forward resistance r_ac = ΔV / ΔI.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-pnd-reverse-breakdown',
+        description: 'Plot reverse I-V characteristic curve, observe minority saturation current, and detect breakdown.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "P-N Junction Diode I-V Characteristics:\n- Principle: A P-N junction conducts easily under forward bias and presents high resistance under reverse bias.\n\nForward Bias:\n- P connected to Positive, N connected to Negative.\n- Depletion layer narrows; barrier potential is overcome at Knee Voltage:\n  Silicon: V_k ≈ 0.7 V   |   Germanium: V_k ≈ 0.3 V\n- Above V_k, current increases exponentially:\n  I_F = (V_applied - V_k) / (r_d + R_s)\n- Dynamic Resistance: r_ac = ΔV_D / ΔI_F\n\nReverse Bias:\n- P connected to Negative, N connected to Positive.\n- Depletion layer widens; only minority carrier drift current (I₀ in µA) flows.\n- At Breakdown Voltage (V_br ≈ 25 V), avalanche breakdown causes abrupt current rise.",
+  },
 ];
 
 export const physicsExtension: SubjectLabExtension = {
@@ -5617,6 +6556,197 @@ export const physicsExtension: SubjectLabExtension = {
           `Ammeter Calibration: Shunt S = ${aRes.requiredShuntResistanceS.toFixed(5)} Ω => Test ${testSignal.toFixed(2)} A yields ${aRes.galvanometerDeflectionDivisions.toFixed(1)} div`
         );
       }
+    }
+
+    // 19. Concave Mirror Optics Simulation
+    const concaveMirrors = objects.filter((o) => o.equipmentId === 'concave-mirror-bench');
+    for (const cm of concaveMirrors) {
+      const f = Number(cm.properties.focalLength ?? 15.0);
+      const u = Number(cm.properties.objectDistance ?? 30.0);
+      const ho = Number(cm.properties.objectHeight ?? 4.0);
+      const benchPos = Number(cm.properties.benchPosition ?? 75.0);
+
+      const res = calculateConcaveMirror({
+        focalLengthCm: f,
+        objectDistanceCm: u,
+        objectHeightCm: ho,
+        benchPositionCm: benchPos,
+      });
+
+      updates[cm.id] = {
+        focalLengthCm: res.focalLengthCm,
+        magnitudeFocalLengthCm: res.magnitudeFocalLengthCm,
+        radiusOfCurvatureCm: res.radiusOfCurvatureCm,
+        objectDistanceCm: res.objectDistanceCm,
+        objectHeightCm: res.objectHeightCm,
+        imageDistanceCm: res.imageDistanceCm,
+        imageHeightCm: res.imageHeightCm,
+        linearMagnification: res.linearMagnification,
+        imageNature: res.imageNature,
+        imageCategory: res.imageCategory,
+        isReal: res.isReal,
+        isVirtual: res.isVirtual,
+        isAtInfinity: res.isAtInfinity,
+        canCatchOnScreen: res.canCatchOnScreen,
+        status: res.formulaSummary,
+      };
+
+      messages.push(
+        `Concave Mirror: u = -${u} cm, f = -${f} cm => Image v = ${res.imageDistanceCm} cm, m = ${res.linearMagnification} (${res.imageNature})`
+      );
+    }
+
+    // 20. Convex Mirror Optics Simulation
+    const convexMirrors = objects.filter((o) => o.equipmentId === 'convex-mirror-bench');
+    for (const cv of convexMirrors) {
+      const f = Number(cv.properties.focalLength ?? 15.0);
+      const u = Number(cv.properties.objectDistance ?? 30.0);
+      const ho = Number(cv.properties.objectHeight ?? 4.0);
+      const benchPos = Number(cv.properties.benchPosition ?? 75.0);
+
+      const res = calculateConvexMirror({
+        focalLengthCm: f,
+        objectDistanceCm: u,
+        objectHeightCm: ho,
+        benchPositionCm: benchPos,
+      });
+
+      updates[cv.id] = {
+        focalLengthCm: res.focalLengthCm,
+        magnitudeFocalLengthCm: res.magnitudeFocalLengthCm,
+        radiusOfCurvatureCm: res.radiusOfCurvatureCm,
+        objectDistanceCm: res.objectDistanceCm,
+        objectHeightCm: res.objectHeightCm,
+        imageDistanceCm: res.imageDistanceCm,
+        imageHeightCm: res.imageHeightCm,
+        linearMagnification: res.linearMagnification,
+        imageNature: res.imageNature,
+        imageCategory: res.imageCategory,
+        isReal: res.isReal,
+        isVirtual: res.isVirtual,
+        isAtInfinity: res.isAtInfinity,
+        canCatchOnScreen: res.canCatchOnScreen,
+        status: res.formulaSummary,
+      };
+
+      messages.push(
+        `Convex Mirror: u = -${u} cm, f = +${f} cm => Virtual Image v = +${res.imageDistanceCm} cm, m = +${res.linearMagnification} (${res.imageNature})`
+      );
+    }
+
+    // 21. Diverging Concave Lens Simulation
+    const concaveLenses = objects.filter((o) => o.equipmentId === 'concave-lens-bench');
+    for (const cl of concaveLenses) {
+      const f = Number(cl.properties.focalLength ?? 15.0);
+      const u = Number(cl.properties.objectDistance ?? 30.0);
+      const ho = Number(cl.properties.objectHeight ?? 4.0);
+      const auxF = Number(cl.properties.auxiliaryConvexFocalLength ?? 10.0);
+
+      const res = calculateConcaveLens({
+        focalLengthCm: f,
+        objectDistanceCm: u,
+        objectHeightCm: ho,
+        auxiliaryConvexFocalLengthCm: auxF,
+      });
+
+      updates[cl.id] = {
+        focalLengthCm: res.focalLengthCm,
+        magnitudeFocalLengthCm: res.magnitudeFocalLengthCm,
+        objectDistanceCm: res.objectDistanceCm,
+        objectHeightCm: res.objectHeightCm,
+        imageDistanceCm: res.imageDistanceCm,
+        imageHeightCm: res.imageHeightCm,
+        linearMagnification: res.linearMagnification,
+        imageNature: res.imageNature,
+        isVirtual: res.isVirtual,
+        combinedFocalLengthCm: res.auxiliaryLensMethod.combinedFocalLengthCm,
+        status: res.formulaSummary,
+      };
+
+      messages.push(
+        `Concave Lens: u = -${u} cm, f = -${f} cm => Virtual Image v = ${res.imageDistanceCm} cm, m = +${res.linearMagnification} (Combo F = ${res.auxiliaryLensMethod.combinedFocalLengthCm} cm with aux f = ${auxF} cm)`
+      );
+    }
+
+    // 22. Optical Prism Minimum Deviation Simulation
+    const prismTables = objects.filter((o) => o.equipmentId === 'optical-prism-table');
+    for (const pt of prismTables) {
+      const i1 = Number(pt.properties.angleOfIncidence ?? 49.5);
+      const aDeg = Number(pt.properties.prismAngle ?? 60.0);
+      const mu = Number(pt.properties.refractiveIndex ?? 1.52);
+
+      const res = calculatePrismRefraction({
+        angleOfIncidenceDeg: i1,
+        prismAngleDeg: aDeg,
+        refractiveIndex: mu,
+      });
+
+      updates[pt.id] = {
+        prismAngleDeg: res.prismAngleDeg,
+        refractiveIndexMu: res.refractiveIndexMu,
+        angleOfIncidenceDeg: res.angleOfIncidenceDeg,
+        firstRefractionAngleDeg: res.firstRefractionAngleDeg,
+        secondIncidentAngleDeg: res.secondIncidentAngleDeg,
+        angleOfEmergenceDeg: res.angleOfEmergenceDeg,
+        angleOFDeviationDeg: res.angleOFDeviationDeg,
+        minimumDeviationDeg: res.minimumDeviationDeg,
+        isMinimumDeviation: res.isMinimumDeviation,
+        isTotalInternalReflection: res.isTotalInternalReflection,
+        criticalAngleDeg: res.criticalAngleDeg,
+        calculatedRefractiveIndex: res.calculatedRefractiveIndex,
+        status: res.status,
+      };
+
+      if (res.isTotalInternalReflection) {
+        warnings.push(
+          `Prism: Total Internal Reflection occurred at second face (r₂ = ${res.secondIncidentAngleDeg}° > θc = ${res.criticalAngleDeg}°).`
+        );
+      }
+
+      messages.push(
+        `Prism Refraction: i₁ = ${res.angleOfIncidenceDeg}°, r₁ = ${res.firstRefractionAngleDeg}°, r₂ = ${res.secondIncidentAngleDeg}°, e = ${res.angleOfEmergenceDeg}° => D = ${res.angleOFDeviationDeg}° (Dm = ${res.minimumDeviationDeg}°, μ = ${res.calculatedRefractiveIndex})`
+      );
+    }
+
+    // 23. P-N Junction Diode I-V Simulation
+    const diodeBoards = objects.filter((o) => o.equipmentId === 'pn-diode-board');
+    for (const db of diodeBoards) {
+      const mat = (db.properties.semiconductorMaterial as 'silicon' | 'germanium') ?? 'silicon';
+      const bias = (db.properties.biasMode as 'forward' | 'reverse') ?? 'forward';
+      const vApplied = Number(db.properties.appliedVoltage ?? 1.5);
+      const rSeries = Number(db.properties.seriesResistance ?? 100.0);
+
+      const res = calculateDiodeCharacteristics({
+        semiconductorMaterial: mat,
+        biasMode: bias,
+        appliedVoltageVolts: vApplied,
+        seriesResistanceOhms: rSeries,
+      });
+
+      updates[db.id] = {
+        semiconductorMaterial: res.semiconductorMaterial,
+        biasMode: res.biasMode,
+        kneeVoltageVolts: res.kneeVoltageVolts,
+        appliedVoltageVolts: res.appliedVoltageVolts,
+        diodeVoltageVolts: res.diodeVoltageVolts,
+        circuitCurrentMilliAmps: res.circuitCurrentMilliAmps,
+        circuitCurrentMicroAmps: res.circuitCurrentMicroAmps,
+        dynamicResistanceOhms: res.dynamicResistanceOhms,
+        staticResistanceOhms: res.staticResistanceOhms,
+        isBreakdown: res.isBreakdown,
+        isConducting: res.isConducting,
+        status: res.status,
+      };
+
+      if (res.isBreakdown) {
+        warnings.push(
+          `P-N Diode: Avalanche breakdown reached in reverse bias (${res.appliedVoltageVolts} V >= 25.0 V).`
+        );
+      }
+
+      messages.push(
+        `P-N Diode (${res.semiconductorMaterial.toUpperCase()} - ${res.biasMode.toUpperCase()}): V_applied = ${res.appliedVoltageVolts} V => V_D = ${res.diodeVoltageVolts} V, I = ${res.biasMode === 'forward' ? `${res.circuitCurrentMilliAmps} mA` : `${res.circuitCurrentMicroAmps} µA`}, r_ac = ${res.dynamicResistanceOhms} Ω`
+      );
     }
 
     return {
