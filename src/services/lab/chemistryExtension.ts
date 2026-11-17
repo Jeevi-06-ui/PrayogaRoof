@@ -59,6 +59,24 @@ import {
   CalorimeterReactionType,
 } from '../chemistry/thermochemistryModel';
 import { calculateDaniellCellState } from '../chemistry/electrochemistryModel';
+import {
+  calculateSynthesisState,
+  CompoundSynthesisId,
+  SynthesisStage,
+} from '../chemistry/synthesisModel';
+import {
+  runFunctionalGroupTest,
+  FunctionalGroupTestId,
+} from '../chemistry/functionalGroupModel';
+import {
+  runFoodTest,
+  FoodSampleId,
+  FoodTestId,
+} from '../chemistry/foodTestingModel';
+import {
+  calculateRedoxTitrationState,
+  RedoxTitrationSystem,
+} from '../chemistry/redoxTitrationModel';
 
 export const REAGENT_OPTIONS = [
   { label: 'Pure Distilled Water (H₂O)', value: 'pure-water' },
@@ -1764,6 +1782,10 @@ export const CHEMISTRY_EQUIPMENT: EquipmentDefinition[] = [
           { label: 'Zinc Sulphate (ZnSO₄ - Group IV)', value: 'znso4' },
           { label: 'Calcium Chloride (CaCl₂ - Group V)', value: 'cacl2' },
           { label: 'Magnesium Sulphate (MgSO₄ - Group VI)', value: 'mgso4' },
+          { label: 'Calcium Phosphate (Ca₃(PO₄)₂ - Group V + PO₄³⁻)', value: 'ca3_po4_2' },
+          { label: 'Magnesium Oxalate (MgC₂O₄ - Group VI + C₂O₄²⁻)', value: 'mg_c2o4' },
+          { label: 'Ferric Phosphate (FePO₄ - Group III + PO₄³⁻)', value: 'fe_po4' },
+          { label: 'Barium Chloride (BaCl₂ - Group V + Cl⁻)', value: 'ba_cl2' },
         ],
         editable: true,
       },
@@ -1781,6 +1803,9 @@ export const CHEMISTRY_EQUIPMENT: EquipmentDefinition[] = [
           { label: '6. Anion Confirmatory Test (AgNO₃/BaCl₂/Brown Ring)', value: 'anion-confirmatory' },
           { label: '7. Systematic Cation Group Separation Test', value: 'cation-group-test' },
           { label: '8. Cation Confirmatory Wet Test', value: 'cation-confirmatory' },
+          { label: '9. Ammonium Molybdate Test for Phosphate Radical', value: 'phosphate-molybdate' },
+          { label: '10. Phosphate Elimination Protocol (NaOAc + FeCl₃)', value: 'phosphate-elimination' },
+          { label: '11. Oxalate Redox Decolorization (Acidified KMnO₄)', value: 'oxalate-kmno4' },
         ],
         editable: true,
       },
@@ -2122,6 +2147,338 @@ export const CHEMISTRY_EQUIPMENT: EquipmentDefinition[] = [
     ],
     renderType: 'daniell-cell-bench',
     colorTheme: '#0284c7',
+  },
+  {
+    id: 'inorganic-synth-assembly',
+    name: 'Inorganic Double Salt Synthesis Assembly',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Controlled virtual preparation station for inorganic double salts (Mohr’s Salt and Potash Alum) with heating, crystallization, and recovery tracking.',
+    iconName: 'FlaskConical',
+    defaultWidth: 320,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'compoundId',
+        label: 'Target Double Salt',
+        type: 'select',
+        defaultValue: 'mohrs-salt',
+        options: [
+          { label: 'Mohr’s Salt [FeSO₄·(NH₄)₂SO₄·6H₂O]', value: 'mohrs-salt' },
+          { label: 'Potash Alum [K₂SO₄·Al₂(SO₄)₃·24H₂O]', value: 'potash-alum' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'stage',
+        label: 'Synthesis Workflow Stage',
+        type: 'select',
+        defaultValue: 'reactant-mixing',
+        options: [
+          { label: '1. Reactant Dissolution & Mixing', value: 'reactant-mixing' },
+          { label: '2. Acidified Heating & Concentration', value: 'acidified-heating' },
+          { label: '3. Undisturbed Cooling & Crystallisation', value: 'crystallisation-cooling' },
+          { label: '4. Filtration, Drying & Yield Analysis', value: 'filtration-drying' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'isAcidified',
+        label: 'Add Dilute H₂SO₄ (Prevents Oxidation/Hydrolysis)',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'heatingDurationMin',
+        label: 'Heating & Concentration Time (min)',
+        type: 'number',
+        defaultValue: 10,
+        min: 0,
+        max: 20,
+        step: 2,
+        unit: 'min',
+        editable: true,
+      },
+      {
+        id: 'coolingDurationMin',
+        label: 'Slow Undisturbed Cooling Time (min)',
+        type: 'number',
+        defaultValue: 15,
+        min: 0,
+        max: 30,
+        step: 5,
+        unit: 'min',
+        editable: true,
+      },
+    ],
+    renderType: 'synthesis-bench',
+    colorTheme: '#10b981',
+  },
+  {
+    id: 'organic-synth-assembly',
+    name: 'Organic Compound Synthesis Station',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Controlled simulation of organic synthesis (Acetanilide acetylation & Dibenzalacetone Claisen-Schmidt condensation) with crystal habit and melting point validation.',
+    iconName: 'FlaskConical',
+    defaultWidth: 320,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'compoundId',
+        label: 'Target Organic Compound',
+        type: 'select',
+        defaultValue: 'acetanilide',
+        options: [
+          { label: 'Acetanilide (Nucleophilic Acyl Substitution, MP 114°C)', value: 'acetanilide' },
+          { label: 'Dibenzalacetone (Claisen-Schmidt Condensation, MP 112°C)', value: 'dibenzalacetone' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'stage',
+        label: 'Preparation Stage',
+        type: 'select',
+        defaultValue: 'reactant-mixing',
+        options: [
+          { label: '1. Reagent Dissolution & Catalyst Addition', value: 'reactant-mixing' },
+          { label: '2. Controlled Heating / Shaking', value: 'acidified-heating' },
+          { label: '3. Ice-Bath Cooling & Nucleation', value: 'crystallisation-cooling' },
+          { label: '4. Buchner Suction Filtration & MP Testing', value: 'filtration-drying' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'isAcidified',
+        label: 'Optimal Catalytic Condition Maintained',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'heatingDurationMin',
+        label: 'Reaction Duration (min)',
+        type: 'number',
+        defaultValue: 10,
+        min: 0,
+        max: 20,
+        step: 2,
+        unit: 'min',
+        editable: true,
+      },
+      {
+        id: 'coolingDurationMin',
+        label: 'Crystallization Cooling Duration (min)',
+        type: 'number',
+        defaultValue: 15,
+        min: 0,
+        max: 30,
+        step: 5,
+        unit: 'min',
+        editable: true,
+      },
+    ],
+    renderType: 'synthesis-bench',
+    colorTheme: '#8b5cf6',
+  },
+  {
+    id: 'functional-group-workbench',
+    name: 'Organic Functional Group Identification Workbench',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Comprehensive testing station identifying 7 core functional groups (Unsaturation, Alcohol, Phenol, Aldehyde, Ketone, Carboxylic Acid, Primary Amine) via 11 diagnostic tests.',
+    iconName: 'TestTube',
+    defaultWidth: 320,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'selectedSample',
+        label: 'Organic Unknown Sample',
+        type: 'select',
+        defaultValue: 'cyclohexene',
+        options: [
+          { label: 'Sample A: Cyclohexene (Alkene)', value: 'cyclohexene' },
+          { label: 'Sample B: Ethanol (Primary Alcohol)', value: 'ethanol' },
+          { label: 'Sample C: Phenol (Aromatic Hydroxyl)', value: 'phenol' },
+          { label: 'Sample D: Benzaldehyde (Aromatic Aldehyde)', value: 'benzaldehyde' },
+          { label: 'Sample E: Acetone (Aliphatic Ketone)', value: 'acetone' },
+          { label: 'Sample F: Benzoic Acid (Carboxylic Acid)', value: 'benzoic-acid' },
+          { label: 'Sample G: Aniline (Primary Aromatic Amine)', value: 'aniline' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'selectedTest',
+        label: 'Diagnostic Chemical Test',
+        type: 'select',
+        defaultValue: 'bromine-water',
+        options: [
+          { label: '1. Bromine Water Test (Unsaturation)', value: 'bromine-water' },
+          { label: '2. Baeyer’s Test (Cold alk. KMnO₄)', value: 'baeyer-test' },
+          { label: '3. Sodium Metal Effervescence Test', value: 'sodium-metal' },
+          { label: '4. Ceric Ammonium Nitrate Test (CAN)', value: 'ceric-ammonium-nitrate' },
+          { label: '5. Neutral FeCl₃ Violet Coloration Test', value: 'neutral-fecl3' },
+          { label: '6. Tollens’ Reagent (Silver Mirror)', value: 'tollens-silver-mirror' },
+          { label: '7. Fehling’s Solution (Red Cu₂O ppt)', value: 'fehling-solution' },
+          { label: '8. Sodium Nitroprusside (Ruby Red)', value: 'sodium-nitroprusside' },
+          { label: '9. Sodium Bicarbonate (NaHCO₃ CO₂)', value: 'sodium-bicarbonate' },
+          { label: '10. Esterification Fruity Odor Test', value: 'ester-test' },
+          { label: '11. Azo Dye Test (β-Naphthol Coupling)', value: 'azo-dye' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'functional-group-bench',
+    colorTheme: '#f59e0b',
+  },
+  {
+    id: 'food-testing-workbench',
+    name: 'Food Component Testing Workbench',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Biochemical qualitative testing station detecting carbohydrates, proteins, and fats in real-world food matrices via 7 standardized reactions.',
+    iconName: 'Apple',
+    defaultWidth: 320,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'selectedSample',
+        label: 'Food Matrix / Substrate Extract',
+        type: 'select',
+        defaultValue: 'glucose',
+        options: [
+          { label: 'Glucose Solution (Monosaccharide)', value: 'glucose' },
+          { label: 'Potato Starch Suspension (Polysaccharide)', value: 'potato-starch' },
+          { label: 'Egg Albumin Dispersion (Globular Protein)', value: 'egg-albumin' },
+          { label: 'Fresh Whole Milk (Emulsion: Protein + Fat + Lactose)', value: 'milk' },
+          { label: 'Refined Vegetable Oil (Triglyceride Lipids)', value: 'vegetable-oil' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'selectedTest',
+        label: 'Biochemical Nutrient Test',
+        type: 'select',
+        defaultValue: 'molisch-test',
+        options: [
+          { label: '1. Molisch’s General Carbohydrate Test (Violet Ring)', value: 'molisch-test' },
+          { label: '2. Fehling’s Reducing Sugar Test (Red Cu₂O ppt)', value: 'fehling-test' },
+          { label: '3. Iodine Starch Test (Blue-Black Amylose Helix)', value: 'iodine-test' },
+          { label: '4. Biuret Protein Test (Copper-Peptide Violet Complex)', value: 'biuret-test' },
+          { label: '5. Ninhydrin Test (Ruhemann’s Purple α-Amino Chromophore)', value: 'ninhydrin-test' },
+          { label: '6. Translucent Grease Spot Test (Non-Volatile Lipid)', value: 'translucent-spot' },
+          { label: '7. Acrolein Test (Glycerol Dehydration with KHSO₄)', value: 'acrolein-test' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'food-testing-bench',
+    colorTheme: '#ec4899',
+  },
+  {
+    id: 'redox-titration-assembly',
+    name: 'KMnO₄ Redox Titration Assembly with Upper Meniscus Indicator',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'High-precision virtual redox titration assembly for potassium permanganate against standard Mohr’s salt and oxalic acid with self-indicator pale pink detection and upper meniscus reading.',
+    iconName: 'Pipette',
+    defaultWidth: 320,
+    defaultHeight: 260,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'system',
+        label: 'Redox Titration System',
+        type: 'select',
+        defaultValue: 'kmno4-mohrs-salt',
+        options: [
+          { label: 'KMnO₄ vs Mohr’s Salt [FeSO₄·(NH₄)₂SO₄·6H₂O]', value: 'kmno4-mohrs-salt' },
+          { label: 'KMnO₄ vs Standard Oxalic Acid [(COOH)₂·2H₂O]', value: 'kmno4-oxalic-acid' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'analyteVolumeMl',
+        label: 'Analyte Volume Pipetted (mL)',
+        type: 'select',
+        defaultValue: 20,
+        options: [
+          { label: '10.0 mL Pipette', value: 10 },
+          { label: '20.0 mL Pipette (Standard)', value: 20 },
+          { label: '25.0 mL Pipette', value: 25 },
+        ],
+        editable: true,
+      },
+      {
+        id: 'analyteMolarityM',
+        label: 'Standard Analyte Molarity (M)',
+        type: 'select',
+        defaultValue: 0.05,
+        options: [
+          { label: 'M/50 (0.020 M)', value: 0.02 },
+          { label: 'M/20 (0.050 M - Standard)', value: 0.05 },
+          { label: 'M/10 (0.100 M)', value: 0.1 },
+        ],
+        editable: true,
+      },
+      {
+        id: 'titrantMolarityM',
+        label: 'KMnO₄ Stock Solution Molarity (M)',
+        type: 'number',
+        defaultValue: 0.02,
+        min: 0.005,
+        max: 0.1,
+        step: 0.005,
+        unit: 'M',
+        editable: false,
+      },
+      {
+        id: 'titrantDeliveredMl',
+        label: 'KMnO₄ Delivered from Burette (mL)',
+        type: 'number',
+        defaultValue: 0.0,
+        min: 0.0,
+        max: 50.0,
+        step: 0.2,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'acidAdded',
+        label: 'Dilute H₂SO₄ Added (~20 mL 1:4)',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'temperatureC',
+        label: 'Conical Flask Temperature (°C)',
+        type: 'number',
+        defaultValue: 25,
+        min: 15,
+        max: 85,
+        step: 5,
+        unit: '°C',
+        editable: true,
+      },
+    ],
+    renderType: 'redox-titration-bench',
+    colorTheme: '#a21caf',
   },
 ];
 
@@ -4630,6 +4987,683 @@ export const CHEMISTRY_LAB_DEFINITIONS: LabDefinition[] = [
     defaultNotebookNotes:
       "Paper Chromatography Analysis — Class 12 Advanced Separation:\n\n1. Separation of Inorganic Metal Cations (Pb²⁺ and Cd²⁺):\n- Stationary Phase: Water adsorbed on cellulose fibers of Whatman No. 1 paper.\n- Mobile Phase: n-Butanol : Acetic Acid : Water (4:1:5 upper organic phase).\n- Visualization: Metal ions are colorless. Sprayed with freshly prepared yellow ammonium sulphide solution (NH₄)₂S:\n  Pb²⁺ + S²⁻ ⟶ PbS(s, brown-black spot, Rf ≈ 0.38)\n  Cd²⁺ + S²⁻ ⟶ CdS(s, bright canary yellow spot, Rf ≈ 0.72)\n\n2. Separation of Photosynthetic Spinach Leaf Pigments:\n- Extraction: Fresh spinach leaves ground in acetone : petroleum ether (1:9).\n- Mobile Phase: Petroleum ether : Acetone : Benzene (85:10:5).\n- Pigment Bands observed from origin to solvent front:\n  1. Chlorophyll b (Olive green): Rf ≈ 0.35 (strong hydrogen bonding with cellulose)\n  2. Chlorophyll a (Blue green): Rf ≈ 0.48\n  3. Xanthophyll (Yellow): Rf ≈ 0.70\n  4. Carotene (Orange-yellow): Rf ≈ 0.95 (non-polar hydrocarbon, moves almost with solvent front)\n\n3. Rf Calculation Formula:\n  Rf = Distance traveled by solute from baseline / Distance traveled by solvent front from baseline.",
   },
+  {
+    experimentId: 'inorganic-compound-prep',
+    title: 'Preparation of Inorganic Compounds: Double Salts (Mohr’s Salt & Potash Alum)',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'inorganic-synth-assembly',
+      'borosilicate-beaker',
+      'glass-stirring-rod',
+      'evaporating-dish',
+      'bunsen-burner-stand',
+      'chemical-analytical-balance',
+      'graduated-measuring-cylinder',
+      'funnel-stand-assembly',
+      'qualitative-filter-paper',
+      'watch-glass-dish',
+    ],
+    initialObjects: [
+      {
+        id: 'inorganic-synth-1',
+        equipmentId: 'inorganic-synth-assembly',
+        title: 'Double Salt Synthesis Station',
+        x: 240,
+        y: 140,
+        rotation: 0,
+        width: 320,
+        height: 240,
+        properties: {
+          compoundId: 'mohrs-salt',
+          stage: 'reactant-mixing',
+          isAcidified: true,
+          heatingDurationMin: 10,
+          coolingDurationMin: 15,
+        },
+        state: { status: 'Reactants equimolarly mixed with dilute H₂SO₄.' },
+      },
+      {
+        id: 'beaker-prep-1',
+        equipmentId: 'borosilicate-beaker',
+        title: 'Dissolution Beaker (250 mL)',
+        x: 600,
+        y: 140,
+        rotation: 0,
+        width: 110,
+        height: 140,
+        properties: { liquidVolume: 50, reagentSolution: 'pure-water' },
+        state: { contents: 'Warm deionized water solvent' },
+      },
+      {
+        id: 'burner-prep-1',
+        equipmentId: 'bunsen-burner-stand',
+        title: 'Bunsen Heating Stand',
+        x: 600,
+        y: 320,
+        rotation: 0,
+        width: 100,
+        height: 120,
+        properties: { burnerFlameActive: true, flameIntensity: 'medium' },
+        state: { flameStatus: 'Heating at moderate evaporation rate' },
+      },
+      {
+        id: 'dish-prep-1',
+        equipmentId: 'evaporating-dish',
+        title: 'Porcelain Crystallizing Dish',
+        x: 80,
+        y: 140,
+        rotation: 0,
+        width: 110,
+        height: 80,
+        properties: { liquidVolume: 30, containedLiquid: 'pure-water' },
+        state: { status: 'Ready for undisturbed cooling' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'step-inorg-1',
+        stepNumber: 1,
+        title: 'Equimolar Dissolution of Simple Salts',
+        instruction:
+          'Dissolve equimolar quantities of primary sulphates (FeSO₄·7H₂O and (NH₄)₂SO₄ for Mohr’s Salt; K₂SO₄ and Al₂(SO₄)₃ for Potash Alum) in minimal hot deionized water.',
+      },
+      {
+        id: 'step-inorg-2',
+        stepNumber: 2,
+        title: 'Acidification with Dilute Sulphuric Acid',
+        instruction:
+          'Add 2-3 mL of dilute H₂SO₄ to prevent oxidation of Fe²⁺ to Fe³⁺ and hydrolysis of Al³⁺ into gelatinous Al(OH)₃ during boiling.',
+      },
+      {
+        id: 'step-inorg-3',
+        stepNumber: 3,
+        title: 'Heating to Crystallization Point',
+        instruction:
+          'Concentrate solution until a crust forms on the tip of a cold glass rod dipped in the solution. Do not over-boil to dryness.',
+      },
+      {
+        id: 'step-inorg-4',
+        stepNumber: 4,
+        title: 'Undisturbed Cooling & Crystal Recovery',
+        instruction:
+          'Allow solution to cool slowly and undisturbed in a porcelain basin. Filter separated crystals, dry between filter papers, and compute percentage yield.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-double-salt-stoich',
+        description: 'Prepare an inorganic double salt maintaining strict 1:1 equimolar stoichiometry of constituent salts.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-protective-acidification',
+        description: 'Apply dilute H₂SO₄ acidification to inhibit aerial oxidation and hydrolytic decomposition.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-crystal-habit-analysis',
+        description: 'Isolate crystals, observe characteristic morphology (monoclinic prisms or regular octahedra), and compute practical yield.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Preparation of Inorganic Double Salts (Mohr’s Salt & Potash Alum):\n\n1. Mohr’s Salt [FeSO₄·(NH₄)₂SO₄·6H₂O] (Ferrous Ammonium Sulphate):\n- Category: Double salt formed by stoichiometric combination of equimolar FeSO₄ and (NH₄)₂SO₄.\n- Chemical Equation:\n  FeSO₄·7H₂O(s) + (NH₄)₂SO₄(s) ⟶ FeSO₄·(NH₄)₂SO₄·6H₂O(s) + H₂O(l)\n- Role of Dilute H₂SO₄:\n  Fe²⁺ ions hydrolyze in neutral water: Fe²⁺ + 2H₂O ⇌ Fe(OH)₂ + 2H⁺. Fe(OH)₂ is rapidly oxidized by atmospheric air to basic ferric sulphate [Fe(OH)SO₄] (muddy brown). Adding H₂SO₄ suppresses this hydrolysis via Le Chatelier’s principle.\n- Crystal Habit: Light sea-green monoclinic prisms.\n- Theoretical Yield: ~9.88 g (from 7.0 g FeSO₄·7H₂O and 3.33 g (NH₄)₂SO₄); Practical Yield: ~8.45 g (85.5%).\n\n2. Potash Alum [K₂SO₄·Al₂(SO₄)₃·24H₂O] (Fitkari):\n- Category: Double sulphate of a monovalent cation (K⁺) and a trivalent cation (Al³⁺).\n- Chemical Equation:\n  K₂SO₄(s) + Al₂(SO₄)₃·18H₂O(s) + 6H₂O(l) ⟶ K₂SO₄·Al₂(SO₄)₃·24H₂O(s)\n- Role of Dilute H₂SO₄: Prevents hydrolysis of Al₂(SO₄)₃ into gelatinous Al(OH)₃.\n- Crystal Habit: Colorless, transparent, sparkling octahedral crystals.\n- Yield: ~11.2 g (from 2.5 g K₂SO₄ and 9.55 g Al₂(SO₄)₃·18H₂O); Practical Yield: ~82.5%.\n\n3. Percentage Yield Formula:\n  Yield (%) = (Practical mass recovered / Theoretical stoichiometric mass) × 100%.",
+  },
+  {
+    experimentId: 'organic-compound-prep',
+    title: 'Preparation of Organic Compounds (Acetanilide & Dibenzalacetone)',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'organic-synth-assembly',
+      'conical-flask',
+      'borosilicate-beaker',
+      'glass-stirring-rod',
+      'bunsen-burner-stand',
+      'chemical-analytical-balance',
+      'graduated-measuring-cylinder',
+      'funnel-stand-assembly',
+      'qualitative-filter-paper',
+      'thermometer-mercury-c',
+    ],
+    initialObjects: [
+      {
+        id: 'organic-synth-1',
+        equipmentId: 'organic-synth-assembly',
+        title: 'Organic Synthesis Station',
+        x: 240,
+        y: 140,
+        rotation: 0,
+        width: 320,
+        height: 240,
+        properties: {
+          compoundId: 'acetanilide',
+          stage: 'reactant-mixing',
+          isAcidified: true,
+          heatingDurationMin: 10,
+          coolingDurationMin: 15,
+        },
+        state: { status: 'Reactants mixed: ready for nucleophilic acyl substitution.' },
+      },
+      {
+        id: 'conical-prep-1',
+        equipmentId: 'conical-flask',
+        title: 'Reaction Flask (250 mL)',
+        x: 600,
+        y: 140,
+        rotation: 0,
+        width: 130,
+        height: 160,
+        properties: { liquidVolume: 40, reagentSolution: 'pure-water' },
+        state: { contents: 'Reaction medium' },
+      },
+      {
+        id: 'thermometer-prep-1',
+        equipmentId: 'thermometer-mercury-c',
+        title: 'Precision Thermometer',
+        x: 80,
+        y: 140,
+        rotation: 0,
+        width: 30,
+        height: 180,
+        properties: { currentTemperature: 25 },
+        state: { temperatureStatus: 'Monitoring reaction temperature' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'step-org-1',
+        stepNumber: 1,
+        title: 'Controlled Reagent Dissolution',
+        instruction:
+          'Measure stoichiometric quantities of reactants (aniline + acetic anhydride in glacial acetic acid / Zn dust for Acetanilide; benzaldehyde + acetone in aqueous ethanolic NaOH for Dibenzalacetone).',
+      },
+      {
+        id: 'step-org-2',
+        stepNumber: 2,
+        title: 'Controlled Heating / Agitation',
+        instruction:
+          'Gently reflux or stir reaction mixture. For acetanilide: zinc dust acts as reducing agent preventing aerial oxidation of aniline to colored quinhydrones.',
+      },
+      {
+        id: 'step-org-3',
+        stepNumber: 3,
+        title: 'Ice Cooling & Nucleated Crystallization',
+        instruction:
+          'Pour warm reaction mixture into cold ice-water with rapid stirring. Crude product precipitates instantly as solid flakes / leaflets.',
+      },
+      {
+        id: 'step-org-4',
+        stepNumber: 4,
+        title: 'Filtration & Purity Verification',
+        instruction:
+          'Filter crystals using Buchner / conical funnel, wash with ice-cold water, dry, and verify purity via melting point determination.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-organic-prep-mechanism',
+        description: 'Simulate organic functional group transformations (nucleophilic acyl substitution or crossed aldol condensation).',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-crystallization-recovery',
+        description: 'Precipitate and isolate organic crystals from solution using solvent drowning and cold crystallization.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-purity-mp-check',
+        description: 'Determine product melting point to confirm identity and high chemical purity.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Preparation of Organic Compounds (Safe Virtual Simulation):\n\n1. Synthesis of Acetanilide:\n- Reaction Type: Nucleophilic Acyl Substitution (Acetylation of Primary Aromatic Amine).\n- Chemical Equation:\n  C₆H₅NH₂(l) + (CH₃CO)₂O(l) ⎯(CH₃COOH / Zn dust)⎯→ C₆H₅NHCOCH₃(s) + CH₃COOH(l)\n- Role of Zinc Dust: Acts as mild reducing agent; prevents atmospheric oxidation of aniline into dark purplish colored quinone/aminophenol derivatives.\n- Isolation: Poured into ice-cold water; acetanilide precipitates as glistening white leaflets.\n- Melting Point: 114°C (sharp).\n- Practical Yield: ~82%.\n\n2. Synthesis of Dibenzalacetone:\n- Reaction Type: Crossed Aldol Condensation (Claisen-Schmidt Condensation).\n- Chemical Equation:\n  2 C₆H₅CHO + CH₃COCH₃ ⎯(NaOH / Ethanol, 20-25°C)⎯→ C₆H₅-CH=CH-CO-CH=CH-C₆H₅(s) + 2 H₂O\n- Mechanism: Acetone enolate attacks benzaldehyde carbonyl; dehydration yields conjugated unsaturated ketone.\n- Crystal Habit: Bright yellow glistening flakes.\n- Melting Point: 112°C.\n- Practical Yield: ~75%.",
+  },
+  {
+    experimentId: 'functional-group-identification',
+    title: 'Systematic Identification of Organic Functional Groups',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'functional-group-workbench',
+      'test-tube-borosilicate',
+      'pasteur-pipette-dropper',
+      'bunsen-burner-stand',
+      'borosilicate-beaker',
+    ],
+    initialObjects: [
+      {
+        id: 'fg-bench-1',
+        equipmentId: 'functional-group-workbench',
+        title: 'Functional Group Testing Workbench',
+        x: 240,
+        y: 140,
+        rotation: 0,
+        width: 320,
+        height: 240,
+        properties: {
+          selectedSample: 'cyclohexene',
+          selectedTest: 'bromine-water',
+        },
+        state: { status: 'Ready for diagnostic qualitative analysis.' },
+      },
+      {
+        id: 'test-tube-fg-1',
+        equipmentId: 'test-tube-borosilicate',
+        title: 'Diagnostic Reaction Tube',
+        x: 600,
+        y: 140,
+        rotation: 0,
+        width: 45,
+        height: 160,
+        properties: { liquidVolume: 5, containedLiquid: 'pure-water' },
+        state: { reactionStatus: 'Monitoring color change / precipitate' },
+      },
+      {
+        id: 'dropper-fg-1',
+        equipmentId: 'pasteur-pipette-dropper',
+        title: 'Analytical Reagent Dropper',
+        x: 80,
+        y: 140,
+        rotation: 0,
+        width: 28,
+        height: 120,
+        properties: { aspirating: false },
+        state: { status: 'Reagent delivery' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'step-fg-1',
+        stepNumber: 1,
+        title: 'Test for Unsaturation (>C=C< / -C≡C-)',
+        instruction:
+          'Treat sample with Bromine Water or cold alkaline 1% KMnO₄ (Baeyer’s reagent). Instant discharge of reddish-brown bromine or formation of brown MnO₂ precipitate confirms unsaturation.',
+      },
+      {
+        id: 'step-fg-2',
+        stepNumber: 2,
+        title: 'Test for Alcoholic and Phenolic Hydroxyl (-OH)',
+        instruction:
+          'Test with anhydrous sodium metal (H₂ effervescence). Differentiate aliphatic alcohols (Ceric Ammonium Nitrate gives wine-red complex) from phenols (Neutral FeCl₃ gives violet coloration).',
+      },
+      {
+        id: 'step-fg-3',
+        stepNumber: 3,
+        title: 'Test for Carbonyl Groups (-CHO vs >C=O)',
+        instruction:
+          'Test with 2,4-DNP (yellow/orange hydrazone ppt). Differentiate aldehydes (Tollens silver mirror & Fehling red Cu₂O) from ketones (Sodium Nitroprusside gives ruby-red coloration).',
+      },
+      {
+        id: 'step-fg-4',
+        stepNumber: 4,
+        title: 'Test for Carboxylic Acid (-COOH) & Primary Amine (-NH₂)',
+        instruction:
+          'Carboxylic acids give vigorous CO₂ effervescence with NaHCO₃ and fruity esters on warming with ethanol/H₂SO₄. Primary amines give brilliant scarlet azo dyes upon diazotization and alkaline β-naphthol coupling.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-fg-unsaturation',
+        description: 'Identify unsaturation using bromine water decolorization and Baeyer cold alkaline permanganate test.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-fg-alcohol-phenol',
+        description: 'Differentiate alcohols and phenols using ceric ammonium nitrate and neutral ferric chloride reactions.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-fg-carbonyl-acid-amine',
+        description: 'Identify aldehydes, ketones, carboxylic acids, and primary amines using Tollens, nitroprusside, NaHCO₃, and azo dye tests.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Qualitative Analysis of Organic Functional Groups (Class 12):\n\n1. Unsaturation (>C=C<):\n- Bromine Water: Reddish-brown Br₂ decolorized completely without HBr fumes.\n- Baeyer’s Test: Cold 1% alkaline KMnO₄ discharged; brown MnO₂ precipitate formed.\n\n2. Alcoholic Hydroxyl (-OH):\n- Sodium Metal: Brisk H₂ effervescence (burns with pop sound): 2ROH + 2Na ⟶ 2RONa + H₂↑.\n- Ceric Ammonium Nitrate (CAN): Formation of an intense wine-red coordination complex (NH₄)₂[Ce(OR)(NO₃)₅].\n\n3. Phenolic Hydroxyl (Ar-OH):\n- Neutral FeCl₃ Test: Deep violet / purple coloration due to [Fe(OC₆H₅)₆]³⁻ complex.\n- Contrast: Does NOT give CO₂ with NaHCO₃ (weaker acid than carbonic acid, pKa ~ 10).\n\n4. Aldehydic Carbonyl (-CHO):\n- Tollens’ Test (Ammoniacal Silver Nitrate): Silver mirror coats clean inner glass wall:\n  R-CHO + 2[Ag(NH₃)₂]⁺ + 3OH⁻ ⟶ R-COO⁻ + 2Ag(s)↓ + 4NH₃ + 2H₂O.\n- Fehling’s Test: Alkaline Cu²⁺ reduced to red Cu₂O precipitate on boiling.\n\n5. Ketonic Carbonyl (>C=O):\n- Negative Tollens & Fehling tests.\n- Sodium Nitroprusside Test: Addition of Na₂[Fe(CN)₅NO] + NaOH gives an intense ruby-red coloration.\n\n6. Carboxylic Acid (-COOH):\n- Sodium Bicarbonate Test: Instant vigorous effervescence of CO₂ gas turning lime water milky:\n  R-COOH + NaHCO₃ ⟶ R-COONa + H₂O + CO₂↑.\n- Ester Test: Warming with ethanol and conc. H₂SO₄ yields sweet fruity fragrance.\n\n7. Primary Aromatic Amine (-NH₂):\n- Azo Dye Test: Dissolve in dil. HCl, cool to 0-5°C, add NaNO₂ (forming C₆H₅N₂⁺Cl⁻), then pour into ice-cold alkaline β-naphthol. A brilliant scarlet-red / orange azo dye precipitates immediately.",
+  },
+  {
+    experimentId: 'food-component-testing',
+    title: 'Qualitative Testing of Food Components (Carbohydrates, Proteins, Fats)',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'food-testing-workbench',
+      'test-tube-borosilicate',
+      'pasteur-pipette-dropper',
+      'bunsen-burner-stand',
+      'qualitative-filter-paper',
+      'borosilicate-beaker',
+    ],
+    initialObjects: [
+      {
+        id: 'food-bench-1',
+        equipmentId: 'food-testing-workbench',
+        title: 'Food Component Testing Station',
+        x: 240,
+        y: 140,
+        rotation: 0,
+        width: 320,
+        height: 240,
+        properties: {
+          selectedSample: 'glucose',
+          selectedTest: 'molisch-test',
+        },
+        state: { status: 'Substrate ready for nutrient testing.' },
+      },
+      {
+        id: 'test-tube-food-1',
+        equipmentId: 'test-tube-borosilicate',
+        title: 'Nutrient Assay Tube',
+        x: 600,
+        y: 140,
+        rotation: 0,
+        width: 45,
+        height: 160,
+        properties: { liquidVolume: 5, containedLiquid: 'pure-water' },
+        state: { assayStatus: 'Biochemical color formation' },
+      },
+      {
+        id: 'paper-food-1',
+        equipmentId: 'qualitative-filter-paper',
+        title: 'Filter Paper (Grease Spot Test)',
+        x: 80,
+        y: 140,
+        rotation: 0,
+        width: 90,
+        height: 90,
+        properties: { porosity: 'medium' },
+        state: { paperStatus: 'Inspecting optical translucency' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'step-food-1',
+        stepNumber: 1,
+        title: 'General Carbohydrate Detection (Molisch’s Test)',
+        instruction:
+          'Add 2 drops of 1% α-naphthol in alcohol to sample. Incline tube and pour conc. H₂SO₄ down side. A distinct reddish-violet / purple ring at interface confirms carbohydrate.',
+      },
+      {
+        id: 'step-food-2',
+        stepNumber: 2,
+        title: 'Reducing Sugars vs Polysaccharides',
+        instruction:
+          'Boil with equal parts Fehling A & B: reducing sugars (glucose, lactose) give brick-red Cu₂O precipitate. Treat starch suspension with dilute iodine solution: deep blue-black color confirms helical amylose.',
+      },
+      {
+        id: 'step-food-3',
+        stepNumber: 3,
+        title: 'Protein Detection (Biuret & Ninhydrin Tests)',
+        instruction:
+          'Add dil. NaOH and 1% CuSO₄: violet-purple coloration (Biuret) confirms peptide bonds. Warm with ninhydrin solution: blue-violet Ruhemann’s purple confirms free α-amino acids.',
+      },
+      {
+        id: 'step-food-4',
+        stepNumber: 4,
+        title: 'Fats and Oils Testing (Spot & Acrolein Tests)',
+        instruction:
+          'Press drop of sample between filter paper folds: permanent translucent greasy spot confirms non-volatile lipid. Heat with solid KHSO₄: pungent irritating acrolein vapor confirms glycerol esters.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-carbohydrate-assays',
+        description: 'Detect general carbohydrates with Molisch reagent and differentiate reducing monosaccharides from starch.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-protein-assays',
+        description: 'Demonstrate peptide bond copper chelation (Biuret) and α-amino acid chromophore formation (Ninhydrin).',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-lipid-assays',
+        description: 'Validate fats and oils using permanent optical translucency and KHSO₄ glycerol dehydration to acrolein.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Biochemical Analysis of Food Macro-Nutrients:\n\n1. Carbohydrates:\n- Molisch’s Test: Conc. H₂SO₄ dehydrates hexoses/pentoses to hydroxymethylfurfural/furfural, which condenses with α-naphthol to form a characteristic violet-purple ring.\n- Fehling’s Test: Free hemiacetal reducing groups reduce alkaline Cu²⁺ tartrate to red Cu₂O precipitate.\n- Iodine Test: Iodine molecules (I₃⁻/I₅⁻) slip inside the helical core of amylose, forming a reversible deep blue-black charge-transfer inclusion complex (bleaches on heating).\n\n2. Proteins:\n- Biuret Test: In alkaline medium, Cu²⁺ coordinates with 4 peptide bond nitrogen atoms (-CONH-), forming a square-planar violet coordination complex.\n- Ninhydrin Test: α-Amino acids undergo oxidative deamination and decarboxylation, reacting with another ninhydrin molecule to produce Ruhemann’s purple pigment (λmax ~ 570 nm).\n\n3. Fats and Oils:\n- Translucent Spot Test: Triglycerides penetrate cellulose paper fibers, matching their refractive index (~1.47) and creating a permanent translucent grease window.\n- Acrolein Test: Heating glycerol backbone with KHSO₄ produces sharp, pungent, irritating propenal (acrolein) vapors:\n  CH₂(OH)-CH(OH)-CH₂(OH) ⎯(KHSO₄, Δ)⎯→ CH₂=CH-CHO + 2H₂O.",
+  },
+  {
+    experimentId: 'redox-titration-kmno4',
+    title: 'Redox Titration: Potassium Permanganate vs Mohr’s Salt & Oxalic Acid',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'redox-titration-assembly',
+      'graduated-titration-burette',
+      'conical-flask',
+      'pasteur-pipette-dropper',
+      'borosilicate-beaker',
+      'bunsen-burner-stand',
+      'thermometer-mercury-c',
+      'chemical-analytical-balance',
+    ],
+    initialObjects: [
+      {
+        id: 'redox-titration-1',
+        equipmentId: 'redox-titration-assembly',
+        title: 'KMnO₄ Redox Titration Assembly',
+        x: 240,
+        y: 130,
+        rotation: 0,
+        width: 320,
+        height: 260,
+        properties: {
+          system: 'kmno4-mohrs-salt',
+          analyteVolumeMl: 20,
+          analyteMolarityM: 0.05,
+          titrantMolarityM: 0.02,
+          titrantDeliveredMl: 0.0,
+          acidAdded: true,
+          temperatureC: 25,
+        },
+        state: { status: 'Burette filled with KMnO₄. Upper meniscus recorded.' },
+      },
+      {
+        id: 'conical-titr-1',
+        equipmentId: 'conical-flask',
+        title: 'Titration Flask (250 mL)',
+        x: 600,
+        y: 140,
+        rotation: 0,
+        width: 130,
+        height: 160,
+        properties: { liquidVolume: 40, reagentSolution: 'pure-water' },
+        state: { contents: '20 mL analyte + 20 mL dilute H₂SO₄' },
+      },
+      {
+        id: 'thermometer-titr-1',
+        equipmentId: 'thermometer-mercury-c',
+        title: 'Monitoring Thermometer',
+        x: 80,
+        y: 140,
+        rotation: 0,
+        width: 30,
+        height: 180,
+        properties: { currentTemperature: 25 },
+        state: { temperatureStatus: 'Checking 60-70°C for oxalic acid' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'step-redox-1',
+        stepNumber: 1,
+        title: 'Burette Preparation & Upper Meniscus Reading',
+        instruction:
+          'Rinse and fill burette with potassium permanganate (KMnO₄) solution. Note that because KMnO₄ is dark purple and opaque, the UPPER meniscus is read instead of the lower meniscus.',
+      },
+      {
+        id: 'step-redox-2',
+        stepNumber: 2,
+        title: 'Pipetting Analyte & Acidification',
+        instruction:
+          'Pipette 20.0 mL of standard Mohr’s salt or oxalic acid into a clean conical flask. Add one full test tube (~20 mL) of dilute H₂SO₄ (1:4). Note: HCl and HNO₃ cannot be used.',
+      },
+      {
+        id: 'step-redox-3',
+        stepNumber: 3,
+        title: 'Warming Requirement (Oxalic Acid Only)',
+        instruction:
+          'For oxalic acid titration, warm flask contents to 60-70°C before titrating to overcome high activation energy. Mohr’s salt does not require heating.',
+      },
+      {
+        id: 'step-redox-4',
+        stepNumber: 4,
+        title: 'Titration to Self-Indicator Endpoint',
+        instruction:
+          'Run KMnO₄ slowly while continuously swirling flask. Each drop decolorizes instantly until the stoichiometric equivalence point is reached, where a single excess drop imparts a permanent faint pink tint.',
+      },
+      {
+        id: 'step-redox-5',
+        stepNumber: 5,
+        title: 'Stoichiometric Calculations',
+        instruction:
+          'Calculate KMnO₄ molarity using: M₁V₁ = (M₂V₂)/5 for Mohr’s salt, or (M₁V₁)/2 = (M₂V₂)/5 for oxalic acid. Compute strength in g/L = Molarity × 158.034.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-upper-meniscus-reading',
+        description: 'Read the upper meniscus accurately for the intensely dark colored KMnO₄ titrant.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-self-indicator-endpoint',
+        description: 'Detect the self-indicator endpoint marked by the appearance of the first permanent pale pink coloration.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-redox-stoichiometry-calc',
+        description: 'Compute precise molarity and strength in g/L based on balanced ionic redox stoichiometry equations.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Redox Titration: Potassium Permanganate (KMnO₄) — Theory & Stoichiometry:\n\n1. Self-Indicator Principle:\n- KMnO₄ acts as its own indicator. In acidic solution, intense purple MnO₄⁻ is reduced to virtually colorless Mn²⁺:\n  MnO₄⁻ + 8H⁺ + 5e⁻ ⟶ Mn²⁺ (almost colorless) + 4H₂O (E° = +1.51 V).\n- Endpoint: The moment all reducing agent is oxidized, a single drop of excess KMnO₄ imparts a permanent faint pink coloration lasting >30 seconds.\n- Upper Meniscus: Due to intense dark purple coloration, the top boundary (upper meniscus) is recorded.\n\n2. Titration against Mohr’s Salt [FeSO₄·(NH₄)₂SO₄·6H₂O]:\n- Ionic Equation: MnO₄⁻ + 5Fe²⁺ + 8H⁺ ⟶ Mn²⁺ + 5Fe³⁺ + 4H₂O\n- Stoichiometric Ratio: 1 mol KMnO₄ ≡ 5 mol Fe²⁺\n- Formula: M₁V₁ = (M₂V₂) / 5  ⟹  M(KMnO₄) = (M₂ × V₂) / (5 × V₁)\n- Ambient Temperature: Carried out at room temperature without warming.\n\n3. Titration against Standard Oxalic Acid [(COOH)₂·2H₂O]:\n- Ionic Equation: 2MnO₄⁻ + 5C₂O₄²⁻ + 16H⁺ ⎯(60-70°C)⎯→ 2Mn²⁺ + 10CO₂↑ + 8H₂O\n- Stoichiometric Ratio: 2 mol KMnO₄ ≡ 5 mol C₂O₄²⁻\n- Formula: (M₁V₁) / 2 = (M₂V₂) / 5  ⟹  M(KMnO₄) = (2 × M₂ × V₂) / (5 × V₁)\n- Why Heating to 60-70°C is Mandatory: Reaction has a high activation energy due to mutual electrostatic repulsion between negative MnO₄⁻ and C₂O₄²⁻ ions. Heating accelerates the reaction until generated Mn²⁺ acts as an autocatalyst.\n\n4. Why Dilute H₂SO₄ is Used (and NOT HCl or HNO₃):\n- HCl is oxidized by KMnO₄ to toxic chlorine gas (2MnO₄⁻ + 10Cl⁻ + 16H⁺ ⟶ 2Mn²⁺ + 5Cl₂ + 8H₂O), causing high KMnO₄ consumption.\n- HNO₃ is itself a strong oxidizing agent that oxidizes Fe²⁺ or oxalate independently, causing low KMnO₄ consumption.\n- H₂SO₄ does not react with KMnO₄ and does not act as an independent oxidant under titration conditions.",
+  },
+  {
+    experimentId: 'salt-analysis-class12',
+    title: 'Systematic Qualitative Salt Analysis with Interfering Radicals (Class 12)',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'salt-analysis-workbench',
+      'test-tube-borosilicate',
+      'pasteur-pipette-dropper',
+      'bunsen-burner-stand',
+      'watch-glass-dish',
+      'funnel-stand-assembly',
+      'qualitative-filter-paper',
+      'borosilicate-beaker',
+    ],
+    initialObjects: [
+      {
+        id: 'salt-bench-12',
+        equipmentId: 'salt-analysis-workbench',
+        title: 'Class 12 Qualitative Salt Workbench',
+        x: 240,
+        y: 140,
+        rotation: 0,
+        width: 320,
+        height: 240,
+        properties: {
+          selectedSalt: 'ca3_po4_2',
+          currentTest: 'phosphate-molybdate',
+        },
+        state: { status: 'Testing for interfering acid radicals and elimination.' },
+      },
+      {
+        id: 'test-tube-salt-12',
+        equipmentId: 'test-tube-borosilicate',
+        title: 'Precipitation Test Tube',
+        x: 600,
+        y: 140,
+        rotation: 0,
+        width: 45,
+        height: 160,
+        properties: { liquidVolume: 5, containedLiquid: 'pure-water' },
+        state: { tubeStatus: 'Ammonium molybdate canary-yellow test' },
+      },
+      {
+        id: 'watch-glass-salt-12',
+        equipmentId: 'watch-glass-dish',
+        title: 'Flame Test Watch Glass',
+        x: 80,
+        y: 140,
+        rotation: 0,
+        width: 80,
+        height: 25,
+        properties: { solidSamplePresent: true },
+        state: { glassStatus: 'Conc. HCl paste preparation' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'step-salt12-1',
+        stepNumber: 1,
+        title: 'Preliminary & Flame Test Examination',
+        instruction:
+          'Examine physical state, color, and perform Bunsen flame test with conc. HCl paste (Ca²⁺ gives brick-red; Ba²⁺ gives apple-green flame).',
+      },
+      {
+        id: 'step-salt12-2',
+        stepNumber: 2,
+        title: 'Detection of Interfering Radicals (PO₄³⁻ and C₂O₄²⁻)',
+        instruction:
+          'Boil with conc. HNO₃ and add excess ammonium molybdate: canary-yellow precipitate confirms Phosphate. Warm acidified solution with KMnO₄: brisk decolorization with CO₂ effervescence confirms Oxalate.',
+      },
+      {
+        id: 'step-salt12-3',
+        stepNumber: 3,
+        title: 'Phosphate Elimination Protocol',
+        instruction:
+          'To Group II filtrate, add NH₄OH until neutral, acidify with acetic acid, add sodium acetate buffer, and add neutral FeCl₃ until reddish-brown. Boil and filter off FePO₄ and basic ferric acetate precipitate.',
+      },
+      {
+        id: 'step-salt12-4',
+        stepNumber: 4,
+        title: 'Systematic Cation Group Analysis on Phosphate-Free Filtrate',
+        instruction:
+          'Analyze the phosphate-free filtrate through Groups IV, V, and VI without risk of premature phosphate precipitation. Confirm Ca²⁺ with ammonium oxalate and Ba²⁺ with K₂CrO₄.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-interfering-radical-detection',
+        description: 'Detect interfering acid radicals (PO₄³⁻, C₂O₄²⁻) that disrupt alkaline group separation.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-phosphate-elimination',
+        description: 'Execute the sodium acetate buffer / FeCl₃ phosphate elimination method before Group III.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-cation-identification-grp5-6',
+        description: 'Successfully isolate and confirm Group V/VI cations (Ca²⁺, Ba²⁺, Mg²⁺) in the cleared filtrate.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Qualitative Salt Analysis with Interfering Radicals (CBSE Class 12):\n\n1. What are Interfering Acid Radicals?\n- Radicals like Phosphate (PO₄³⁻), Oxalate (C₂O₄²⁻), Fluoride (F⁻), and Borate (BO₃³⁻).\n- Why they Interfere: In acidic medium (Groups I and II), the phosphates and oxalates of all metals are soluble. However, in Group III, addition of NH₄Cl + NH₄OH raises pH to ~8.5-9.0. In basic medium, the phosphates and oxalates of Group IV (Zn²⁺, Mn²⁺, Ni²⁺, Co²⁺), Group V (Ba²⁺, Sr²⁺, Ca²⁺), and Group VI (Mg²⁺) are insoluble!\n- Consequence: They precipitate prematurely along with Group III hydroxides, completely confusing the cation scheme.\n\n2. Phosphate Detection & Elimination Protocol:\n- Detection: Boil salt solution with 2 mL conc. HNO₃ + excess ammonium molybdate. A dense canary-yellow precipitate of (NH₄)₃[P(Mo₃O₁₀)₄] confirms PO₄³⁻.\n- Elimination Procedure (Sodium Acetate - FeCl₃ Method):\n  1. Take Group II filtrate, boil off H₂S, add conc. HNO₃ and boil.\n  2. Add NH₄OH dropwise until neutral, then add dilute acetic acid.\n  3. Add sodium acetate buffer (CH₃COONa) to fix pH at ~4.5.\n  4. Add neutral FeCl₃ solution dropwise until a reddish-brown color persists.\n  5. Boil and filter hot: Fe³⁺ selectively precipitates all phosphate as insoluble FePO₄ (yellow-white), while excess Fe³⁺ precipitates as brown basic ferric acetate Fe(OH)₂(CH₃COO).\n  6. The clear filtrate is now 100% phosphate-free and contains Group IV, V, and VI cations ready for normal separation!\n\n3. Confirmatory Tests for Selected Class 12 Cations:\n- Calcium (Ca²⁺): Brick-red flame; with ammonium oxalate in acetic acid gives fine white precipitate of CaC₂O₄.\n- Barium (Ba²⁺): Apple-green flame; with K₂CrO₄ in acetic acid gives bright yellow precipitate of BaCrO₄.\n- Magnesium (Mg²⁺): Magneson reagent in basic solution yields a striking sky-blue precipitate / lake.",
+  },
 ];
 
 export const chemistryExtension: SubjectLabExtension = {
@@ -5425,6 +6459,138 @@ export const chemistryExtension: SubjectLabExtension = {
       };
 
       messages.push(`Daniell Cell: EMF = ${cellState.voltmeterReadingText}`);
+    }
+
+    // Evaluate Inorganic and Organic Synthesis Benches
+    const synthBenches = objects.filter(
+      (o) => o.equipmentId === 'inorganic-synth-assembly' || o.equipmentId === 'organic-synth-assembly'
+    );
+    for (const bench of synthBenches) {
+      const compoundId =
+        (bench.properties.compoundId as CompoundSynthesisId) ??
+        (bench.equipmentId === 'inorganic-synth-assembly' ? 'mohrs-salt' : 'acetanilide');
+      const stage = (bench.properties.stage as SynthesisStage) ?? 'reactant-mixing';
+      const isAcidified = bench.properties.isAcidified !== false;
+      const heatMin = Number(bench.properties.heatingDurationMin ?? 10);
+      const coolMin = Number(bench.properties.coolingDurationMin ?? 15);
+
+      const synthState = calculateSynthesisState({
+        compoundId,
+        stage,
+        isAcidified,
+        heatingDurationMin: heatMin,
+        coolingDurationMin: coolMin,
+      });
+
+      updates[bench.id] = {
+        compoundName: synthState.spec.name,
+        currentStage: synthState.currentStage,
+        solutionAppearance: synthState.solutionAppearance,
+        crystalFormed: synthState.crystalFormed,
+        crystalMassGrams: synthState.crystalMassGrams,
+        practicalYieldPercent: synthState.practicalYieldPercent,
+        purityPercent: synthState.purityPercent,
+        meltingPointObservedC: synthState.meltingPointObservedC,
+        crystalHabit: synthState.spec.crystalHabit,
+        crystalColor: synthState.spec.crystalColor,
+        status: synthState.statusMessage,
+      };
+
+      messages.push(`${synthState.spec.name} (${stage}): ${synthState.statusMessage}`);
+    }
+
+    // Evaluate Functional Group Identification Workbench
+    const fgBenches = objects.filter((o) => o.equipmentId === 'functional-group-workbench');
+    for (const bench of fgBenches) {
+      const sampleId = String(bench.properties.selectedSample ?? 'cyclohexene');
+      const testId = (bench.properties.selectedTest as FunctionalGroupTestId) ?? 'bromine-water';
+
+      const outcome = runFunctionalGroupTest(sampleId, testId);
+
+      updates[bench.id] = {
+        sampleName: outcome.sampleName,
+        testName: outcome.testName,
+        isPositive: outcome.isPositive,
+        tubeColorHex: outcome.tubeColorHex,
+        precipitateColorHex: outcome.precipitateColorHex ?? '',
+        gasEvolution: outcome.gasEvolution ?? '',
+        observation: outcome.observation,
+        inference: outcome.inference,
+        chemicalEquation: outcome.chemicalEquation,
+        status: `${outcome.sampleName} - ${outcome.testName}: ${outcome.isPositive ? 'POSITIVE' : 'NEGATIVE'}`,
+      };
+
+      messages.push(
+        `Functional Group Test (${outcome.sampleName}): ${outcome.isPositive ? 'POSITIVE' : 'NEGATIVE'} - ${outcome.inference}`
+      );
+    }
+
+    // Evaluate Food Component Testing Workbench
+    const foodBenches = objects.filter((o) => o.equipmentId === 'food-testing-workbench');
+    for (const bench of foodBenches) {
+      const sampleId = (bench.properties.selectedSample as FoodSampleId) ?? 'glucose';
+      const testId = (bench.properties.selectedTest as FoodTestId) ?? 'molisch-test';
+
+      const outcome = runFoodTest(sampleId, testId);
+
+      updates[bench.id] = {
+        sampleName: outcome.sampleName,
+        testName: outcome.testName,
+        nutrientTarget: outcome.nutrientTarget,
+        isPositive: outcome.isPositive,
+        tubeColorHex: outcome.tubeColorHex,
+        ringOrPptHex: outcome.ringOrPptHex ?? '',
+        observation: outcome.observation,
+        inference: outcome.inference,
+        limitationNote: outcome.limitationNote,
+        chemicalPrinciple: outcome.chemicalPrinciple,
+        status: `${outcome.sampleName} - ${outcome.testName}: ${outcome.isPositive ? 'POSITIVE' : 'NEGATIVE'}`,
+      };
+
+      messages.push(
+        `Food Test (${outcome.sampleName}): ${outcome.isPositive ? 'POSITIVE' : 'NEGATIVE'} - ${outcome.nutrientTarget}`
+      );
+    }
+
+    // Evaluate Redox Titration Assembly
+    const redoxTitrs = objects.filter((o) => o.equipmentId === 'redox-titration-assembly');
+    for (const bench of redoxTitrs) {
+      const system = (bench.properties.system as RedoxTitrationSystem) ?? 'kmno4-mohrs-salt';
+      const analyteVol = Number(bench.properties.analyteVolumeMl ?? 20);
+      const analyteM = Number(bench.properties.analyteMolarityM ?? 0.05);
+      const titrantM = Number(bench.properties.titrantMolarityM ?? 0.02);
+      const deliveredMl = Number(bench.properties.titrantDeliveredMl ?? 0);
+      const acidAdded = bench.properties.acidAdded !== false;
+      const tempC = Number(bench.properties.temperatureC ?? (system === 'kmno4-oxalic-acid' ? 65 : 25));
+
+      const redoxState = calculateRedoxTitrationState({
+        system,
+        analyteVolumeMl: analyteVol,
+        analyteMolarityM: analyteM,
+        titrantMolarityM: titrantM,
+        titrantDeliveredMl: deliveredMl,
+        acidAdded,
+        temperatureC: tempC,
+      });
+
+      updates[bench.id] = {
+        systemName: redoxState.systemName,
+        analyteName: redoxState.analyteName,
+        status: redoxState.status,
+        equivalenceVolumeMl: redoxState.equivalenceVolumeMl,
+        titrantDeliveredMl: redoxState.titrantDeliveredMl,
+        upperMeniscusReading: redoxState.upperMeniscusBuretteReadingMl,
+        solutionColorHex: redoxState.solutionColorHex,
+        solutionAppearance: redoxState.solutionAppearance,
+        calculatedMolarityM: redoxState.calculatedMolarityM,
+        calculatedStrengthGperL: redoxState.calculatedStrengthGperL,
+        observation: redoxState.observation,
+        reactionEquation: redoxState.reactionEquation,
+      };
+
+      messages.push(
+        `KMnO₄ Titration (${redoxState.analyteName}): V_delivered = ${deliveredMl} mL / V_eq = ${redoxState.equivalenceVolumeMl} mL (${redoxState.status})`
+      );
     }
 
     return {

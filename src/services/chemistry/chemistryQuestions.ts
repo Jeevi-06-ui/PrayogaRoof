@@ -21,6 +21,14 @@ import {
   ELECTROCHEMISTRY_QUESTIONS,
   PAPER_CHROMATOGRAPHY_CLASS12_QUESTIONS,
 } from './class12Phase9Questions';
+import {
+  INORGANIC_PREPARATION_QUESTIONS,
+  ORGANIC_PREPARATION_QUESTIONS,
+  FUNCTIONAL_GROUP_QUESTIONS,
+  FOOD_TESTING_QUESTIONS,
+  REDOX_TITRATION_QUESTIONS,
+  SALT_ANALYSIS_CLASS12_QUESTIONS,
+} from './class12Phase10Questions';
 
 export {
   BASIC_LAB_TECHNIQUES_QUESTIONS,
@@ -39,6 +47,12 @@ export {
   THERMOCHEMISTRY_QUESTIONS,
   ELECTROCHEMISTRY_QUESTIONS,
   PAPER_CHROMATOGRAPHY_CLASS12_QUESTIONS,
+  INORGANIC_PREPARATION_QUESTIONS,
+  ORGANIC_PREPARATION_QUESTIONS,
+  FUNCTIONAL_GROUP_QUESTIONS,
+  FOOD_TESTING_QUESTIONS,
+  REDOX_TITRATION_QUESTIONS,
+  SALT_ANALYSIS_CLASS12_QUESTIONS,
 };
 
 export const PH_TESTING_QUESTIONS: ConceptualQuestion[] = [
@@ -325,6 +339,18 @@ export function getChemistryQuestions(experimentId: string): ConceptualQuestion[
       return ELECTROCHEMISTRY_QUESTIONS;
     case 'paper-chromatography-class12':
       return PAPER_CHROMATOGRAPHY_CLASS12_QUESTIONS;
+    case 'inorganic-compound-prep':
+      return INORGANIC_PREPARATION_QUESTIONS;
+    case 'organic-compound-prep':
+      return ORGANIC_PREPARATION_QUESTIONS;
+    case 'functional-group-identification':
+      return FUNCTIONAL_GROUP_QUESTIONS;
+    case 'food-component-testing':
+      return FOOD_TESTING_QUESTIONS;
+    case 'redox-titration-kmno4':
+      return REDOX_TITRATION_QUESTIONS;
+    case 'salt-analysis-class12':
+      return SALT_ANALYSIS_CLASS12_QUESTIONS;
     default:
       return [];
   }

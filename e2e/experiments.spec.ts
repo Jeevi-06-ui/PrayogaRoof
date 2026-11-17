@@ -297,6 +297,42 @@ test.describe('PrayogaProof E2E Test Suite', () => {
     await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
   });
 
+  test('Loads Inorganic Compound Preparation workspace and verifies double salt assembly', async ({ page }) => {
+    await page.goto('/workspace/inorganic-compound-prep');
+    await expect(page.getByText(/Preparation of Inorganic Compounds/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Organic Compound Preparation workspace and verifies synthesis station', async ({ page }) => {
+    await page.goto('/workspace/organic-compound-prep');
+    await expect(page.getByText(/Preparation of Organic Compounds/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Functional Group Identification workspace and verifies diagnostic testing workbench', async ({ page }) => {
+    await page.goto('/workspace/functional-group-identification');
+    await expect(page.getByText(/Systematic Identification of Organic Functional Groups/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Food Component Testing workspace and verifies nutrient testing workbench', async ({ page }) => {
+    await page.goto('/workspace/food-component-testing');
+    await expect(page.getByText(/Qualitative Testing of Food Components/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Redox Titration workspace and verifies KMnO4 burette & self-indicator bench', async ({ page }) => {
+    await page.goto('/workspace/redox-titration-kmno4');
+    await expect(page.getByText(/Redox Titration: Potassium Permanganate/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Class 12 Salt Analysis workspace and verifies interfering radical workbench', async ({ page }) => {
+    await page.goto('/workspace/salt-analysis-class12');
+    await expect(page.getByText(/Systematic Qualitative Salt Analysis with Interfering Radicals/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
   test('Handles 404 route gracefully with return navigation', async ({ page }) => {
     await page.goto('/non-existent-route');
     await expect(page.getByText(/404 - Laboratory Page Not Found/i)).toBeVisible();

@@ -139,6 +139,10 @@ export interface EquipmentDefinition {
     | 'kinetics-bench'
     | 'calorimeter-bench'
     | 'daniell-cell-bench'
+    | 'synthesis-bench'
+    | 'functional-group-bench'
+    | 'food-testing-bench'
+    | 'redox-titration-bench'
     | 'generic-box'
     | 'sensor-probe';
   colorTheme?: string;

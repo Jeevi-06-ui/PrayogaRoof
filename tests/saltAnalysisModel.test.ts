@@ -5,8 +5,8 @@ import {
   SaltSampleId,
 } from '../src/services/chemistry/saltAnalysisModel';
 
-describe('Systematic Qualitative Salt Analysis (Class 11)', () => {
-  it('contains all 8 required standard salts spanning Groups 0 to VI', () => {
+describe('Systematic Qualitative Salt Analysis (Class 11 & Class 12)', () => {
+  it('contains all 8 standard Class 11 salts plus Class 12 interfering salts', () => {
     const saltIds: SaltSampleId[] = [
       'nh4cl',
       'pb-no3-2',
@@ -16,6 +16,10 @@ describe('Systematic Qualitative Salt Analysis (Class 11)', () => {
       'znso4',
       'cacl2',
       'mgso4',
+      'ca3_po4_2',
+      'mg_c2o4',
+      'fe_po4',
+      'ba_cl2',
     ];
     for (const id of saltIds) {
       expect(SALT_CATALOGUE[id]).toBeDefined();
@@ -76,5 +80,53 @@ describe('Systematic Qualitative Salt Analysis (Class 11)', () => {
     const group = runSaltAnalysisTest('mgso4', 'cation-group-test');
     expect(group.inference).toContain('Group VI');
     expect(group.precipitateLabel).toContain('Mg(NH₄)PO₄');
+  });
+
+  // Class 12 Advanced & Interfering Radical Tests
+  describe('Class 12 Interfering Radicals & Elimination Scheme', () => {
+    it('detects Phosphate interfering radical using ammonium molybdate canary yellow precipitate', () => {
+      const molybdateCa = runSaltAnalysisTest('ca3_po4_2', 'phosphate-molybdate');
+      expect(molybdateCa.precipitateColorHex).toBe('#facc15');
+      expect(molybdateCa.observation).toContain('canary-yellow');
+      expect(molybdateCa.inference).toContain('Phosphate (PO₄³⁻) present');
+
+      const molybdateCl = runSaltAnalysisTest('nh4cl', 'phosphate-molybdate');
+      expect(molybdateCl.inference).toContain('ABSENT');
+    });
+
+    it('demonstrates premature Group III precipitation of Calcium Phosphate and its elimination', () => {
+      // Premature precipitation
+      const premature = runSaltAnalysisTest('ca3_po4_2', 'cation-group-test');
+      expect(premature.observation).toContain('PREMATURE INTERFERENCE');
+      expect(premature.precipitateLabel).toContain('Ca₃(PO₄)₂');
+
+      // Elimination protocol
+      const eliminate = runSaltAnalysisTest('ca3_po4_2', 'phosphate-elimination');
+      expect(eliminate.observation).toContain('FePO₄ and brown basic ferric acetate');
+      expect(eliminate.inference).toContain('ELIMINATED');
+    });
+
+    it('detects Oxalate interfering radical using KMnO4 decolorization with CO2 effervescence', () => {
+      const oxalateKMnO4 = runSaltAnalysisTest('mg_c2o4', 'oxalate-kmno4');
+      expect(oxalateKMnO4.observation).toContain('rapidly discharged');
+      expect(oxalateKMnO4.gasEvolution).toContain('CO₂');
+      expect(oxalateKMnO4.inference).toContain('CONFIRMED');
+
+      const nonOxalate = runSaltAnalysisTest('nh4cl', 'oxalate-kmno4');
+      expect(nonOxalate.inference).toContain('ABSENT');
+    });
+
+    it('identifies Barium chloride apple-green flame and potassium chromate yellow precipitate', () => {
+      const flame = runSaltAnalysisTest('ba_cl2', 'flame-test');
+      expect(flame.observation).toContain('apple-green');
+
+      const group = runSaltAnalysisTest('ba_cl2', 'cation-group-test');
+      expect(group.inference).toContain('Group V');
+      expect(group.precipitateLabel).toContain('BaCO₃');
+
+      const confirm = runSaltAnalysisTest('ba_cl2', 'cation-confirmatory');
+      expect(confirm.precipitateLabel).toContain('BaCrO₄');
+      expect(confirm.precipitateColorHex).toBe('#eab308');
+    });
   });
 });

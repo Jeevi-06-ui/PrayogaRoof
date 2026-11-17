@@ -46,6 +46,12 @@ import {
   THERMOCHEMISTRY_QUESTIONS,
   ELECTROCHEMISTRY_QUESTIONS,
   PAPER_CHROMATOGRAPHY_CLASS12_QUESTIONS,
+  INORGANIC_PREPARATION_QUESTIONS,
+  ORGANIC_PREPARATION_QUESTIONS,
+  FUNCTIONAL_GROUP_QUESTIONS,
+  FOOD_TESTING_QUESTIONS,
+  REDOX_TITRATION_QUESTIONS,
+  SALT_ANALYSIS_CLASS12_QUESTIONS,
 } from '../chemistry/chemistryQuestions';
 
 export const OHMS_LAW_QUESTIONS: ConceptualQuestion[] = [
@@ -159,6 +165,12 @@ export function getConceptualQuestions(experimentId: string): ConceptualQuestion
   if (experimentId === 'thermochemistry') return THERMOCHEMISTRY_QUESTIONS;
   if (experimentId === 'electrochemistry') return ELECTROCHEMISTRY_QUESTIONS;
   if (experimentId === 'paper-chromatography-class12') return PAPER_CHROMATOGRAPHY_CLASS12_QUESTIONS;
+  if (experimentId === 'inorganic-compound-prep') return INORGANIC_PREPARATION_QUESTIONS;
+  if (experimentId === 'organic-compound-prep') return ORGANIC_PREPARATION_QUESTIONS;
+  if (experimentId === 'functional-group-identification') return FUNCTIONAL_GROUP_QUESTIONS;
+  if (experimentId === 'food-component-testing') return FOOD_TESTING_QUESTIONS;
+  if (experimentId === 'redox-titration-kmno4') return REDOX_TITRATION_QUESTIONS;
+  if (experimentId === 'salt-analysis-class12') return SALT_ANALYSIS_CLASS12_QUESTIONS;
   if (experimentId === 'vernier-callipers') return VERNIER_CALLIPERS_QUESTIONS;
   if (experimentId === 'screw-gauge') return SCREW_GAUGE_QUESTIONS;
   if (experimentId === 'irregular-lamina') return IRREGULAR_LAMINA_QUESTIONS;

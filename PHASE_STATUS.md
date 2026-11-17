@@ -11,10 +11,10 @@
 | Category | Total Experiments | Implemented (Active) | Under Development | Status |
 |----------|-------------------|----------------------|-------------------|--------|
 | **Physics** | **25** | **25** (5 Foundation + 10 Class 11 + 10 Class 12) | **0** (Physics Curriculum 100% Complete) | **100% Complete (Active Operational)** |
-| **Chemistry** | **27** | **21** (5 Foundation + 11 Class 11 + 5 Class 12) | **6** (Class 12: 6) | **Active (Phase 9 Complete — 5 Class 12 Labs Operational)** |
+| **Chemistry** | **27** | **27** (5 Foundation + 11 Class 11 + 11 Class 12) | **0** (Chemistry Curriculum 100% Complete) | **100% Complete (Active Operational — Phase 10 Complete)** |
 | **Biology** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
 | **Mathematics** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
-| **Total** | **52** | **46** (88.5%) | **6** (11.5%) | **Verified Operational Baseline** |
+| **Total** | **52** | **52** (100.0%) | **0** (0.0%) | **52 of 52 Experiments Fully Implemented & Operational!** |
 
 ---
 
@@ -85,7 +85,7 @@
 | 15 | `salt-analysis-class11` | Salt Analysis (Class 11) | Class 11 | **Implemented** | Multi-tube qualitative salt analysis workbench with standard catalogue of 8 salts ($\text{NH}_4\text{Cl}, \text{Pb(NO}_3)_2, \text{CuSO}_4, \text{FeSO}_4, \text{AlCl}_3, \text{ZnSO}_4, \text{CaCl}_2, \text{MgSO}_4$) across Zero through Group VI cations and dilute/conc/independent acid radicals with systematic educational decision trees. |
 | 16 | `organic-element-detection` | Detection of Elements in Organic Compounds | Class 11 | **Implemented** | Safe virtual qualitative identification testing on pre-fused Lassaigne's sodium fusion extract: Prussian blue test for Nitrogen ($\text{Fe}_4[\text{Fe(CN)}_6]_3$), sodium nitroprusside (purple) and lead acetate (black $\text{PbS}$) tests for Sulphur, and $\text{AgNO}_3$ differential solubility tests for Halogens ($\text{AgCl, AgBr, AgI}$). |
 
-### Class 12 Experiments — 11 of 11 Registered (5 Implemented — Phase 9 Complete, 6 Under Development)
+### Class 12 Experiments — 11 of 11 Operational (100% Implemented — Phase 10 Complete)
 | # | ID | Title | Class Level | Status | Scientific Engine & Capabilities |
 |---|----|-------|-------------|--------|----------------------------------|
 | 17 | `surface-chemistry` | Surface Chemistry | Class 12 | **Implemented** | Colloidal dispersion workbench: lyophobic hydrated ferric hydroxide sol $\text{Fe(OH)}_3$ (+ve sol via $\text{FeCl}_3$ boiling water hydrolysis) vs lyophilic starch sol vs true $\text{NaCl}$ solution, 650nm transverse laser Tyndall effect scattering cone (92% vs 52% vs 0%), and Hardy-Schulze coagulation rule ($[\text{Fe(CN)}_6]^{4-} \gg \text{SO}_4^{2-} \gg \text{Cl}^-$). |
@@ -93,12 +93,12 @@
 | 19 | `thermochemistry` | Thermochemistry | Class 12 | **Implemented** | Insulated polystyrene cup calorimeter assembly with precision differential Beckman thermometer and stirrer, strong acid-base neutralization ($50\text{ mL } 1.0\text{M }\text{HCl} + 50\text{ mL } 1.0\text{M }\text{NaOH}$), water equivalent $W = 25\text{ J/K}$, peak temperature rise ($\Delta T \approx +6.5^\circ\text{C}$), heat evolved $q = (mc + W)\Delta T$, and experimental enthalpy $\Delta H_{\text{neut}} = -57.32\text{ kJ/mol}$ (vs theoretical $-57.32\text{ kJ/mol}$, $<1\%$ error). |
 | 20 | `electrochemistry` | Electrochemistry | Class 12 | **Implemented** | Galvanic Daniell Cell ($\text{Zn}(\text{s}) + \text{Cu}^{2+}(\text{aq}) \to \text{Zn}^{2+}(\text{aq}) + \text{Cu}(\text{s})$), dual half-cell beakers, metallic zinc anode and copper cathode plates, agar-agar $\text{KCl}$ salt bridge, digital high-impedance voltmeter, standard cell potential $E^\circ = +1.103\text{ V}$, open-circuit detection ($0.000\text{ V}$ without salt bridge), reversed polarity detection, and Nernst equation verification $E = E^\circ - 0.0296\log_{10}([\text{Zn}^{2+}]/[\text{Cu}^{2+}])$. |
 | 21 | `paper-chromatography-class12` | Paper Chromatography | Class 12 | **Implemented** | **Reuses & extends chromatography engine** for Class 12 analytical separations: inorganic metal cation separation ($\text{Pb}^{2+}$ and $\text{Cd}^{2+}$) visualized via yellow ammonium sulphide spray reagent ($\text{PbS}$ brown-black spot $R_f \approx 0.38$, $\text{CdS}$ bright canary yellow spot $R_f \approx 0.72$), or biological spinach leaf chloroplast pigment partition (chlorophyll b $0.35$, chlorophyll a $0.48$, xanthophyll $0.70$, carotene $0.95$). |
-| 22 | `inorganic-compound-prep` | Inorganic Compound Preparation | Class 12 | **Under Development** | Double salt synthesis: Mohr's salt, Potash alum crystallization. |
-| 23 | `organic-compound-prep` | Organic Compound Preparation | Class 12 | **Under Development** | Acetanilide, dibenzalacetone preparation, crystal recovery and yield. |
-| 24 | `functional-group-identification` | Functional Group Identification | Class 12 | **Under Development** | Diagnostic tests for alcohols, phenols, aldehydes, ketones, carboxylic acids. |
-| 25 | `food-component-testing` | Food Component Testing | Class 12 | **Under Development** | Biuret, Ninhydrin, Iodine, and Saponification tests for carbohydrates, proteins, fats. |
-| 26 | `redox-titration-kmno4` | Redox Titration – Potassium Permanganate | Class 12 | **Under Development** | Self-indicating $\text{KMnO}_4$ burette titration vs Mohr's salt and oxalic acid at $60^\circ\text{C}$. |
-| 27 | `salt-analysis-class12` | Salt Analysis (Class 12) | Class 12 | **Under Development** | Advanced qualitative analysis including interfering anions ($\text{PO}_4^{3-}, \text{C}_2\text{O}_4^{2-}$). |
+| 22 | `inorganic-compound-prep` | Inorganic Compound Preparation | Class 12 | **Implemented** | Controlled double salt preparations of Mohr's Salt $\text{FeSO}_4 \cdot (\text{NH}_4)_2\text{SO}_4 \cdot 6\text{H}_2\text{O}$ (light green monoclinic prisms, 85.5% practical yield) and Potash Alum $\text{K}_2\text{SO}_4 \cdot \text{Al}_2(\text{SO}_4)_3 \cdot 24\text{H}_2\text{O}$ (colorless octahedral crystals, 82.5% yield). Protective $\text{H}_2\text{SO}_4$ acidification preventing aerial oxidation and hydrolysis. |
+| 23 | `organic-compound-prep` | Organic Compound Preparation | Class 12 | **Implemented** | Simulation-only organic syntheses: Acetanilide via nucleophilic acyl substitution of aniline with acetic anhydride and zinc dust protection (MP 114°C, glistening white leaflets), and Dibenzalacetone via crossed Claisen-Schmidt aldol condensation of benzaldehyde and acetone in dilute NaOH (MP 112°C, bright yellow flakes). |
+| 24 | `functional-group-identification` | Functional Group Identification | Class 12 | **Implemented** | Systematic qualitative organic analysis across 7 core groups (unsaturation, alcohol, phenol, aldehyde, ketone, carboxylic acid, primary amine) via 11 diagnostic tests (bromine water, Baeyer cold alkaline $\text{KMnO}_4$, sodium metal effervescence, ceric ammonium nitrate, neutral $\text{FeCl}_3$, Tollens silver mirror, Fehling solution, sodium nitroprusside, $\text{NaHCO}_3$, ester test, and azo dye coupling). |
+| 25 | `food-component-testing` | Food Component Testing | Class 12 | **Implemented** | Biochemical assays across 5 real-world food substrates (glucose, potato starch, egg albumin, milk, vegetable oil) with 7 diagnostic reactions: Molisch violet ring, Fehling red $\text{Cu}_2\text{O}$, Iodine amylose blue-black, Biuret copper-peptide purple complex, Ninhydrin Ruhemann's purple, filter paper grease spot, and $\text{KHSO}_4$ acrolein dehydration. |
+| 26 | `redox-titration-kmno4` | Redox Titration – Potassium Permanganate | Class 12 | **Implemented** | Quantitative permanganometric redox titration of standard $\text{KMnO}_4$ against standard Mohr's salt ($1:5$ stoichiometry) and oxalic acid ($2:5$ stoichiometry, $60-70^\circ\text{C}$ heating requirement), self-indicator pale pink endpoint detection, upper meniscus reading, and molarity/strength calculations. |
+| 27 | `salt-analysis-class12` | Salt Analysis (Class 12) | Class 12 | **Implemented** | **Reuses & extends qualitative analysis engine** with Class 12 salts ($\text{Ca}_3(\text{PO}_4)_2$, $\text{MgC}_2\text{O}_4$, $\text{FePO}_4$, $\text{BaCl}_2$), premature Group III precipitation theory for interfering acid radicals, ammonium molybdate canary-yellow confirmatory test, and sodium acetate buffer + $\text{FeCl}_3$ phosphate elimination protocol. |
 
 ---
 
@@ -106,33 +106,39 @@
 
 ### Automated Test Suite Execution
 - **Unit & Integration Tests (Vitest):**
-  - **41 Test Files** evaluated.
-  - **324 Tests Passing** (100% pass rate).
+  - **46 Test Files** evaluated.
+  - **359 Tests Passing** (100% pass rate).
   - Includes full coverage of:
     - Electrical MNA nodal circuit solver.
     - Ray optics thin-lens model and mirrors/prism.
     - Magnetic dipole field approximations.
     - Mechanics & rotational/vector dynamics.
+    - Precision measurement instruments (Vernier callipers, screw gauge, spherometer, beam balance).
     - Volumetric container transfer & fill levels.
     - Chemical equilibrium (Le Chatelier van 't Hoff shift).
     - Standard solution preparation & analytical balance gravimetrics.
     - Acid-base titration with phenolphthalein/methyl orange & titration curves.
-    - Systematic qualitative salt analysis decision trees (Groups 0 to VI).
+    - Systematic qualitative salt analysis decision trees (Groups 0 to VI) and interfering radicals.
     - Safe virtual Lassaigne extract element identification (N, S, Halogens).
     - Colloid preparation, Tyndall scattering cone, and Hardy-Schulze rule.
     - Chemical kinetics cross obscuration timing and Arrhenius rate scaling.
     - Calorimetry water equivalent and enthalpy of neutralization (HCl + NaOH).
     - Galvanic Daniell cell EMF, salt bridge requirement, and Nernst equation.
     - Class 12 inorganic metal cation & photosynthetic pigment chromatography.
+    - Inorganic double salt synthesis (Mohr's salt, Potash alum) and crystal morphology.
+    - Organic synthesis (Acetanilide, Dibenzalacetone) and melting point purity verification.
+    - 7 core organic functional group diagnostic test trees.
+    - Qualitative food component biochemical testing (carbohydrates, proteins, fats).
+    - Potassium permanganate redox titration with upper meniscus reading and self-indicator logic.
     - Central registry schema validation for all 52 curriculum experiments.
     - Error boundary isolation and IndexedDB persistence.
 - **End-to-End Tests (Playwright):**
-  - **86 Tests Passing** across Chromium, Firefox, WebKit.
-  - Validates subject navigation, class filtering, experiment loading for all 46 implemented physics and chemistry labs, canvas object manipulation, mode switching, and 404 resilience.
+  - **98 Tests Passing** across Chromium, Firefox, WebKit.
+  - Validates subject navigation, class filtering, experiment loading for all 52 implemented physics and chemistry labs, canvas object manipulation, mode switching, and 404 resilience.
 - **Static Analysis & Build Verification:**
   - TypeScript Compiler (`tsc -b`): **0 Errors**.
   - ESLint (`npm run lint`): **0 Errors**.
-  - Production Build (`npm run build`): Clean minified bundle generated in `< 1.4s`.
+  - Production Build (`npm run build`): Clean minified bundle generated in `< 2.3s`.
 
 ---
 

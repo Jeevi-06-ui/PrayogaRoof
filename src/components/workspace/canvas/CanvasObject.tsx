@@ -7313,6 +7313,521 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
         );
       }
 
+      case 'synthesis-bench': {
+        const compoundName = String(object.state.compoundName ?? object.properties.compoundId ?? "Mohr's Salt");
+        const stage = String(object.properties.stage ?? 'reactant-mixing');
+        const isAcidified = object.properties.isAcidified !== false;
+        const crystalFormed = Boolean(object.state.crystalFormed ?? (stage === 'filtration-drying'));
+        const practicalYield = Number(object.state.practicalYieldPercent ?? 0);
+        const crystalMass = Number(object.state.crystalMassGrams ?? 0);
+        const mpObserved = Number(object.state.meltingPointObservedC ?? 0);
+        const purity = Number(object.state.purityPercent ?? 0);
+        const habit = String(object.state.crystalHabit ?? 'Prismatic Crystals');
+        const crystalColor = String(object.state.crystalColor ?? '#a7f3d0');
+        const appearance = String(object.state.solutionAppearance ?? 'Aqueous reaction mixture');
+
+        return (
+          <Group>
+            {/* Workbench Base */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#10b981'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Header */}
+            <Rect x={12} y={10} width={width - 24} height={22} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={compoundName.length > 36 ? compoundName.slice(0, 35) + '...' : compoundName}
+              x={18}
+              y={16}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text={stage.toUpperCase()}
+              x={width - 130}
+              y={16}
+              fontSize={7.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#10b981"
+            />
+
+            {/* Left: Reaction Vessel / Crystallizer */}
+            <Rect x={20} y={40} width={100} height={height - 55} fill="#0b1329" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+            
+            {/* Glass Beaker / Dish Outline */}
+            <Rect x={30} y={65} width={80} height={110} fill="#1e293b" stroke="#94a3b8" strokeWidth={1.5} cornerRadius={[0, 0, 8, 8]} opacity={0.6} />
+            {/* Liquid / Solution Level */}
+            <Rect
+              x={32}
+              y={stage === 'acidified-heating' ? 100 : 85}
+              width={76}
+              height={stage === 'acidified-heating' ? 73 : 88}
+              fill={crystalColor}
+              opacity={0.55}
+              cornerRadius={[0, 0, 6, 6]}
+            />
+
+            {/* Crystal Lattice Graphics if Formed */}
+            {crystalFormed && (
+              <Group>
+                {/* Monoclinic / Octahedral Crystals Deposited */}
+                <Line points={[50, 155, 60, 142, 70, 155, 60, 168]} closed={true} fill={crystalColor} stroke="#ffffff" strokeWidth={1} />
+                <Line points={[68, 158, 76, 148, 84, 158, 76, 168]} closed={true} fill={crystalColor} stroke="#ffffff" strokeWidth={1} />
+                <Line points={[42, 162, 50, 152, 58, 162, 50, 172]} closed={true} fill={crystalColor} stroke="#ffffff" strokeWidth={1} />
+                <Line points={[82, 160, 90, 150, 98, 160, 90, 170]} closed={true} fill={crystalColor} stroke="#ffffff" strokeWidth={1} />
+                <Line points={[60, 165, 70, 152, 80, 165, 70, 176]} closed={true} fill={crystalColor} stroke="#ffffff" strokeWidth={1} />
+              </Group>
+            )}
+
+            <KonvaText
+              text={crystalFormed ? '✓ Crystals Formed' : stage === 'acidified-heating' ? 'Heating (Crust Test)' : 'Liquid Solution'}
+              x={25}
+              y={185}
+              width={90}
+              fontSize={7.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={crystalFormed ? '#34d399' : '#f59e0b'}
+              align="center"
+            />
+
+            {/* Right: Synthesis Yield & Purity Dashboard */}
+            <Rect x={130} y={40} width={width - 145} height={height - 55} fill="#090d16" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+
+            <KonvaText text="SYNTHESIS YIELD & SPECIFICATIONS" x={140} y={48} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#38bdf8" />
+            
+            {/* Practical Yield Metric */}
+            <Rect x={140} y={62} width={width - 165} height={32} fill="#020617" stroke="#334155" strokeWidth={1} cornerRadius={4} />
+            <KonvaText
+              text={crystalFormed ? `${practicalYield.toFixed(1)}% Yield (${crystalMass} g)` : '--- (In Progress)'}
+              x={148}
+              y={69}
+              fontSize={13}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill={crystalFormed ? '#34d399' : '#94a3b8'}
+            />
+
+            {/* Crystal Habit & Purity Details */}
+            <KonvaText text={`Crystal Habit: ${habit.length > 28 ? habit.slice(0, 27) + '...' : habit}`} x={140} y={102} fontSize={7.5} fontFamily="sans-serif" fill="#cbd5e1" />
+            <KonvaText text={`Purity: ${purity > 0 ? `${purity.toFixed(1)}%` : 'Pending recovery'}`} x={140} y={116} fontSize={7.5} fontFamily="sans-serif" fill="#cbd5e1" />
+            <KonvaText text={`Melting/Decomp: ${mpObserved > 0 ? `${mpObserved}°C` : 'N/A'}`} x={140} y={130} fontSize={7.5} fontFamily="sans-serif" fill="#38bdf8" />
+
+            {/* Acid Protection Status Badge */}
+            <Rect
+              x={140}
+              y={148}
+              width={width - 165}
+              height={18}
+              fill={isAcidified ? '#065f46' : '#7f1d1d'}
+              stroke={isAcidified ? '#10b981' : '#ef4444'}
+              strokeWidth={1}
+              cornerRadius={3}
+            />
+            <KonvaText
+              text={isAcidified ? '✓ Dilute H₂SO₄ Added (Hydrolysis Prevented)' : '✗ Unacidified (Risk of Aerial Oxidation)'}
+              x={145}
+              y={153}
+              fontSize={7}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isAcidified ? '#34d399' : '#fca5a5'}
+            />
+
+            {/* Status Footer */}
+            <Rect x={135} y={height - 40} width={width - 155} height={20} fill="#1e293b" cornerRadius={3} />
+            <KonvaText
+              text={appearance.length > 42 ? appearance.slice(0, 40) + '...' : appearance}
+              x={140}
+              y={height - 35}
+              width={width - 165}
+              fontSize={7}
+              fontFamily="sans-serif"
+              fill="#94a3b8"
+            />
+          </Group>
+        );
+      }
+
+      case 'functional-group-bench': {
+        const sampleName = String(object.state.sampleName ?? object.properties.selectedSample ?? 'Organic Sample');
+        const testName = String(object.state.testName ?? object.properties.selectedTest ?? 'Diagnostic Test');
+        const isPos = Boolean(object.state.isPositive);
+        const tubeColor = String(object.state.tubeColorHex ?? '#f8fafc');
+        const pptColor = String(object.state.precipitateColorHex ?? '');
+        const gasEvol = String(object.state.gasEvolution ?? '');
+        const observation = String(object.state.observation ?? 'Select a sample and diagnostic test.');
+        const inference = String(object.state.inference ?? '');
+
+        return (
+          <Group>
+            {/* Workbench Base */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#f59e0b'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Header */}
+            <Rect x={12} y={10} width={width - 24} height={22} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={sampleName.length > 30 ? sampleName.slice(0, 29) + '...' : sampleName}
+              x={18}
+              y={16}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text="ORGANIC QUALITATIVE ANALYSIS"
+              x={width - 165}
+              y={16}
+              fontSize={7.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f59e0b"
+            />
+
+            {/* Left: Test Tube Reaction Stage */}
+            <Rect x={20} y={40} width={90} height={height - 55} fill="#0b1329" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+            
+            {/* Test Tube Rack Base */}
+            <Rect x={30} y={185} width={70} height={10} fill="#475569" cornerRadius={2} />
+            
+            {/* Borosilicate Test Tube */}
+            <Rect x={45} y={55} width={38} height={125} fill="#1e293b" stroke="#cbd5e1" strokeWidth={1.5} cornerRadius={[0, 0, 16, 16]} opacity={0.7} />
+            {/* Reaction Liquid Column */}
+            <Rect x={47} y={90} width={34} height={88} fill={tubeColor} opacity={0.85} cornerRadius={[0, 0, 15, 15]} />
+
+            {/* Precipitate Layer if Present */}
+            {pptColor && pptColor !== '' && (
+              <Rect x={47} y={160} width={34} height={18} fill={pptColor} cornerRadius={[0, 0, 15, 15]} opacity={0.95} />
+            )}
+
+            {/* Gas Evolution Bubbles */}
+            {gasEvol && gasEvol !== '' && (
+              <Group>
+                <Circle x={58} y={115} radius={3} fill="#ffffff" opacity={0.8} />
+                <Circle x={68} y={105} radius={2.5} fill="#ffffff" opacity={0.8} />
+                <Circle x={54} y={95} radius={2} fill="#ffffff" opacity={0.8} />
+                <Circle x={64} y={80} radius={2} fill="#ffffff" opacity={0.8} />
+              </Group>
+            )}
+
+            {/* Right: Diagnostic Card */}
+            <Rect x={120} y={40} width={width - 135} height={height - 55} fill="#090d16" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+
+            <KonvaText text={testName.length > 36 ? testName.slice(0, 35) + '...' : testName} x={130} y={48} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#38bdf8" />
+
+            {/* Diagnostic Outcome Badge */}
+            <Rect
+              x={130}
+              y={62}
+              width={100}
+              height={22}
+              fill={isPos ? '#065f46' : '#334155'}
+              stroke={isPos ? '#10b981' : '#64748b'}
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+            <KonvaText
+              text={isPos ? '✓ POSITIVE' : '✗ NEGATIVE'}
+              x={145}
+              y={68}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isPos ? '#34d399' : '#94a3b8'}
+            />
+
+            {/* Observation and Inference */}
+            <KonvaText text="Observation:" x={130} y={92} fontSize={7.5} fontFamily="sans-serif" fontStyle="bold" fill="#94a3b8" />
+            <KonvaText
+              text={observation.length > 95 ? observation.slice(0, 92) + '...' : observation}
+              x={130}
+              y={104}
+              width={width - 150}
+              fontSize={7}
+              fontFamily="sans-serif"
+              fill="#f8fafc"
+            />
+
+            <KonvaText text="Chemical Inference:" x={130} y={142} fontSize={7.5} fontFamily="sans-serif" fontStyle="bold" fill="#38bdf8" />
+            <KonvaText
+              text={inference.length > 95 ? inference.slice(0, 92) + '...' : inference}
+              x={130}
+              y={154}
+              width={width - 150}
+              fontSize={7}
+              fontFamily="sans-serif"
+              fill="#cbd5e1"
+            />
+          </Group>
+        );
+      }
+
+      case 'food-testing-bench': {
+        const sampleName = String(object.state.sampleName ?? object.properties.selectedSample ?? 'Food Sample');
+        const testName = String(object.state.testName ?? object.properties.selectedTest ?? 'Biochemical Test');
+        const nutrient = String(object.state.nutrientTarget ?? 'Macro-Nutrient');
+        const isPos = Boolean(object.state.isPositive);
+        const tubeColor = String(object.state.tubeColorHex ?? '#f8fafc');
+        const ringOrPpt = String(object.state.ringOrPptHex ?? '');
+        const observation = String(object.state.observation ?? 'Select food substrate and nutrient test.');
+        const isSpotTest = String(object.properties.selectedTest) === 'translucent-spot';
+
+        return (
+          <Group>
+            {/* Workbench Base */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#ec4899'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Header */}
+            <Rect x={12} y={10} width={width - 24} height={22} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={sampleName.length > 30 ? sampleName.slice(0, 29) + '...' : sampleName}
+              x={18}
+              y={16}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text="FOOD NUTRIENT BIOCHEMICAL ASSAY"
+              x={width - 180}
+              y={16}
+              fontSize={7.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#ec4899"
+            />
+
+            {/* Left: Test Visual Stage */}
+            <Rect x={20} y={40} width={90} height={height - 55} fill="#0b1329" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+
+            {isSpotTest ? (
+              /* Filter Paper Grease Spot */
+              <Group>
+                <Circle x={65} y={120} radius={32} fill="#f8fafc" stroke="#94a3b8" strokeWidth={1} />
+                {isPos && (
+                  <Circle x={65} y={120} radius={18} fill="#fef08a" opacity={0.65} stroke="#eab308" strokeWidth={1} dash={[2, 2]} />
+                )}
+                <KonvaText text={isPos ? 'Translucent Spot' : 'Clear (Evaporated)'} x={25} y={160} width={80} fontSize={6.5} fontFamily="sans-serif" fontStyle="bold" fill={isPos ? '#34d399' : '#94a3b8'} align="center" />
+              </Group>
+            ) : (
+              /* Test Tube with Liquid / Violet Ring / PPT */
+              <Group>
+                <Rect x={30} y={185} width={70} height={10} fill="#475569" cornerRadius={2} />
+                <Rect x={45} y={55} width={38} height={125} fill="#1e293b" stroke="#cbd5e1" strokeWidth={1.5} cornerRadius={[0, 0, 16, 16]} opacity={0.7} />
+                <Rect x={47} y={90} width={34} height={88} fill={tubeColor} opacity={0.85} cornerRadius={[0, 0, 15, 15]} />
+
+                {/* Molisch Violet Ring at Junction */}
+                {ringOrPpt && ringOrPpt !== '' && ringOrPpt === '#701a75' && (
+                  <Rect x={47} y={128} width={34} height={8} fill="#701a75" opacity={0.95} />
+                )}
+
+                {/* Precipitate at bottom */}
+                {ringOrPpt && ringOrPpt !== '' && ringOrPpt !== '#701a75' && (
+                  <Rect x={47} y={160} width={34} height={18} fill={ringOrPpt} cornerRadius={[0, 0, 15, 15]} opacity={0.95} />
+                )}
+              </Group>
+            )}
+
+            {/* Right: Nutrient Analysis Card */}
+            <Rect x={120} y={40} width={width - 135} height={height - 55} fill="#090d16" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+
+            <KonvaText text={testName.length > 36 ? testName.slice(0, 35) + '...' : testName} x={130} y={48} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#38bdf8" />
+
+            {/* Nutrient & Result Badge */}
+            <Rect
+              x={130}
+              y={62}
+              width={width - 150}
+              height={22}
+              fill={isPos ? '#065f46' : '#334155'}
+              stroke={isPos ? '#10b981' : '#64748b'}
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+            <KonvaText
+              text={`${nutrient}: ${isPos ? 'CONFIRMED' : 'NOT DETECTED'}`}
+              x={138}
+              y={68}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isPos ? '#34d399' : '#94a3b8'}
+            />
+
+            {/* Observation */}
+            <KonvaText text="Observation & Biochemical Principle:" x={130} y={94} fontSize={7.5} fontFamily="sans-serif" fontStyle="bold" fill="#94a3b8" />
+            <KonvaText
+              text={observation.length > 130 ? observation.slice(0, 128) + '...' : observation}
+              x={130}
+              y={106}
+              width={width - 150}
+              fontSize={7}
+              fontFamily="sans-serif"
+              fill="#f8fafc"
+            />
+          </Group>
+        );
+      }
+
+      case 'redox-titration-bench': {
+        const systemName = String(object.state.systemName ?? 'KMnO₄ Redox Titration');
+        const analyteName = String(object.state.analyteName ?? 'Mohr’s Salt / Oxalic Acid');
+        const delivered = Number(object.properties.titrantDeliveredMl ?? 0);
+        const vEq = Number(object.state.equivalenceVolumeMl ?? 10);
+        const status = String(object.state.status ?? 'before-equivalence');
+        const solColor = String(object.state.solutionColorHex ?? '#f8fafc');
+        const appearance = String(object.state.solutionAppearance ?? 'Colorless');
+        const calcM = Number(object.state.calculatedMolarityM ?? 0);
+        const calcStrength = Number(object.state.calculatedStrengthGperL ?? 0);
+        const upperMeniscus = Number(object.state.upperMeniscusReading ?? delivered);
+
+        return (
+          <Group>
+            {/* Workbench Base */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#a21caf'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Header */}
+            <Rect x={12} y={10} width={width - 24} height={22} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={systemName.length > 36 ? systemName.slice(0, 35) + '...' : systemName}
+              x={18}
+              y={16}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text="SELF-INDICATOR REDOX"
+              x={width - 145}
+              y={16}
+              fontSize={7.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f472b6"
+            />
+
+            {/* Left: Burette and Conical Flask Assembly */}
+            <Rect x={20} y={40} width={105} height={height - 55} fill="#0b1329" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+
+            {/* Burette Column containing deep purple KMnO4 */}
+            <Rect x={55} y={48} width={14} height={90} fill="#701a75" stroke="#cbd5e1" strokeWidth={1} cornerRadius={1} />
+            {/* Upper Meniscus Line */}
+            <Line points={[52, 60, 72, 60]} stroke="#f472b6" strokeWidth={2} />
+            <KonvaText text="Upper Meniscus" x={24} y={56} fontSize={6} fontFamily="sans-serif" fontStyle="bold" fill="#f472b6" />
+
+            {/* Burette Stopcock */}
+            <Rect x={58} y={138} width={8} height={8} fill="#64748b" />
+
+            {/* Erlenmeyer Conical Flask below Burette */}
+            <Line points={[40, 195, 84, 195, 70, 155, 54, 155]} closed={true} fill={solColor} stroke="#cbd5e1" strokeWidth={1.5} opacity={0.85} />
+            <KonvaText text={status === 'at-equivalence' ? '★ ENDPOINT (FAINT PINK)' : `${delivered.toFixed(1)} mL`} x={22} y={200} width={100} fontSize={6.5} fontFamily="sans-serif" fontStyle="bold" fill={status === 'at-equivalence' ? '#f472b6' : '#cbd5e1'} align="center" />
+
+            {/* Right: Redox Analytics Dashboard */}
+            <Rect x={135} y={40} width={width - 150} height={height - 55} fill="#090d16" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+
+            <KonvaText text="BURETTE & QUANTITATIVE CONCENTRATION" x={145} y={48} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#38bdf8" />
+
+            {/* Upper Meniscus Display */}
+            <Rect x={145} y={62} width={width - 170} height={34} fill="#020617" stroke="#334155" strokeWidth={1} cornerRadius={4} />
+            <KonvaText
+              text={`${upperMeniscus.toFixed(2)} mL (V_eq: ${vEq.toFixed(1)} mL)`}
+              x={152}
+              y={70}
+              fontSize={13}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill={status === 'at-equivalence' ? '#f472b6' : '#34d399'}
+            />
+
+            {/* Calculated Molarity & Strength */}
+            <KonvaText text={`Analyte: ${analyteName.length > 25 ? analyteName.slice(0, 24) + '...' : analyteName}`} x={145} y={104} fontSize={7.5} fontFamily="sans-serif" fill="#cbd5e1" />
+            <KonvaText text={`KMnO₄ Molarity: ${calcM > 0 ? `${calcM.toFixed(4)} M` : '---'}`} x={145} y={118} fontSize={7.5} fontFamily="sans-serif" fill="#f8fafc" />
+            <KonvaText text={`Strength: ${calcStrength > 0 ? `${calcStrength.toFixed(2)} g/L` : '---'}`} x={145} y={132} fontSize={7.5} fontFamily="sans-serif" fill="#38bdf8" />
+
+            {/* Endpoint Status Badge */}
+            <Rect
+              x={145}
+              y={150}
+              width={width - 170}
+              height={20}
+              fill={status === 'at-equivalence' ? '#831843' : status === 'past-equivalence' ? '#7f1d1d' : status === 'impaired' ? '#78350f' : '#1e293b'}
+              stroke={status === 'at-equivalence' ? '#f472b6' : status === 'past-equivalence' ? '#ef4444' : '#64748b'}
+              strokeWidth={1}
+              cornerRadius={3}
+            />
+            <KonvaText
+              text={
+                status === 'at-equivalence'
+                  ? '✓ ENDPOINT REACHED: Permanent Faint Pink'
+                  : status === 'past-equivalence'
+                  ? '✗ OVER-TITRATED: Deep Purple Excess'
+                  : status === 'impaired'
+                  ? '⚠ IMPAIRED: Missing Acid / Under-Heated'
+                  : '⟳ Swirling Solution: KMnO₄ Decolorizing'
+              }
+              x={150}
+              y={156}
+              fontSize={7}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={status === 'at-equivalence' ? '#fbcfe8' : status === 'past-equivalence' ? '#fca5a5' : '#cbd5e1'}
+            />
+
+            {/* Footer appearance note */}
+            <Rect x={140} y={height - 40} width={width - 160} height={20} fill="#1e293b" cornerRadius={3} />
+            <KonvaText
+              text={appearance.length > 40 ? appearance.slice(0, 38) + '...' : appearance}
+              x={145}
+              y={height - 35}
+              width={width - 170}
+              fontSize={7}
+              fontFamily="sans-serif"
+              fill="#94a3b8"
+            />
+          </Group>
+        );
+      }
+
       case 'generic-box':
       default: {
         const displayVal =

@@ -953,6 +953,80 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
         value: `${rfSummary}`,
         unit: '',
       };
+    } else if (experimentId === 'inorganic-compound-prep') {
+      const synth = Object.entries(updates).find(([id]) => id.includes('synth') || id.includes('inorganic'))?.[1];
+      const name = synth?.compoundName ?? 'Mohr’s Salt';
+      const yieldPct = synth?.practicalYieldPercent ?? 0;
+      const mass = synth?.crystalMassGrams ?? 0;
+      const habit = synth?.crystalHabit ?? 'Monoclinic prisms';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${name}`,
+        value: `${yieldPct}% Yield (${mass} g) - ${habit}`,
+        unit: '',
+      };
+    } else if (experimentId === 'organic-compound-prep') {
+      const synth = Object.entries(updates).find(([id]) => id.includes('synth') || id.includes('organic'))?.[1];
+      const name = synth?.compoundName ?? 'Acetanilide';
+      const mp = synth?.meltingPointObservedC ?? 114;
+      const purity = synth?.purityPercent ?? 98.5;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${name}`,
+        value: `MP: ${mp}°C (Purity: ${purity}%)`,
+        unit: '',
+      };
+    } else if (experimentId === 'functional-group-identification') {
+      const fg = Object.entries(updates).find(([id]) => id.includes('fg') || id.includes('functional'))?.[1];
+      const sample = fg?.sampleName ?? 'Sample';
+      const test = fg?.testName ?? 'Test';
+      const outcome = fg?.isPositive ? 'POSITIVE' : 'NEGATIVE';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${sample} (${test})`,
+        value: `${outcome}`,
+        unit: '',
+      };
+    } else if (experimentId === 'food-component-testing') {
+      const food = Object.entries(updates).find(([id]) => id.includes('food'))?.[1];
+      const sample = food?.sampleName ?? 'Food Extract';
+      const nutrient = food?.nutrientTarget ?? 'Nutrient';
+      const outcome = food?.isPositive ? 'POSITIVE' : 'NEGATIVE';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${sample}`,
+        value: `${nutrient}: ${outcome}`,
+        unit: '',
+      };
+    } else if (experimentId === 'redox-titration-kmno4') {
+      const redox = Object.entries(updates).find(([id]) => id.includes('redox'))?.[1];
+      const analyte = redox?.analyteName ?? 'Analyte';
+      const vDelivered = redox?.titrantDeliveredMl ?? 0;
+      const vEq = redox?.equivalenceVolumeMl ?? 10;
+      const molarity = redox?.calculatedMolarityM ?? 0;
+      const status = redox?.status ?? 'before-equivalence';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${analyte} (V_titre = ${vDelivered} / ${vEq} mL)`,
+        value: `${status === 'at-equivalence' ? `M = ${molarity} M (Endpoint)` : `${status}`}`,
+        unit: '',
+      };
+    } else if (experimentId === 'salt-analysis-class12') {
+      const salt = Object.entries(updates).find(([id]) => id.includes('salt'))?.[1];
+      const testName = salt?.testName ?? 'Qualitative Test';
+      const inference = salt?.inference ?? 'Analysis outcome';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${testName}`,
+        value: `${inference}`,
+        unit: '',
+      };
     } else {
       let volt = 0;
       let curr = 0;
@@ -2066,7 +2140,19 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                                                                                       ? 'Daniell Cell EMF Quick Log'
                                                                                       : experimentId === 'paper-chromatography-class12'
                                                                                         ? 'Cation Chromatography Quick Log'
-                                                                                        : 'Active Bench Quick Log'}
+                                                                                        : experimentId === 'inorganic-compound-prep'
+                                                                                          ? 'Double Salt Synthesis Quick Log'
+                                                                                          : experimentId === 'organic-compound-prep'
+                                                                                            ? 'Organic Synthesis Quick Log'
+                                                                                            : experimentId === 'functional-group-identification'
+                                                                                              ? 'Functional Group Quick Log'
+                                                                                              : experimentId === 'food-component-testing'
+                                                                                                ? 'Food Testing Quick Log'
+                                                                                                : experimentId === 'redox-titration-kmno4'
+                                                                                                  ? 'Redox Titration Quick Log'
+                                                                                                  : experimentId === 'salt-analysis-class12'
+                                                                                                    ? 'Salt Analysis (Class 12) Quick Log'
+                                                                                                    : 'Active Bench Quick Log'}
               </span>
               <p className="text-[10px] text-blue-700/80 dark:text-blue-400 leading-snug">
                 {experimentId === 'convex-lens'
@@ -2141,7 +2227,19 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                                                                                       ? 'Instantly log concentration quotient [Zn²⁺]/[Cu²⁺], log Q, and measured cell potential EMF.'
                                                                                       : experimentId === 'paper-chromatography-class12'
                                                                                         ? 'Instantly log solvent front distance, separated cation spot positions, and calculated Rf values.'
-                                                                                        : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
+                                                                                        : experimentId === 'inorganic-compound-prep'
+                                                                                          ? 'Instantly log double salt preparation stage, crystal habit, practical yield %, and recovery mass.'
+                                                                                          : experimentId === 'organic-compound-prep'
+                                                                                            ? 'Instantly log synthesis reaction stage, observed melting point, purity %, and isolated product mass.'
+                                                                                            : experimentId === 'functional-group-identification'
+                                                                                              ? 'Instantly log organic sample, diagnostic chemical test, observation, and positive/negative outcome.'
+                                                                                              : experimentId === 'food-component-testing'
+                                                                                                ? 'Instantly log food substrate, nutrient assay performed, color/spot observation, and nutrient detected.'
+                                                                                                : experimentId === 'redox-titration-kmno4'
+                                                                                                  ? 'Instantly log upper meniscus reading, delivered KMnO₄ volume, endpoint status, and calculated molarity/strength.'
+                                                                                                  : experimentId === 'salt-analysis-class12'
+                                                                                                    ? 'Instantly log interfering radical tests (PO₄³⁻/C₂O₄²⁻), elimination protocol, and confirmed cation/anion.'
+                                                                                                    : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
               </p>
               <Button
                 type="button"

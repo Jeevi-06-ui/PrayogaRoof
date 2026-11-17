@@ -36,7 +36,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(physics?.availableExperiments).toBe(25);
 
     expect(chemistry?.totalExperiments).toBe(27);
-    expect(chemistry?.availableExperiments).toBe(21);
+    expect(chemistry?.availableExperiments).toBe(27);
   });
 
   describe('Physics Curriculum (25 Experiments)', () => {
@@ -134,9 +134,9 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(class12).toHaveLength(11);
     });
 
-    it('should have 21 Chemistry experiments marked as implemented (5 Foundation + 11 Class 11 + 5 Class 12)', () => {
+    it('should have all 27 Chemistry experiments marked as implemented (5 Foundation + 11 Class 11 + 11 Class 12)', () => {
       const implemented = getImplementedExperimentsBySubject('chemistry');
-      expect(implemented).toHaveLength(21);
+      expect(implemented).toHaveLength(27);
 
       const titles = implemented.map((e) => e.title);
       expect(titles).toContain('pH Testing');
@@ -158,6 +158,11 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(titles).toContain('Chemical Kinetics');
       expect(titles).toContain('Thermochemistry');
       expect(titles).toContain('Electrochemistry');
+      expect(titles).toContain('Inorganic Compound Preparation');
+      expect(titles).toContain('Organic Compound Preparation');
+      expect(titles).toContain('Functional Group Identification');
+      expect(titles).toContain('Food Component Testing');
+      expect(titles).toContain('Redox Titration – Potassium Permanganate');
 
       for (const exp of implemented) {
         expect(['foundation', 'class-11', 'class-12']).toContain(exp.classLevel);
@@ -165,7 +170,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       }
     });
 
-    it('should have 5 Class 12 Chemistry experiments implemented and 6 remaining under-development', () => {
+    it('should have all 11 Class 12 Chemistry experiments implemented and 0 remaining under-development', () => {
       const class11 = getExperimentsByClassLevel('chemistry', 'class-11');
       const class12 = getExperimentsByClassLevel('chemistry', 'class-12');
 
@@ -174,8 +179,8 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       const class12UnderDev = class12.filter((e) => e.implementationStatus === 'under-development');
 
       expect(class11UnderDev).toHaveLength(0);
-      expect(class12Implemented).toHaveLength(5);
-      expect(class12UnderDev).toHaveLength(6);
+      expect(class12Implemented).toHaveLength(11);
+      expect(class12UnderDev).toHaveLength(0);
 
       const implementedTitles = class12Implemented.map((e) => e.title);
       expect(implementedTitles).toContain('Surface Chemistry');
@@ -183,6 +188,12 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(implementedTitles).toContain('Thermochemistry');
       expect(implementedTitles).toContain('Electrochemistry');
       expect(implementedTitles).toContain('Paper Chromatography');
+      expect(implementedTitles).toContain('Inorganic Compound Preparation');
+      expect(implementedTitles).toContain('Organic Compound Preparation');
+      expect(implementedTitles).toContain('Functional Group Identification');
+      expect(implementedTitles).toContain('Food Component Testing');
+      expect(implementedTitles).toContain('Redox Titration – Potassium Permanganate');
+      expect(implementedTitles).toContain('Salt Analysis');
 
       // Check reuse mapping
       const crystallisationC11 = getExperimentById('crystallisation-class11');
@@ -197,15 +208,15 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     });
   });
 
-  it('should have complete metadata for every curriculum experiment (52 total)', () => {
+  it('should have complete metadata for every curriculum experiment (52 total, 52 implemented)', () => {
     const all = getAllActiveExperiments();
     expect(all).toHaveLength(52);
 
     const implemented = all.filter((e) => e.implementationStatus === 'implemented');
     const underDev = all.filter((e) => e.implementationStatus === 'under-development');
 
-    expect(implemented).toHaveLength(46);
-    expect(underDev).toHaveLength(6);
+    expect(implemented).toHaveLength(52);
+    expect(underDev).toHaveLength(0);
 
     for (const exp of all) {
       expect(exp.id).toBeTruthy();
@@ -271,12 +282,12 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(kineticsExp?.classLevel).toBe('class-12');
     expect(kineticsExp?.implementationStatus).toBe('implemented');
 
-    // Chemistry Class 12 Under-development
+    // Chemistry Class 12 Implemented (Phase 10)
     const inorgPrep = getExperimentById('inorganic-compound-prep');
     expect(inorgPrep).toBeDefined();
     expect(inorgPrep?.title).toBe('Inorganic Compound Preparation');
     expect(inorgPrep?.subjectId).toBe('chemistry');
     expect(inorgPrep?.classLevel).toBe('class-12');
-    expect(inorgPrep?.implementationStatus).toBe('under-development');
+    expect(inorgPrep?.implementationStatus).toBe('implemented');
   });
 });
