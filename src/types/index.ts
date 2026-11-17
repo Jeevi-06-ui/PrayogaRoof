@@ -123,3 +123,6 @@ export interface OverallStats {
   chemistryCompleted: number;
   chemistryTotal: number;
 }
+
+export * from './workspace';
+

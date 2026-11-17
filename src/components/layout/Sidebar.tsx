@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Sun,
   Moon,
+  Sparkles,
 } from 'lucide-react';
 import { useStudent } from '../../context/StudentContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -38,6 +39,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Dashboard',
       icon: LayoutDashboard,
       badge: undefined,
+    },
+    {
+      to: '/workspace',
+      label: 'Interactive Bench',
+      icon: Sparkles,
+      badge: 'Active',
+      activeColor: 'text-indigo-600 dark:text-indigo-400',
     },
     {
       to: '/subjects/physics',

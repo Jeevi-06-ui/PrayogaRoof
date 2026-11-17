@@ -9,6 +9,7 @@ import { PhysicsPage } from './pages/PhysicsPage';
 import { ChemistryPage } from './pages/ChemistryPage';
 import { ComingSoonPage } from './pages/ComingSoonPage';
 import { ExperimentDetailPage } from './pages/ExperimentDetailPage';
+import { WorkspacePage } from './pages/WorkspacePage';
 import { ProfileSettingsPage } from './pages/ProfileSettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -27,6 +28,8 @@ export const App: React.FC = () => {
               <Route path="subjects/biology" element={<ComingSoonPage subjectId="biology" />} />
               <Route path="subjects/mathematics" element={<ComingSoonPage subjectId="mathematics" />} />
               <Route path="experiments/:experimentId" element={<ExperimentDetailPage />} />
+              <Route path="workspace" element={<WorkspacePage />} />
+              <Route path="workspace/:experimentId" element={<WorkspacePage />} />
               <Route path="profile" element={<ProfileSettingsPage />} />
               <Route path="settings" element={<Navigate to="/profile" replace />} />
               <Route path="*" element={<NotFoundPage />} />

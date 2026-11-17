@@ -19,7 +19,7 @@ import { Badge } from '../components/shared/Badge';
 import { Button } from '../components/shared/Button';
 import { Tabs } from '../components/shared/Tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/shared/Card';
-import { LabCanvasPlaceholder } from '../components/shared/LabCanvasPlaceholder';
+import { UniversalLabWorkspace } from '../components/workspace/UniversalLabWorkspace';
 import { Modal } from '../components/shared/Modal';
 import { EmptyState } from '../components/shared/EmptyState';
 import {
@@ -405,13 +405,10 @@ export const ExperimentDetailPage: React.FC = () => {
             </Button>
           </div>
 
-          {/* Interactive Konva Lab Canvas Component */}
-          <LabCanvasPlaceholder
-            experimentTitle={experiment.title}
-            apparatus={experiment.apparatus}
-            workspaceTitle={workspaces[0]?.title || `Default Bench (${experiment.title})`}
-            onSaveWorkspace={() => setIsNewWsModalOpen(true)}
-          />
+          {/* Universal Interactive Laboratory Workspace */}
+          <div className="w-full">
+            <UniversalLabWorkspace experimentId={experiment.id} initialMode="freelab" />
+          </div>
 
           {/* Saved Workspaces Management List */}
           <div>
