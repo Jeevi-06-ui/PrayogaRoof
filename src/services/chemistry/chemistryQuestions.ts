@@ -14,6 +14,13 @@ import {
   SALT_ANALYSIS_QUESTIONS,
   ORGANIC_ELEMENT_DETECTION_QUESTIONS,
 } from './class11Phase8Questions';
+import {
+  SURFACE_CHEMISTRY_QUESTIONS,
+  CHEMICAL_KINETICS_QUESTIONS,
+  THERMOCHEMISTRY_QUESTIONS,
+  ELECTROCHEMISTRY_QUESTIONS,
+  PAPER_CHROMATOGRAPHY_CLASS12_QUESTIONS,
+} from './class12Phase9Questions';
 
 export {
   BASIC_LAB_TECHNIQUES_QUESTIONS,
@@ -27,6 +34,11 @@ export {
   ACID_BASE_TITRATION_QUESTIONS,
   SALT_ANALYSIS_QUESTIONS,
   ORGANIC_ELEMENT_DETECTION_QUESTIONS,
+  SURFACE_CHEMISTRY_QUESTIONS,
+  CHEMICAL_KINETICS_QUESTIONS,
+  THERMOCHEMISTRY_QUESTIONS,
+  ELECTROCHEMISTRY_QUESTIONS,
+  PAPER_CHROMATOGRAPHY_CLASS12_QUESTIONS,
 };
 
 export const PH_TESTING_QUESTIONS: ConceptualQuestion[] = [
@@ -303,6 +315,16 @@ export function getChemistryQuestions(experimentId: string): ConceptualQuestion[
       return SALT_ANALYSIS_QUESTIONS;
     case 'organic-element-detection':
       return ORGANIC_ELEMENT_DETECTION_QUESTIONS;
+    case 'surface-chemistry':
+      return SURFACE_CHEMISTRY_QUESTIONS;
+    case 'chemical-kinetics':
+      return CHEMICAL_KINETICS_QUESTIONS;
+    case 'thermochemistry':
+      return THERMOCHEMISTRY_QUESTIONS;
+    case 'electrochemistry':
+      return ELECTROCHEMISTRY_QUESTIONS;
+    case 'paper-chromatography-class12':
+      return PAPER_CHROMATOGRAPHY_CLASS12_QUESTIONS;
     default:
       return [];
   }

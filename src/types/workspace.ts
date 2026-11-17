@@ -135,6 +135,10 @@ export interface EquipmentDefinition {
     | 'titration-bench'
     | 'salt-analysis-bench'
     | 'element-detection-bench'
+    | 'colloid-bench'
+    | 'kinetics-bench'
+    | 'calorimeter-bench'
+    | 'daniell-cell-bench'
     | 'generic-box'
     | 'sensor-probe';
   colorTheme?: string;

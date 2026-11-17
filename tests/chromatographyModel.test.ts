@@ -65,6 +65,14 @@ describe('Chromatography Scientific Model', () => {
     expect(plantSpots.length).toBe(4);
     expect(plantSpots[3].pigmentName).toContain('Carotene');
     expect(plantSpots[3].rf).toBeCloseTo(0.95, 2);
+
+    // 5. Class 12 Inorganic Cation Separation (Pb2+ and Cd2+)
+    const cationSpots = calculatePigmentPositions('class12-cation-mixture', frontMm);
+    expect(cationSpots.length).toBe(2);
+    expect(cationSpots[0].pigmentName).toContain('Lead');
+    expect(cationSpots[1].pigmentName).toContain('Cadmium');
+    expect(cationSpots[0].rf).toBeCloseTo(0.38, 2);
+    expect(cationSpots[1].rf).toBeCloseTo(0.72, 2);
   });
 
   it('handles zero solvent front (uneluted spot at origin)', () => {

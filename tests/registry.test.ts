@@ -36,7 +36,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(physics?.availableExperiments).toBe(25);
 
     expect(chemistry?.totalExperiments).toBe(27);
-    expect(chemistry?.availableExperiments).toBe(16);
+    expect(chemistry?.availableExperiments).toBe(21);
   });
 
   describe('Physics Curriculum (25 Experiments)', () => {
@@ -134,9 +134,9 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(class12).toHaveLength(11);
     });
 
-    it('should have 16 Chemistry experiments marked as implemented (5 Foundation + 11 Class 11)', () => {
+    it('should have 21 Chemistry experiments marked as implemented (5 Foundation + 11 Class 11 + 5 Class 12)', () => {
       const implemented = getImplementedExperimentsBySubject('chemistry');
-      expect(implemented).toHaveLength(16);
+      expect(implemented).toHaveLength(21);
 
       const titles = implemented.map((e) => e.title);
       expect(titles).toContain('pH Testing');
@@ -154,22 +154,35 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(titles).toContain('Acid-Base Titration');
       expect(titles).toContain('Salt Analysis');
       expect(titles).toContain('Organic Element Detection');
+      expect(titles).toContain('Surface Chemistry');
+      expect(titles).toContain('Chemical Kinetics');
+      expect(titles).toContain('Thermochemistry');
+      expect(titles).toContain('Electrochemistry');
 
       for (const exp of implemented) {
-        expect(['foundation', 'class-11']).toContain(exp.classLevel);
+        expect(['foundation', 'class-11', 'class-12']).toContain(exp.classLevel);
         expect(exp.implementationStatus).toBe('implemented');
       }
     });
 
-    it('should have 11 Class 12 Chemistry experiments marked as under-development with reuse mappings where applicable', () => {
+    it('should have 5 Class 12 Chemistry experiments implemented and 6 remaining under-development', () => {
       const class11 = getExperimentsByClassLevel('chemistry', 'class-11');
       const class12 = getExperimentsByClassLevel('chemistry', 'class-12');
 
       const class11UnderDev = class11.filter((e) => e.implementationStatus === 'under-development');
+      const class12Implemented = class12.filter((e) => e.implementationStatus === 'implemented');
       const class12UnderDev = class12.filter((e) => e.implementationStatus === 'under-development');
 
       expect(class11UnderDev).toHaveLength(0);
-      expect(class12UnderDev).toHaveLength(11);
+      expect(class12Implemented).toHaveLength(5);
+      expect(class12UnderDev).toHaveLength(6);
+
+      const implementedTitles = class12Implemented.map((e) => e.title);
+      expect(implementedTitles).toContain('Surface Chemistry');
+      expect(implementedTitles).toContain('Chemical Kinetics');
+      expect(implementedTitles).toContain('Thermochemistry');
+      expect(implementedTitles).toContain('Electrochemistry');
+      expect(implementedTitles).toContain('Paper Chromatography');
 
       // Check reuse mapping
       const crystallisationC11 = getExperimentById('crystallisation-class11');
@@ -180,6 +193,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
 
       const chromC12 = getExperimentById('paper-chromatography-class12');
       expect(chromC12?.reusedModuleId).toBe('paper-chromatography');
+      expect(chromC12?.implementationStatus).toBe('implemented');
     });
   });
 
@@ -190,8 +204,8 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     const implemented = all.filter((e) => e.implementationStatus === 'implemented');
     const underDev = all.filter((e) => e.implementationStatus === 'under-development');
 
-    expect(implemented).toHaveLength(41);
-    expect(underDev).toHaveLength(11);
+    expect(implemented).toHaveLength(46);
+    expect(underDev).toHaveLength(6);
 
     for (const exp of all) {
       expect(exp.id).toBeTruthy();
@@ -249,12 +263,20 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(titration?.classLevel).toBe('class-11');
     expect(titration?.implementationStatus).toBe('implemented');
 
-    // Chemistry Class 12 Under-development
+    // Implemented Class 12 Chemistry (Phase 9)
     const kineticsExp = getExperimentById('chemical-kinetics');
     expect(kineticsExp).toBeDefined();
     expect(kineticsExp?.title).toBe('Chemical Kinetics');
     expect(kineticsExp?.subjectId).toBe('chemistry');
     expect(kineticsExp?.classLevel).toBe('class-12');
-    expect(kineticsExp?.implementationStatus).toBe('under-development');
+    expect(kineticsExp?.implementationStatus).toBe('implemented');
+
+    // Chemistry Class 12 Under-development
+    const inorgPrep = getExperimentById('inorganic-compound-prep');
+    expect(inorgPrep).toBeDefined();
+    expect(inorgPrep?.title).toBe('Inorganic Compound Preparation');
+    expect(inorgPrep?.subjectId).toBe('chemistry');
+    expect(inorgPrep?.classLevel).toBe('class-12');
+    expect(inorgPrep?.implementationStatus).toBe('under-development');
   });
 });

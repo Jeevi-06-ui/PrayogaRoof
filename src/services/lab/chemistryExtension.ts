@@ -48,6 +48,17 @@ import {
   OrganicSampleId,
   OrganicElementTestId,
 } from '../chemistry/organicElementModel';
+import {
+  calculateColloidState,
+  SolType,
+  CoagulatingElectrolyte,
+} from '../chemistry/colloidModel';
+import { calculateKineticsState } from '../chemistry/kineticsModel';
+import {
+  calculateCalorimetryState,
+  CalorimeterReactionType,
+} from '../chemistry/thermochemistryModel';
+import { calculateDaniellCellState } from '../chemistry/electrochemistryModel';
 
 export const REAGENT_OPTIONS = [
   { label: 'Pure Distilled Water (H₂O)', value: 'pure-water' },
@@ -1822,6 +1833,295 @@ export const CHEMISTRY_EQUIPMENT: EquipmentDefinition[] = [
     ],
     renderType: 'element-detection-bench',
     colorTheme: '#6366f1',
+  },
+  {
+    id: 'colloid-apparatus',
+    name: 'Colloid & Tyndall Effect Analysis Assembly',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Colloidal sol preparation and optical scattering station with 650nm red laser emitter, particle viewer, and Hardy-Schulze electrolyte coagulant dropper.',
+    iconName: 'FlaskConical',
+    defaultWidth: 320,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'solType',
+        label: 'Colloidal Dispersion Sample',
+        type: 'select',
+        defaultValue: 'feoh3-sol',
+        options: [
+          { label: 'Hydrated Ferric Hydroxide Sol [Fe(OH)₃ / Fe³⁺] (Positive Lyophobic)', value: 'feoh3-sol' },
+          { label: 'Soluble Starch Sol (Hydrated Lyophilic)', value: 'starch-sol' },
+          { label: 'Arsenious Sulphide Sol [As₂S₃ / S²⁻] (Negative Lyophobic)', value: 'as2s3-sol' },
+          { label: 'Aqueous Sodium Chloride (True Solution <1 nm)', value: 'true-solution-nacl' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'laserActive',
+        label: 'Transverse Laser Pointer (650 nm)',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'electrolyte',
+        label: 'Coagulating Electrolyte (Hardy-Schulze)',
+        type: 'select',
+        defaultValue: 'none',
+        options: [
+          { label: 'None (Pure Sol)', value: 'none' },
+          { label: 'K₄[Fe(CN)₆] (0.01M - Quadrivalent Anion)', value: 'k4fe_cn6' },
+          { label: 'Na₂SO₄ (0.1M - Divalent Anion)', value: 'na2so4' },
+          { label: 'NaCl (0.5M - Monovalent Anion)', value: 'nacl' },
+          { label: 'AlCl₃ (0.01M - Trivalent Cation)', value: 'alcl3' },
+          { label: 'BaCl₂ (0.05M - Divalent Cation)', value: 'bacl2' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'electrolyteVolumeMl',
+        label: 'Electrolyte Volume (mL)',
+        type: 'number',
+        defaultValue: 0,
+        min: 0,
+        max: 10,
+        step: 0.5,
+        unit: 'mL',
+        editable: true,
+      },
+    ],
+    renderType: 'colloid-bench',
+    colorTheme: '#881337',
+  },
+  {
+    id: 'kinetics-cross-bench',
+    name: 'Chemical Kinetics Reaction Vessel (Tile with Black Cross)',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Reaction station for Na2S2O3 + HCl featuring a glazed white tile marked with a black cross (+), top-down opacity observer, and integrated digital stopwatch.',
+    iconName: 'Clock',
+    defaultWidth: 320,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'volumeThiosulphateMl',
+        label: '0.1M Na₂S₂O₃ Volume (mL)',
+        type: 'number',
+        defaultValue: 50,
+        min: 10,
+        max: 50,
+        step: 10,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'volumeWaterMl',
+        label: 'Distilled Water Volume (mL)',
+        type: 'number',
+        defaultValue: 0,
+        min: 0,
+        max: 40,
+        step: 10,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'volumeHclMl',
+        label: '1.0M HCl Volume (mL)',
+        type: 'number',
+        defaultValue: 10,
+        min: 5,
+        max: 20,
+        step: 5,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'temperatureC',
+        label: 'Reaction Temperature (°C)',
+        type: 'number',
+        defaultValue: 25,
+        min: 15,
+        max: 60,
+        step: 5,
+        unit: '°C',
+        editable: true,
+      },
+      {
+        id: 'isReactionStarted',
+        label: 'Start Chemical Reaction & Timer',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'elapsedSeconds',
+        label: 'Elapsed Time (s)',
+        type: 'number',
+        defaultValue: 0,
+        min: 0,
+        max: 120,
+        step: 1,
+        unit: 's',
+        editable: true,
+      },
+    ],
+    renderType: 'kinetics-bench',
+    colorTheme: '#eab308',
+  },
+  {
+    id: 'calorimeter-assembly',
+    name: 'Insulated Polystyrene Cup Calorimeter Assembly',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Polystyrene Dewar cup calorimeter equipped with precision differential Beckman thermometer, mechanical stirrer, and digital temperature-time recorder.',
+    iconName: 'Activity',
+    defaultWidth: 320,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'reactionType',
+        label: 'Calorimeter Reaction / Process',
+        type: 'select',
+        defaultValue: 'neutralization-hcl-naoh',
+        options: [
+          { label: 'Neutralization: 1.0M HCl + 1.0M NaOH (Strong Acid-Base)', value: 'neutralization-hcl-naoh' },
+          { label: 'Neutralization: 1.0M CH₃COOH + 1.0M NaOH (Weak Acid-Base)', value: 'neutralization-ch3cooh-naoh' },
+          { label: 'Enthalpy of Solution: KNO₃ (Endothermic)', value: 'solution-kno3' },
+          { label: 'Enthalpy of Solution: CuSO₄·5H₂O (Endothermic)', value: 'solution-cuso4' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'volumeAcidMl',
+        label: 'Acid / Solvent Volume (mL)',
+        type: 'number',
+        defaultValue: 50,
+        min: 10,
+        max: 100,
+        step: 5,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'volumeBaseMl',
+        label: 'Base / Solute Volume (mL)',
+        type: 'number',
+        defaultValue: 50,
+        min: 5,
+        max: 100,
+        step: 5,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'waterEquivalentW',
+        label: 'Calorimeter Water Equivalent W (J/K)',
+        type: 'number',
+        defaultValue: 25,
+        min: 10,
+        max: 60,
+        step: 5,
+        unit: 'J/K',
+        editable: true,
+      },
+      {
+        id: 'isMixed',
+        label: 'Mix Reactants Inside Calorimeter',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'elapsedSeconds',
+        label: 'Elapsed Time Since Mixing (s)',
+        type: 'number',
+        defaultValue: 25,
+        min: 0,
+        max: 120,
+        step: 5,
+        unit: 's',
+        editable: true,
+      },
+    ],
+    renderType: 'calorimeter-bench',
+    colorTheme: '#ef4444',
+  },
+  {
+    id: 'daniell-cell-apparatus',
+    name: 'Galvanic Daniell Cell Assembly with Salt Bridge',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Two-compartment electrochemical cell containing zinc and copper electrodes immersed in ZnSO4 and CuSO4, joined by an inverted U-tube salt bridge with a digital voltmeter.',
+    iconName: 'Zap',
+    defaultWidth: 320,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'zincConcentrationM',
+        label: 'Zn²⁺ Anode Concentration (M)',
+        type: 'select',
+        defaultValue: 1.0,
+        options: [
+          { label: '0.01 M ZnSO₄', value: 0.01 },
+          { label: '0.10 M ZnSO₄', value: 0.1 },
+          { label: '1.00 M ZnSO₄ (Standard)', value: 1.0 },
+        ],
+        editable: true,
+      },
+      {
+        id: 'copperConcentrationM',
+        label: 'Cu²⁺ Cathode Concentration (M)',
+        type: 'select',
+        defaultValue: 1.0,
+        options: [
+          { label: '0.01 M CuSO₄', value: 0.01 },
+          { label: '0.10 M CuSO₄', value: 0.1 },
+          { label: '1.00 M CuSO₄ (Standard)', value: 1.0 },
+        ],
+        editable: true,
+      },
+      {
+        id: 'saltBridgeInserted',
+        label: 'Agar-Agar KCl Salt Bridge Inserted',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'voltmeterPolarityReversed',
+        label: 'Reverse Voltmeter Terminal Leads',
+        type: 'boolean',
+        defaultValue: false,
+        editable: true,
+      },
+      {
+        id: 'temperatureC',
+        label: 'Cell Temperature (°C)',
+        type: 'number',
+        defaultValue: 25,
+        min: 10,
+        max: 50,
+        step: 5,
+        unit: '°C',
+        editable: true,
+      },
+    ],
+    renderType: 'daniell-cell-bench',
+    colorTheme: '#0284c7',
   },
 ];
 
@@ -3856,6 +4156,480 @@ export const CHEMISTRY_LAB_DEFINITIONS: LabDefinition[] = [
     defaultNotebookNotes:
       "Detection of Elements (N, S, Halogens) in Organic Compounds — Experimental Record:\n\n1. Principle of Lassaigne's Test (Sodium Fusion Extract):\n  Covalent organic molecules do not ionize in aqueous solution. Fusion with metallic sodium converts covalently bound extra elements into ionic sodium salts:\n- Nitrogen: Na + C + N ⟶ NaCN (Sodium cyanide)\n- Sulphur: 2 Na + S ⟶ Na₂S (Sodium sulphide)\n- Halogens: Na + X ⟶ NaX (Sodium halide, where X = Cl, Br, I)\n- Nitrogen + Sulphur together: Na + C + N + S ⟶ NaSCN (Sodium thiocyanate)\n\n2. Test for Nitrogen (Prussian Blue Reaction):\n  6 NaCN + FeSO₄ ⟶ Na₄[Fe(CN)₆] + Na₂SO₄\n  3 Na₄[Fe(CN)₆] + 4 FeCl₃ ⟶ Fe₄[Fe(CN)₆]₃(s, Prussian Blue) + 12 NaCl\n- Observation: Brilliant Prussian blue precipitate confirms Nitrogen.\n\n3. Tests for Sulphur:\n- Sodium Nitroprusside Test:\n  Na₂S + Na₂[Fe(CN)₅NO] ⟶ Na₄[Fe(CN)₅NOS] (Brilliant purple/violet complex)\n- Lead Acetate Test:\n  Na₂S + (CH₃COO)₂Pb ⟶ PbS(s, black precipitate) + 2 CH₃COONa\n\n4. Tests for Halogens (Silver Nitrate Test):\n- Boiling with conc. HNO₃ first is essential if N or S is present, to expel HCN and H₂S, which would otherwise precipitate black Ag₂S or white AgCN.\n- Chlorine: Curdy white precipitate of AgCl, completely soluble in dilute NH₄OH.\n  AgCl + 2 NH₄OH ⟶ [Ag(NH₃)₂]Cl(aq) + 2 H₂O\n- Bromine: Pale yellow precipitate of AgBr, sparingly soluble in dilute NH₄OH.\n- Iodine: Canary yellow precipitate of AgI, completely insoluble in dilute NH₄OH.\n\n5. Test Organic Samples Summary:\n- Urea (NH₂CONH₂): Nitrogen POSITIVE, Sulphur NEGATIVE, Halogens NEGATIVE\n- Thiourea (NH₂CSNH₂): Nitrogen POSITIVE, Sulphur POSITIVE, Halogens NEGATIVE\n- Sulphanilic Acid (H₂N-C₆H₄-SO₃H): Nitrogen POSITIVE, Sulphur POSITIVE, Halogens NEGATIVE\n- Chlorobenzene (C₆H₅Cl): Halogen (Chlorine) POSITIVE, Nitrogen & Sulphur NEGATIVE\n- Bromobenzene (C₆H₅Br): Halogen (Bromine) POSITIVE, Nitrogen & Sulphur NEGATIVE\n- Iodobenzene (C₆H₅I): Halogen (Iodine) POSITIVE, Nitrogen & Sulphur NEGATIVE\n- Benzoic Acid (C₆H₅COOH): All Extra Elements NEGATIVE (Pure C, H, O).",
   },
+  {
+    experimentId: 'surface-chemistry',
+    title: 'Surface Chemistry (Colloid Preparation & Tyndall Scattering)',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'colloid-apparatus',
+      'borosilicate-beaker',
+      'pasteur-pipette-dropper',
+      'glass-stirring-rod',
+    ],
+    initialObjects: [
+      {
+        id: 'colloid-bench-1',
+        equipmentId: 'colloid-apparatus',
+        title: 'Colloidal Analysis Assembly',
+        x: 140,
+        y: 80,
+        rotation: 0,
+        width: 340,
+        height: 250,
+        properties: {
+          solType: 'feoh3-sol',
+          laserActive: true,
+          electrolyte: 'none',
+          electrolyteVolumeMl: 0,
+        },
+        state: {
+          solName: 'Hydrated Ferric Hydroxide Sol [Fe(OH)₃ / Fe³⁺]',
+          tyndallIntensityPercent: 92,
+          coagulationStatus: 'stable-colloid',
+        },
+      },
+      {
+        id: 'beaker-sol-1',
+        equipmentId: 'borosilicate-beaker',
+        title: 'Distilled Water Stock',
+        x: 520,
+        y: 90,
+        rotation: 0,
+        width: 100,
+        height: 120,
+        properties: { capacityMl: 250 },
+        state: { liquidColorHex: '#38bdf8' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'step-surf-1',
+        stepNumber: 1,
+        title: 'Prepare Positive Fe(OH)₃ Lyophobic Sol',
+        instruction:
+          'Observe the deep reddish-brown ferric hydroxide sol formed by hydrolysis of 2% FeCl₃ in vigorously boiling water: FeCl₃ + 3H₂O → Fe(OH)₃(sol) + 3HCl.',
+      },
+      {
+        id: 'step-surf-2',
+        stepNumber: 2,
+        title: 'Observe Tyndall Scattering Effect',
+        instruction:
+          'With the transverse 650 nm laser pointer ACTIVE, observe the intense illuminated Tyndall scattering cone produced by colloidal particles.',
+      },
+      {
+        id: 'step-surf-3',
+        stepNumber: 3,
+        title: 'Contrast with True Solution and Lyophilic Sol',
+        instruction:
+          'Switch sample to Aqueous NaCl (true solution, <1 nm) to confirm the complete absence of a Tyndall cone, then to Starch Sol to observe moderate scattering.',
+      },
+      {
+        id: 'step-surf-4',
+        stepNumber: 4,
+        title: 'Investigate Hardy-Schulze Coagulation Rule',
+        instruction:
+          'Return to Fe(OH)₃ positive sol and add K₄[Fe(CN)₆] containing quadrivalent [Fe(CN)₆]⁴⁻ anions to induce rapid complete coagulation and precipitation.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-tyndall-scatter',
+        description: 'Verify the Tyndall effect occurs exclusively in colloidal systems (1 - 1000 nm) and is absent in true solutions.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-hardy-schulze',
+        description: 'Demonstrate that coagulating power scales with the valence of the opposing ion (Hardy-Schulze rule).',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Surface Chemistry & Colloids Practical Notes:\n\n1. Classification of Colloidal Systems:\n- Lyophobic Sols (Solvent-hating): Irreversible, unstable, easily coagulated by trace electrolytes. Examples: Fe(OH)₃ (+ve sol stabilized by adsorbed Fe³⁺), As₂S₃ (-ve sol stabilized by adsorbed S²⁻).\n- Lyophilic Sols (Solvent-loving): Reversible, highly stable due to extensive hydration shell. Example: Starch sol.\n- True Solutions: Molecular/ionic size < 1 nm; transparent; completely pass through filter paper and cellophane membrane.\n\n2. Optical Properties — Tyndall Effect:\n- Colloidal particles scatter incident light transversely if diameter is comparable to wavelength and refractive index differs from dispersion medium.\n- Lyophobic Fe(OH)₃: High refractive index contrast ⟶ Intense luminous Tyndall beam.\n- Lyophilic Starch: Low refractive index contrast due to solvation sheath ⟶ Moderate Tyndall cone.\n- True Solution (NaCl): Particle size < 1 nm ⟶ Zero Tyndall scattering (beam passes invisibly).\n\n3. Coagulation & Hardy-Schulze Rule:\n- Coagulating power is proportional to the valence of the coagulating counter-ion.\n- For Positive Fe(OH)₃ sol: Coagulating power: [Fe(CN)₆]⁴⁻ (valence 4) ≫ SO₄²⁻ (valence 2) ≫ Cl⁻ (valence 1).\n- Coagulating values: [Fe(CN)₆]⁴⁻ ~ 0.09 mmol/L, SO₄²⁻ ~ 0.4 mmol/L, Cl⁻ ~ 9.5 mmol/L.",
+  },
+  {
+    experimentId: 'chemical-kinetics',
+    title: 'Chemical Kinetics (Na2S2O3 + HCl Concentration & Rate Study)',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'kinetics-cross-bench',
+      'graduated-cylinder-50ml',
+      'borosilicate-beaker',
+    ],
+    initialObjects: [
+      {
+        id: 'kinetics-bench-1',
+        equipmentId: 'kinetics-cross-bench',
+        title: 'Kinetics Cross Obscuration Station',
+        x: 140,
+        y: 80,
+        rotation: 0,
+        width: 340,
+        height: 250,
+        properties: {
+          volumeThiosulphateMl: 50,
+          volumeWaterMl: 0,
+          volumeHclMl: 10,
+          temperatureC: 25,
+          isReactionStarted: true,
+          elapsedSeconds: 0,
+        },
+        state: {
+          effectiveThioM: 0.0833,
+          timeToObscureSec: 16.0,
+          ratePerSec: 0.0625,
+          crossObscured: false,
+          crossVisibilityPercent: 100,
+        },
+      },
+      {
+        id: 'beaker-kin-stock',
+        equipmentId: 'borosilicate-beaker',
+        title: '0.1M Na₂S₂O₃ Stock Solution',
+        x: 520,
+        y: 90,
+        rotation: 0,
+        width: 100,
+        height: 120,
+        properties: { capacityMl: 250 },
+        state: { liquidColorHex: '#fef08a' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'step-kin-1',
+        stepNumber: 1,
+        title: 'Flask A: High Concentration Run (50 mL Thiosulphate)',
+        instruction:
+          'Set 50 mL of 0.1M Na₂S₂O₃ and 0 mL water. Mix with 10 mL 1.0M HCl and observe the rapid formation of colloidal sulphur obscuring the black cross mark in ~16 seconds.',
+      },
+      {
+        id: 'step-kin-2',
+        stepNumber: 2,
+        title: 'Flask B: Diluted Run (40 mL Thiosulphate + 10 mL Water)',
+        instruction:
+          'Reduce thiosulphate volume to 40 mL and add 10 mL distilled water. Notice that lower reactant concentration increases obscuration time to ~20 seconds.',
+      },
+      {
+        id: 'step-kin-3',
+        stepNumber: 3,
+        title: 'Flasks C, D, and E Serial Dilutions',
+        instruction:
+          'Test 30 mL, 20 mL, and 10 mL thiosulphate volumes. Record times: 27s, 40s, and 80s respectively.',
+      },
+      {
+        id: 'step-kin-4',
+        stepNumber: 4,
+        title: 'Plot 1/t vs Concentration & Temperature Effect',
+        instruction:
+          'Plot Rate (1/t) versus [Na₂S₂O₃]. A straight line passing through origin confirms first-order kinetics. Vary temperature to 35°C and 45°C to observe Arrhenius rate acceleration.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-rate-conc',
+        description: 'Prove that reaction rate is directly proportional to concentration of sodium thiosulphate (Rate ∝ 1/t ∝ [Na₂S₂O₃]).',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-arrhenius-temp',
+        description: 'Verify that increasing reaction temperature substantially increases the reaction rate constant k.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Chemical Kinetics — Reaction between Sodium Thiosulphate and Hydrochloric Acid:\n\n1. Chemical Equation:\n  Na₂S₂O₃(aq) + 2 HCl(aq) ⟶ 2 NaCl(aq) + SO₂(g) + S(s, colloidal sulphur) + H₂O(l)\n\n2. Principle of Measurement:\n- Elemental sulphur forms a fine milky yellow colloidal suspension.\n- The flask is placed over a white glazed tile with a bold black cross mark (+).\n- As sulphur particles accumulate, light transmission decreases.\n- Time (t) taken for the cross to become completely obscured from above is recorded.\n- Reaction rate is taken as inversely proportional to obscuration time: Rate ∝ 1 / t.\n\n3. Experimental Data Matrix (Standard Run at 25°C, total volume = 60 mL):\n- Flask A: 50 mL Thio + 0 mL H₂O ⟶ [Na₂S₂O₃] = 0.0833 M ⟶ t = 16.0 s ⟶ Rate = 0.0625 s⁻¹\n- Flask B: 40 mL Thio + 10 mL H₂O ⟶ [Na₂S₂O₃] = 0.0667 M ⟶ t = 20.0 s ⟶ Rate = 0.0500 s⁻¹\n- Flask C: 30 mL Thio + 20 mL H₂O ⟶ [Na₂S₂O₃] = 0.0500 M ⟶ t = 26.7 s ⟶ Rate = 0.0375 s⁻¹\n- Flask D: 20 mL Thio + 30 mL H₂O ⟶ [Na₂S₂O₃] = 0.0333 M ⟶ t = 40.0 s ⟶ Rate = 0.0250 s⁻¹\n- Flask E: 10 mL Thio + 40 mL H₂O ⟶ [Na₂S₂O₃] = 0.0167 M ⟶ t = 80.0 s ⟶ Rate = 0.0125 s⁻¹\n\n4. Conclusion:\n- The plot of 1/t against [Na₂S₂O₃] gives a straight line passing through the origin.\n- Hence, Rate = k [Na₂S₂O₃]¹ (First order reaction with respect to thiosulphate).",
+  },
+  {
+    experimentId: 'thermochemistry',
+    title: 'Thermochemistry (Enthalpy of Neutralization)',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'calorimeter-assembly',
+      'graduated-cylinder-50ml',
+      'borosilicate-beaker',
+    ],
+    initialObjects: [
+      {
+        id: 'calorimeter-1',
+        equipmentId: 'calorimeter-assembly',
+        title: 'Polystyrene Cup Calorimeter Assembly',
+        x: 140,
+        y: 80,
+        rotation: 0,
+        width: 340,
+        height: 250,
+        properties: {
+          reactionType: 'neutralization-hcl-naoh',
+          volumeAcidMl: 50,
+          volumeBaseMl: 50,
+          waterEquivalentW: 25,
+          isMixed: true,
+          elapsedSeconds: 25,
+        },
+        state: {
+          theoreticalDeltaH: -57.32,
+          experimentalDeltaH: -57.32,
+          currentTempC: 28.5,
+          peakTempC: 28.5,
+          heatEvolvedJoules: 2866,
+        },
+      },
+      {
+        id: 'beaker-thermo-base',
+        equipmentId: 'borosilicate-beaker',
+        title: '1.0M NaOH Stock',
+        x: 520,
+        y: 90,
+        rotation: 0,
+        width: 100,
+        height: 120,
+        properties: { capacityMl: 250 },
+        state: { liquidColorHex: '#e0f2fe' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'step-therm-1',
+        stepNumber: 1,
+        title: 'Equilibrate Reagent Temperatures',
+        instruction:
+          'Measure 50 mL of 1.0M HCl in the calorimeter cup and 50 mL of 1.0M NaOH in a measuring cylinder. Confirm both are at steady initial temperature (22.0°C).',
+      },
+      {
+        id: 'step-therm-2',
+        stepNumber: 2,
+        title: 'Rapid Mixing Inside Insulated Cup',
+        instruction:
+          'Quickly pour the 1.0M NaOH into the calorimeter cup, insert the differential Beckman thermometer and stirrer, and stir smoothly.',
+      },
+      {
+        id: 'step-therm-3',
+        stepNumber: 3,
+        title: 'Record Peak Exothermic Temperature Rise',
+        instruction:
+          'Monitor temperature rising sharply to ~28.5°C (ΔT = +6.5°C) before beginning slow cooling.',
+      },
+      {
+        id: 'step-therm-4',
+        stepNumber: 4,
+        title: 'Calculate Enthalpy of Neutralization ΔH_neut',
+        instruction:
+          'Calculate total heat capacity C = (100 g × 4.184 J/g·K + 25 J/K) = 443.4 J/K, heat evolved q = C × ΔT = 2866 J, and ΔH_neut = -q / 0.050 mol = -57.3 kJ/mol.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-enthalpy-calc',
+        description: 'Accurately determine enthalpy of neutralization of strong acid with strong base and verify theoretical constant -57.32 kJ/mol.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-water-equiv',
+        description: 'Account for calorimeter water equivalent W in the calorimetric heat balance equation.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Thermochemistry — Enthalpy of Neutralization of Strong Acid (HCl) and Strong Base (NaOH):\n\n1. Theory & Chemical Principle:\n- Strong acids and strong bases are completely ionised in dilute aqueous solution.\n- Neutralization is fundamentally the union of hydrated hydronium and hydroxide ions to form water:\n  H⁺(aq) + OH⁻(aq) ⟶ H₂O(l)\n- Since neither the spectator cation (Na⁺) nor anion (Cl⁻) participate, standard enthalpy of neutralization for any strong acid with any strong base is constant: ΔH°_neut = -57.32 kJ/mol.\n\n2. Formulae:\n- Heat capacity of calorimetric system: C_total = (m_sol × c_water + W)\n  where m_sol = V_HCl + V_NaOH = 50 + 50 = 100 g, c = 4.184 J/(g·K), W = 25.0 J/K.\n- Heat evolved: q = C_total × ΔT = (100 × 4.184 + 25) × 6.46 = 443.4 × 6.46 ≈ 2866 Joules.\n- Moles of water formed: n = 0.050 L × 1.0 mol/L = 0.050 moles.\n- Enthalpy of Neutralization: ΔH_neut = -q / (n × 1000) = -2866 / 50 = -57.32 kJ/mol.\n\n3. Weak Acid Comparison (CH₃COOH + NaOH):\n- Measured ΔH_neut = -55.90 kJ/mol.\n- The lower value (~1.4 kJ/mol less exothermic) is due to heat absorbed in complete ionization of acetic acid: ΔH_dissociation(CH₃COOH) = +1.42 kJ/mol.",
+  },
+  {
+    experimentId: 'electrochemistry',
+    title: 'Electrochemistry (Galvanic Daniell Cell & Nernst Equation)',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'daniell-cell-apparatus',
+      'borosilicate-beaker',
+    ],
+    initialObjects: [
+      {
+        id: 'daniell-cell-1',
+        equipmentId: 'daniell-cell-apparatus',
+        title: 'Galvanic Daniell Cell Assembly',
+        x: 140,
+        y: 80,
+        rotation: 0,
+        width: 340,
+        height: 250,
+        properties: {
+          zincConcentrationM: 1.0,
+          copperConcentrationM: 1.0,
+          saltBridgeInserted: true,
+          voltmeterPolarityReversed: false,
+          temperatureC: 25,
+        },
+        state: {
+          standardEmfVolts: 1.103,
+          measuredEmfVolts: 1.103,
+          voltmeterReadingText: '+1.103 V',
+          circuitClosed: true,
+        },
+      },
+      {
+        id: 'beaker-cu-sol',
+        equipmentId: 'borosilicate-beaker',
+        title: '1.0M CuSO₄ Catholyte Stock',
+        x: 520,
+        y: 90,
+        rotation: 0,
+        width: 100,
+        height: 120,
+        properties: { capacityMl: 250 },
+        state: { liquidColorHex: '#0284c7' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'step-dan-1',
+        stepNumber: 1,
+        title: 'Construct Standard Daniell Cell (1.0M / 1.0M)',
+        instruction:
+          'Immerse zinc electrode into 1.0M ZnSO₄ (anode) and copper electrode into 1.0M CuSO₄ (cathode). Connect terminals to high-impedance digital voltmeter.',
+      },
+      {
+        id: 'step-dan-2',
+        stepNumber: 2,
+        title: 'Insert Agar-Agar KCl Salt Bridge',
+        instruction:
+          'Insert the U-tube salt bridge to complete the electrochemical circuit. Observe the voltmeter read standard cell EMF E° = +1.103 V (circuit was open 0.000 V without salt bridge).',
+      },
+      {
+        id: 'step-dan-3',
+        stepNumber: 3,
+        title: 'Vary [Zn²⁺] Concentration (Nernst Equation Verification)',
+        instruction:
+          'Decrease [Zn²⁺] to 0.1M and 0.01M with [Cu²⁺] constant at 1.0M. Observe cell potential increase to +1.133 V and +1.162 V respectively (slope = -0.0296 V per decade).',
+      },
+      {
+        id: 'step-dan-4',
+        stepNumber: 4,
+        title: 'Vary [Cu²⁺] and Check Terminal Polarity',
+        instruction:
+          'Change [Cu²⁺] to 0.1M to observe EMF drop to +1.073 V. Reverse voltmeter terminal leads to observe the sign invert to negative potential.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-nernst-equation',
+        description: 'Verify the Nernst equation EMF dependence on reaction quotient Q = [Zn²⁺] / [Cu²⁺].',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-salt-bridge-function',
+        description: 'Understand that the salt bridge maintains electrical neutrality by ion migration and prevents liquid junction potential.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Electrochemistry — Galvanic Daniell Cell Investigation:\n\n1. Half-Cell Electrochemical Reactions:\n- Anode (Oxidation):  Zn(s) ⟶ Zn²⁺(aq) + 2 e⁻   [E°_ox = +0.763 V, E°_red = -0.763 V]\n- Cathode (Reduction): Cu²⁺(aq) + 2 e⁻ ⟶ Cu(s)   [E°_red = +0.340 V]\n- Overall Cell Reaction: Zn(s) + Cu²⁺(aq) ⟶ Zn²⁺(aq) + Cu(s)  (n = 2 moles of electrons)\n\n2. Standard Cell Potential (EMF):\n  E°_cell = E°_cathode - E°_anode = +0.340 V - (-0.763 V) = +1.103 V (≈ 1.10 V)\n\n3. Nernst Equation at 298.15 K (25°C):\n  E_cell = E°_cell - (0.05916 / n) × log₁₀([Zn²⁺] / [Cu²⁺])\n  E_cell = 1.103 - 0.02958 × log₁₀([Zn²⁺] / [Cu²⁺])\n\n4. Concentration Dependence Table:\n- [Zn²⁺] = 0.01 M, [Cu²⁺] = 1.0 M ⟶ log₁₀(0.01) = -2 ⟶ E_cell = 1.103 - 0.0296(-2) = +1.162 V\n- [Zn²⁺] = 0.10 M, [Cu²⁺] = 1.0 M ⟶ log₁₀(0.10) = -1 ⟶ E_cell = 1.103 - 0.0296(-1) = +1.133 V\n- [Zn²⁺] = 1.00 M, [Cu²⁺] = 1.0 M ⟶ log₁₀(1.00) =  0 ⟶ E_cell = 1.103 V\n- [Zn²⁺] = 1.00 M, [Cu²⁺] = 0.1 M ⟶ log₁₀(10.0) = +1 ⟶ E_cell = 1.103 - 0.0296(+1) = +1.073 V\n- [Zn²⁺] = 1.00 M, [Cu²⁺] = 0.01 M ⟶ log₁₀(100) = +2 ⟶ E_cell = 1.103 - 0.0296(+2) = +1.044 V\n\n5. Function of the Salt Bridge:\n- Contains agar-agar gel saturated with KCl (inert electrolyte with equal transport numbers for K⁺ and Cl⁻).\n- Cl⁻ ions migrate into zinc half-cell to neutralize excess Zn²⁺ ions.\n- K⁺ ions migrate into copper half-cell to replace consumed Cu²⁺ ions.\n- Prevents accumulation of positive and negative charges, sustaining current flow.",
+  },
+  {
+    experimentId: 'paper-chromatography-class12',
+    title: 'Paper Chromatography (Class 12 Inorganic Cation & Leaf Pigment Separation)',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'chromatography-paper-strip',
+      'developing-chamber',
+      'chromatography-ruler',
+      'pasteur-pipette-dropper',
+      'borosilicate-beaker',
+    ],
+    initialObjects: [
+      {
+        id: 'chamber-c12-1',
+        equipmentId: 'developing-chamber',
+        title: 'Developing Tank with n-Butanol:Acetic Acid',
+        x: 100,
+        y: 80,
+        rotation: 0,
+        width: 140,
+        height: 250,
+        properties: { solventType: 'n-butanol-acetic-acid', liquidLevelPercent: 20 },
+        state: { chamberStatus: 'Saturated with eluent vapor' },
+      },
+      {
+        id: 'paper-c12-1',
+        equipmentId: 'chromatography-paper-strip',
+        title: 'Whatman #1 Strip (Cations Pb²⁺ & Cd²⁺)',
+        x: 270,
+        y: 80,
+        rotation: 0,
+        width: 110,
+        height: 220,
+        properties: {
+          sampleInk: 'class12-cation-mixture',
+          elapsedSeconds: 60,
+          isDeveloping: true,
+        },
+        state: { developmentStatus: 'Ascending Capillary Migration Active' },
+      },
+      {
+        id: 'ruler-c12-1',
+        equipmentId: 'chromatography-ruler',
+        title: 'Metric Chromatography Ruler (100mm)',
+        x: 430,
+        y: 90,
+        rotation: 0,
+        width: 50,
+        height: 200,
+        properties: { rulerLengthMm: 100 },
+        state: { measurementTarget: 'Lead & Cadmium Spot Fronts' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'step-chrom12-1',
+        stepNumber: 1,
+        title: 'Deposit Micro-Drop of Cation Mixture',
+        instruction:
+          'On Whatman No. 1 paper strip, draw a pencil baseline 2 cm above bottom edge. Spot a concentrated drop containing Pb²⁺ and Cd²⁺ nitrates and dry gently.',
+      },
+      {
+        id: 'step-chrom12-2',
+        stepNumber: 2,
+        title: 'Ascending Capillary Development',
+        instruction:
+          'Suspend paper in developing chamber containing n-butanol : acetic acid : water (4:1:5). Mobile phase ascends by capillary action for ~60 seconds to ~80 mm.',
+      },
+      {
+        id: 'step-chrom12-3',
+        stepNumber: 3,
+        title: 'Spray Development with Ammonium Sulphide',
+        instruction:
+          'Dry the chromatogram and spray with yellow ammonium sulphide (NH₄)₂S inside fume hood. Pb²⁺ precipitates as brown-black PbS and Cd²⁺ as bright canary-yellow CdS.',
+      },
+      {
+        id: 'step-chrom12-4',
+        stepNumber: 4,
+        title: 'Measure Distances & Calculate Rf Values',
+        instruction:
+          'Measure distance of each colored spot from the baseline using the metric ruler. Compute Rf = distance spot / solvent front. For Pb²⁺: Rf ≈ 0.38; For Cd²⁺: Rf ≈ 0.72.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-cation-separation',
+        description: 'Separate inorganic metal cations (Pb²⁺, Cd²⁺) using ascending partition chromatography and chemical spray reagent visualization.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-rf-metal-ions',
+        description: 'Accurately determine retention factors (Rf) to characterize unknown inorganic components in a mixture.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Paper Chromatography Analysis — Class 12 Advanced Separation:\n\n1. Separation of Inorganic Metal Cations (Pb²⁺ and Cd²⁺):\n- Stationary Phase: Water adsorbed on cellulose fibers of Whatman No. 1 paper.\n- Mobile Phase: n-Butanol : Acetic Acid : Water (4:1:5 upper organic phase).\n- Visualization: Metal ions are colorless. Sprayed with freshly prepared yellow ammonium sulphide solution (NH₄)₂S:\n  Pb²⁺ + S²⁻ ⟶ PbS(s, brown-black spot, Rf ≈ 0.38)\n  Cd²⁺ + S²⁻ ⟶ CdS(s, bright canary yellow spot, Rf ≈ 0.72)\n\n2. Separation of Photosynthetic Spinach Leaf Pigments:\n- Extraction: Fresh spinach leaves ground in acetone : petroleum ether (1:9).\n- Mobile Phase: Petroleum ether : Acetone : Benzene (85:10:5).\n- Pigment Bands observed from origin to solvent front:\n  1. Chlorophyll b (Olive green): Rf ≈ 0.35 (strong hydrogen bonding with cellulose)\n  2. Chlorophyll a (Blue green): Rf ≈ 0.48\n  3. Xanthophyll (Yellow): Rf ≈ 0.70\n  4. Carotene (Orange-yellow): Rf ≈ 0.95 (non-polar hydrocarbon, moves almost with solvent front)\n\n3. Rf Calculation Formula:\n  Rf = Distance traveled by solute from baseline / Distance traveled by solvent front from baseline.",
+  },
 ];
 
 export const chemistryExtension: SubjectLabExtension = {
@@ -4504,6 +5278,153 @@ export const chemistryExtension: SubjectLabExtension = {
       };
 
       messages.push(`Organic Element Test (${outcome.targetElement}): ${outcome.inference}`);
+    }
+
+    // Evaluate colloid and surface chemistry apparatus
+    const colloidBenches = objects.filter((o) => o.equipmentId === 'colloid-apparatus');
+    for (const bench of colloidBenches) {
+      const solType = (bench.properties.solType as SolType) ?? 'feoh3-sol';
+      const laserActive = Boolean(bench.properties.laserActive ?? true);
+      const electrolyte = (bench.properties.electrolyte as CoagulatingElectrolyte) ?? 'none';
+      const electrolyteVolumeMl = Number(bench.properties.electrolyteVolumeMl ?? 0);
+
+      const colloidState = calculateColloidState({
+        solType,
+        laserActive,
+        electrolyte,
+        electrolyteVolumeMl,
+      });
+
+      updates[bench.id] = {
+        solType,
+        solName: colloidState.sol.name,
+        solCategory: colloidState.sol.category,
+        solCharge: colloidState.sol.charge,
+        laserActive,
+        tyndallIntensityPercent: colloidState.tyndallIntensityPercent,
+        tyndallConeVisible: colloidState.tyndallConeVisible,
+        tyndallObservation: colloidState.tyndallObservation,
+        coagulationStatus: colloidState.coagulationStatus,
+        coagulationObservation: colloidState.coagulationObservation,
+        effectiveColor: colloidState.effectiveColor,
+        status: `${colloidState.sol.name}: ${colloidState.coagulationStatus} (Tyndall: ${colloidState.tyndallIntensityPercent}%)`,
+      };
+
+      messages.push(`Colloid (${colloidState.sol.name}): Tyndall ${colloidState.tyndallIntensityPercent}%, Status: ${colloidState.coagulationStatus}`);
+    }
+
+    // Evaluate kinetics reaction vessels
+    const kineticsBenches = objects.filter((o) => o.equipmentId === 'kinetics-cross-bench');
+    for (const bench of kineticsBenches) {
+      const volumeThio = Number(bench.properties.volumeThiosulphateMl ?? 50);
+      const volumeWater = Number(bench.properties.volumeWaterMl ?? 0);
+      const volumeHcl = Number(bench.properties.volumeHclMl ?? 10);
+      const tempC = Number(bench.properties.temperatureC ?? 25);
+      const isStarted = Boolean(bench.properties.isReactionStarted ?? false);
+      const elapsed = Number(bench.properties.elapsedSeconds ?? 0);
+
+      const kinState = calculateKineticsState({
+        stockThiosulphateM: 0.10,
+        volumeThiosulphateMl: volumeThio,
+        volumeWaterMl: volumeWater,
+        volumeHclMl: volumeHcl,
+        temperatureC: tempC,
+        elapsedSeconds: elapsed,
+        isReactionStarted: isStarted,
+      });
+
+      updates[bench.id] = {
+        volumeThiosulphateMl: volumeThio,
+        volumeWaterMl: volumeWater,
+        effectiveThioM: kinState.effectiveThioM,
+        timeToObscureSec: kinState.timeToObscureSec,
+        ratePerSec: kinState.ratePerSec,
+        turbidityPercent: kinState.turbidityPercent,
+        crossObscured: kinState.crossObscured,
+        crossVisibilityPercent: kinState.crossVisibilityPercent,
+        observationStatus: kinState.observationStatus,
+        solutionColor: kinState.solutionColor,
+        sulphurPrecipitateGrams: kinState.sulphurPrecipitateGrams,
+        status: kinState.crossObscured
+          ? `CROSS OBSCURED at t = ${kinState.timeToObscureSec}s (Rate: ${kinState.ratePerSec} s⁻¹)`
+          : isStarted
+          ? `Reacting: Visibility ${kinState.crossVisibilityPercent}% (${elapsed.toFixed(1)}s / ${kinState.timeToObscureSec}s)`
+          : 'Ready: Cross mark clearly visible through solution',
+      };
+
+      messages.push(`Kinetics: [Na2S2O3] = ${kinState.effectiveThioM} M -> Obscuration in ${kinState.timeToObscureSec}s`);
+    }
+
+    // Evaluate calorimeter assemblies
+    const calorimeters = objects.filter((o) => o.equipmentId === 'calorimeter-assembly');
+    for (const cal of calorimeters) {
+      const reactionType = (cal.properties.reactionType as CalorimeterReactionType) ?? 'neutralization-hcl-naoh';
+      const vAcid = Number(cal.properties.volumeAcidMl ?? 50);
+      const vBase = Number(cal.properties.volumeBaseMl ?? 50);
+      const mAcid = Number(cal.properties.molarityAcid ?? 1.0);
+      const mBase = Number(cal.properties.molarityBase ?? 1.0);
+      const wEq = Number(cal.properties.waterEquivalentW ?? 25.0);
+      const isMixed = Boolean(cal.properties.isMixed ?? false);
+      const elapsed = Number(cal.properties.elapsedSeconds ?? 0);
+
+      const calState = calculateCalorimetryState({
+        reactionType,
+        volumeAcidMl: vAcid,
+        volumeBaseMl: vBase,
+        molarityAcid: mAcid,
+        molarityBase: mBase,
+        initialTempC: 22.0,
+        waterEquivalentW: wEq,
+        isMixed,
+        elapsedSeconds: elapsed,
+      });
+
+      updates[cal.id] = {
+        reactionName: calState.reaction.name,
+        molesReacted: calState.molesReacted,
+        theoreticalDeltaH: calState.theoreticalDeltaH,
+        experimentalDeltaH: calState.experimentalDeltaH,
+        errorPercent: calState.errorPercent,
+        currentTempC: calState.currentTempC,
+        peakTempC: calState.peakTempC,
+        heatEvolvedJoules: calState.heatEvolvedJoules,
+        observationStatus: calState.observationStatus,
+        status: isMixed
+          ? `T = ${calState.currentTempC}°C (Peak: ${calState.peakTempC}°C, ΔH: ${calState.experimentalDeltaH} kJ/mol)`
+          : 'Equilibrated: Ready for mixing reactants',
+      };
+
+      messages.push(`Calorimeter (${calState.reaction.name}): ΔH = ${calState.experimentalDeltaH} kJ/mol (Theoretical: ${calState.theoreticalDeltaH} kJ/mol)`);
+    }
+
+    // Evaluate Daniell electrochemical cells
+    const daniellCells = objects.filter((o) => o.equipmentId === 'daniell-cell-apparatus');
+    for (const cell of daniellCells) {
+      const znConc = Number(cell.properties.zincConcentrationM ?? 1.0);
+      const cuConc = Number(cell.properties.copperConcentrationM ?? 1.0);
+      const saltBridge = Boolean(cell.properties.saltBridgeInserted ?? true);
+      const revPol = Boolean(cell.properties.voltmeterPolarityReversed ?? false);
+
+      const cellState = calculateDaniellCellState({
+        zincConcentrationM: znConc,
+        copperConcentrationM: cuConc,
+        saltBridgeInserted: saltBridge,
+        temperatureC: 25.0,
+        voltmeterPolarityReversed: revPol,
+      });
+
+      updates[cell.id] = {
+        standardEmfVolts: cellState.standardEmfVolts,
+        measuredEmfVolts: cellState.measuredEmfVolts,
+        voltmeterReadingText: cellState.voltmeterReadingText,
+        reactionQuotientQ: cellState.reactionQuotientQ,
+        logQ: cellState.logQ,
+        circuitClosed: cellState.circuitClosed,
+        observationStatus: cellState.observationStatus,
+        status: `EMF: ${cellState.voltmeterReadingText} | [Zn²⁺]/[Cu²⁺] = ${znConc}/${cuConc} M (logQ = ${cellState.logQ})`,
+      };
+
+      messages.push(`Daniell Cell: EMF = ${cellState.voltmeterReadingText}`);
     }
 
     return {

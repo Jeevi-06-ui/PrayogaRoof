@@ -41,6 +41,11 @@ import {
   ACID_BASE_TITRATION_QUESTIONS,
   SALT_ANALYSIS_QUESTIONS,
   ORGANIC_ELEMENT_DETECTION_QUESTIONS,
+  SURFACE_CHEMISTRY_QUESTIONS,
+  CHEMICAL_KINETICS_QUESTIONS,
+  THERMOCHEMISTRY_QUESTIONS,
+  ELECTROCHEMISTRY_QUESTIONS,
+  PAPER_CHROMATOGRAPHY_CLASS12_QUESTIONS,
 } from '../chemistry/chemistryQuestions';
 
 export const OHMS_LAW_QUESTIONS: ConceptualQuestion[] = [
@@ -149,6 +154,11 @@ export function getConceptualQuestions(experimentId: string): ConceptualQuestion
   if (experimentId === 'acid-base-titration') return ACID_BASE_TITRATION_QUESTIONS;
   if (experimentId === 'salt-analysis-class11') return SALT_ANALYSIS_QUESTIONS;
   if (experimentId === 'organic-element-detection') return ORGANIC_ELEMENT_DETECTION_QUESTIONS;
+  if (experimentId === 'surface-chemistry') return SURFACE_CHEMISTRY_QUESTIONS;
+  if (experimentId === 'chemical-kinetics') return CHEMICAL_KINETICS_QUESTIONS;
+  if (experimentId === 'thermochemistry') return THERMOCHEMISTRY_QUESTIONS;
+  if (experimentId === 'electrochemistry') return ELECTROCHEMISTRY_QUESTIONS;
+  if (experimentId === 'paper-chromatography-class12') return PAPER_CHROMATOGRAPHY_CLASS12_QUESTIONS;
   if (experimentId === 'vernier-callipers') return VERNIER_CALLIPERS_QUESTIONS;
   if (experimentId === 'screw-gauge') return SCREW_GAUGE_QUESTIONS;
   if (experimentId === 'irregular-lamina') return IRREGULAR_LAMINA_QUESTIONS;

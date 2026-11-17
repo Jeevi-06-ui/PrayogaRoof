@@ -6783,6 +6783,536 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
         );
       }
 
+      case 'colloid-bench': {
+        const solName = String(object.state.solName ?? 'Hydrated Ferric Hydroxide Sol [Fe(OH)₃ / Fe³⁺]');
+        const solCat = String(object.state.solCategory ?? 'lyophobic').toUpperCase();
+        const laserActive = object.properties.laserActive !== false;
+        const tyndallIntensity = Number(object.state.tyndallIntensityPercent ?? 92);
+        const tyndallVisible = object.state.tyndallConeVisible === true;
+        const coagStatus = String(object.state.coagulationStatus ?? 'stable-colloid');
+        const coagObs = String(object.state.coagulationObservation ?? 'Stable colloidal dispersion in aqueous medium');
+        const effColor = String(object.state.effectiveColor ?? '#881337');
+        const isCoagulated = coagStatus === 'coagulated-precipitate';
+
+        return (
+          <Group>
+            {/* Workbench Base */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#881337'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Header: Sol Identity & Classification */}
+            <Rect x={12} y={10} width={width - 24} height={22} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={solName}
+              x={18}
+              y={15}
+              fontSize={9.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text={`${solCat} SOL`}
+              x={width - 100}
+              y={15}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={solCat === 'LYOPHOBIC' ? '#f43f5e' : solCat === 'LYOPHILIC' ? '#38bdf8' : '#34d399'}
+            />
+
+            {/* Laser Emitter Unit on Left */}
+            <Rect x={18} y={75} width={40} height={25} fill="#334155" stroke="#475569" strokeWidth={1} cornerRadius={3} />
+            <Circle x={58} y={87.5} radius={4} fill={laserActive ? '#ef4444' : '#64748b'} />
+            <KonvaText text="650nm LASER" x={15} y={105} fontSize={7.5} fontFamily="sans-serif" fontStyle="bold" fill="#94a3b8" />
+            <KonvaText text={laserActive ? 'LASER ON' : 'LASER OFF'} x={18} y={116} fontSize={7} fontFamily="sans-serif" fill={laserActive ? '#ef4444' : '#64748b'} />
+
+            {/* Laser Beam Path */}
+            {laserActive && (
+              <Line
+                points={[60, 87.5, 80, 87.5]}
+                stroke="#ef4444"
+                strokeWidth={2}
+                dash={[2, 2]}
+              />
+            )}
+
+            {/* Beaker with Colloidal Sol */}
+            <Rect x={80} y={45} width={75} height={110} fill="#0b1329" stroke="#94a3b8" strokeWidth={1.5} cornerRadius={[0, 0, 8, 8]} />
+            <Rect x={81} y={65} width={73} height={89} fill={effColor} opacity={0.82} cornerRadius={[0, 0, 7, 7]} />
+
+            {/* Tyndall Scattering Cone inside Beaker */}
+            {tyndallVisible && (
+              <Group>
+                <Line
+                  points={[81, 87.5, 154, 87.5]}
+                  stroke="#fca5a5"
+                  strokeWidth={4}
+                  opacity={tyndallIntensity / 100}
+                />
+                {/* Luminous Tyndall Cone */}
+                <Line
+                  points={[81, 85, 154, 80, 154, 95, 81, 90]}
+                  fill="#ef4444"
+                  closed
+                  opacity={0.35 * (tyndallIntensity / 100)}
+                />
+              </Group>
+            )}
+
+            {/* Precipitate at bottom if coagulated */}
+            {isCoagulated && (
+              <Rect x={81} y={140} width={73} height={14} fill="#450a0a" cornerRadius={[0, 0, 7, 7]} />
+            )}
+
+            <KonvaText text="DISPERSION BEAKER" x={75} y={160} fontSize={7.5} fontFamily="sans-serif" fill="#cbd5e1" />
+
+            {/* Tyndall Intensity Meter & Coagulation Status Card on Right */}
+            <Rect x={170} y={42} width={width - 185} height={height - 60} fill="#090d16" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+            <KonvaText text="OPTICAL & SURFACE PROPERTIES" x={180} y={50} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#38bdf8" />
+
+            {/* Tyndall Meter */}
+            <KonvaText text={`Tyndall Scattering: ${tyndallIntensity}%`} x={180} y={68} fontSize={9.5} fontFamily="sans-serif" fontStyle="bold" fill="#f8fafc" />
+            <Rect x={180} y={82} width={width - 205} height={8} fill="#1e293b" cornerRadius={4} />
+            <Rect x={180} y={82} width={Math.max(2, (width - 205) * (tyndallIntensity / 100))} height={8} fill={tyndallIntensity > 70 ? '#ef4444' : tyndallIntensity > 30 ? '#eab308' : '#64748b'} cornerRadius={4} />
+
+            {/* Coagulation Badge */}
+            <Rect
+              x={180}
+              y={100}
+              width={120}
+              height={20}
+              fill={isCoagulated ? '#7f1d1d' : coagStatus === 'incipient-turbidity' ? '#78350f' : '#065f46'}
+              stroke={isCoagulated ? '#ef4444' : coagStatus === 'incipient-turbidity' ? '#f59e0b' : '#10b981'}
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+            <KonvaText
+              text={isCoagulated ? 'COAGULATED (PRECIPITATE)' : coagStatus === 'incipient-turbidity' ? 'INCIPIENT FLOC' : 'STABLE DISPERSION'}
+              x={186}
+              y={105}
+              fontSize={7.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isCoagulated ? '#fca5a5' : coagStatus === 'incipient-turbidity' ? '#fde68a' : '#34d399'}
+            />
+
+            <KonvaText text={coagObs} x={180} y={128} width={width - 200} fontSize={8} fontFamily="sans-serif" fill="#cbd5e1" />
+
+            {/* Hardy Schulze Principle Footer */}
+            <Rect x={175} y={height - 42} width={width - 195} height={18} fill="#1e293b" cornerRadius={3} />
+            <KonvaText
+              text="Hardy-Schulze Rule: Coagulating power ∝ (valence of active counter-ion)⁴"
+              x={180}
+              y={height - 38}
+              width={width - 205}
+              fontSize={7}
+              fontFamily="sans-serif"
+              fill="#94a3b8"
+            />
+          </Group>
+        );
+      }
+
+      case 'kinetics-bench': {
+        const vThio = Number(object.properties.volumeThiosulphateMl ?? 50);
+        const effThio = Number(object.state.effectiveThioM ?? 0.0833);
+        const tObscure = Number(object.state.timeToObscureSec ?? 16.0);
+        const ratePerSec = Number(object.state.ratePerSec ?? 0.0625);
+        const isObscured = object.state.crossObscured === true;
+        const crossVis = Number(object.state.crossVisibilityPercent ?? 100);
+        const elapsed = Number(object.properties.elapsedSeconds ?? 0);
+        const isStarted = object.properties.isReactionStarted !== false;
+        const solutionColor = String(object.state.solutionColor ?? 'rgba(254, 240, 138, 0.4)');
+
+        return (
+          <Group>
+            {/* Workbench Base */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#eab308'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Header: Reaction Title */}
+            <Rect x={12} y={10} width={width - 24} height={22} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text="KINETICS: Na₂S₂O₃(aq) + 2HCl(aq) → 2NaCl + SO₂ + S(s)↓ + H₂O"
+              x={18}
+              y={15}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text="RATE = 1/t"
+              x={width - 80}
+              y={15}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#eab308"
+            />
+
+            {/* Left: Glazed Tile with Black Cross Mark */}
+            <Rect x={25} y={45} width={120} height={120} fill="#f8fafc" stroke="#64748b" strokeWidth={1.5} cornerRadius={4} />
+            <KonvaText text="WHITE GLAZED TILE" x={35} y={48} fontSize={7} fontFamily="sans-serif" fontStyle="bold" fill="#64748b" />
+
+            {/* Black Cross Mark (+) */}
+            <Line points={[85, 70, 85, 140]} stroke="#000000" strokeWidth={10} lineCap="round" />
+            <Line points={[50, 105, 120, 105]} stroke="#000000" strokeWidth={10} lineCap="round" />
+
+            {/* Reaction Flask Bottom View (Turbid Sulphur Sol obscuring cross) */}
+            <Circle
+              x={85}
+              y={105}
+              radius={46}
+              fill={isStarted ? solutionColor : 'rgba(240, 249, 255, 0.2)'}
+              stroke="#0284c7"
+              strokeWidth={1.5}
+            />
+
+            <KonvaText
+              text={`CROSS VISIBILITY: ${crossVis.toFixed(0)}%`}
+              x={25}
+              y={172}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isObscured ? '#ef4444' : '#38bdf8'}
+            />
+
+            {/* Right: Digital Timer & Kinetics Results */}
+            <Rect x={160} y={42} width={width - 175} height={height - 60} fill="#090d16" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+
+            {/* Digital Stopwatch Display */}
+            <Rect x={170} y={48} width={width - 195} height={34} fill="#020617" stroke="#334155" strokeWidth={1} cornerRadius={4} />
+            <KonvaText
+              text={isStarted ? `${elapsed.toFixed(1)} s / ${tObscure.toFixed(1)} s` : '0.0 s (READY)'}
+              x={180}
+              y={56}
+              fontSize={15}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill={isObscured ? '#ef4444' : '#34d399'}
+            />
+
+            {/* Concentrations & Rate Values */}
+            <KonvaText text={`[Na₂S₂O₃] effective: ${effThio} M (Vol: ${vThio} mL)`} x={170} y={92} fontSize={8.5} fontFamily="sans-serif" fill="#f8fafc" />
+            <KonvaText text={`Obscuration Time t: ${tObscure} s`} x={170} y={108} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#facc15" />
+            <KonvaText text={`Reaction Rate (1/t): ${ratePerSec.toFixed(4)} s⁻¹`} x={170} y={124} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#38bdf8" />
+
+            {/* Endpoint Status Badge */}
+            <Rect
+              x={170}
+              y={145}
+              width={130}
+              height={20}
+              fill={isObscured ? '#7f1d1d' : isStarted ? '#1e3a8a' : '#1e293b'}
+              stroke={isObscured ? '#ef4444' : '#38bdf8'}
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+            <KonvaText
+              text={isObscured ? '✓ ENDPOINT REACHED' : isStarted ? 'REACTING IN PROGRESS' : 'READY TO START'}
+              x={176}
+              y={150}
+              fontSize={7.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isObscured ? '#fca5a5' : '#93c5fd'}
+            />
+
+            {/* Rate Law Footer */}
+            <Rect x={165} y={height - 42} width={width - 185} height={18} fill="#1e293b" cornerRadius={3} />
+            <KonvaText
+              text="Rate Law: Rate = k · [Na₂S₂O₃]¹ (First order in thiosulphate)"
+              x={170}
+              y={height - 38}
+              width={width - 195}
+              fontSize={7.5}
+              fontFamily="sans-serif"
+              fill="#94a3b8"
+            />
+          </Group>
+        );
+      }
+
+      case 'calorimeter-bench': {
+        const reactionName = String(object.state.reactionName ?? 'HCl + NaOH Neutralization');
+        const isMixed = object.properties.isMixed !== false;
+        const curTemp = Number(object.state.currentTempC ?? 28.5);
+        const peakTemp = Number(object.state.peakTempC ?? 28.5);
+        const deltaHExp = Number(object.state.experimentalDeltaH ?? -57.32);
+        const deltaHTheo = Number(object.state.theoreticalDeltaH ?? -57.32);
+        const heatJ = Number(object.state.heatEvolvedJoules ?? 2866);
+        const errorPct = Number(object.state.errorPercent ?? 0);
+
+        return (
+          <Group>
+            {/* Workbench Base */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#ef4444'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Header */}
+            <Rect x={12} y={10} width={width - 24} height={22} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text="THERMOCHEMISTRY: Calorimetric Enthalpy of Neutralization"
+              x={18}
+              y={15}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text="ΔH° = -57.3 kJ/mol"
+              x={width - 110}
+              y={15}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f87171"
+            />
+
+            {/* Left: Polystyrene Calorimeter Cup */}
+            {/* Outer insulating jacket */}
+            <Rect x={25} y={55} width={90} height={105} fill="#334155" stroke="#64748b" strokeWidth={1.5} cornerRadius={[0, 0, 10, 10]} />
+            {/* Inner Dewar cup */}
+            <Rect x={32} y={62} width={76} height={92} fill="#1e293b" stroke="#cbd5e1" strokeWidth={1} cornerRadius={[0, 0, 8, 8]} />
+            {/* Liquid contents */}
+            <Rect x={33} y={80} width={74} height={73} fill={isMixed ? '#38bdf8' : '#0284c7'} opacity={0.7} cornerRadius={[0, 0, 7, 7]} />
+
+            {/* Calorimeter Lid */}
+            <Rect x={20} y={48} width={100} height={10} fill="#475569" stroke="#94a3b8" strokeWidth={1} cornerRadius={2} />
+
+            {/* Thermometer Stem penetrating lid */}
+            <Rect x={45} y={32} width={6} height={100} fill="#ffffff" stroke="#94a3b8" strokeWidth={1} cornerRadius={3} />
+            <Rect x={46} y={75} width={4} height={55} fill="#ef4444" cornerRadius={2} />
+            <Circle x={48} y={128} radius={5} fill="#ef4444" />
+
+            {/* Stirrer Stem */}
+            <Line points={[85, 28, 85, 130, 95, 130]} stroke="#cbd5e1" strokeWidth={2} lineCap="round" />
+
+            <KonvaText text="DEWAR CUP CALORIMETER" x={20} y={165} fontSize={7} fontFamily="sans-serif" fontStyle="bold" fill="#cbd5e1" />
+
+            {/* Right: Digital Temperature & Enthalpy Metrics */}
+            <Rect x={135} y={42} width={width - 150} height={height - 60} fill="#090d16" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+
+            {/* Precision Digital Thermometer Display */}
+            <Rect x={145} y={48} width={width - 170} height={32} fill="#020617" stroke="#334155" strokeWidth={1} cornerRadius={4} />
+            <KonvaText
+              text={`T = ${curTemp.toFixed(1)} °C`}
+              x={155}
+              y={54}
+              fontSize={16}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#34d399"
+            />
+            <KonvaText
+              text={`Peak: ${peakTemp.toFixed(1)} °C (ΔT = +${(peakTemp - 22.0).toFixed(1)}°C)`}
+              x={width - 175}
+              y={58}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fill="#94a3b8"
+            />
+
+            {/* Enthalpy Measurements */}
+            <KonvaText text={reactionName} x={145} y={88} width={width - 170} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#f8fafc" />
+            <KonvaText text={`Heat Evolved q: ${heatJ} J  (C_total = 443.4 J/K)`} x={145} y={104} fontSize={8.5} fontFamily="sans-serif" fill="#cbd5e1" />
+            <KonvaText text={`ΔH_neut (Measured): ${deltaHExp} kJ/mol`} x={145} y={122} fontSize={10} fontFamily="sans-serif" fontStyle="bold" fill="#f87171" />
+            <KonvaText text={`Theoretical ΔH°: ${deltaHTheo} kJ/mol (Error: ${errorPct}%)`} x={145} y={138} fontSize={8.5} fontFamily="sans-serif" fill="#38bdf8" />
+
+            {/* Formula Footer */}
+            <Rect x={140} y={height - 42} width={width - 160} height={18} fill="#1e293b" cornerRadius={3} />
+            <KonvaText
+              text="q = (m·c + W) · ΔT  |  ΔH_neut = -q / n_water ≈ -57.3 kJ/mol"
+              x={145}
+              y={height - 38}
+              width={width - 170}
+              fontSize={7.5}
+              fontFamily="Courier New, monospace"
+              fill="#cbd5e1"
+            />
+          </Group>
+        );
+      }
+
+      case 'daniell-cell-bench': {
+        const znConc = Number(object.properties.zincConcentrationM ?? 1.0);
+        const cuConc = Number(object.properties.copperConcentrationM ?? 1.0);
+        const saltBridge = object.properties.saltBridgeInserted !== false;
+        const revPol = object.properties.voltmeterPolarityReversed === true;
+        const readingText = String(object.state.voltmeterReadingText ?? '+1.103 V');
+        const logQ = Number(object.state.logQ ?? 0);
+
+        return (
+          <Group>
+            {/* Workbench Base */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#0284c7'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Header: Galvanic Cell Representation */}
+            <Rect x={12} y={10} width={width - 24} height={22} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text="DANIELL CELL: Zn(s) | Zn²⁺(aq) ∥ Cu²⁺(aq) | Cu(s)"
+              x={18}
+              y={15}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text="NERNST: E = E° - (0.059/2)·logQ"
+              x={width - 165}
+              y={15}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+
+            {/* Left Anode Half-Cell (Zn in ZnSO4) */}
+            <Rect x={25} y={90} width={65} height={80} fill="#0b1329" stroke="#94a3b8" strokeWidth={1.5} cornerRadius={[0, 0, 6, 6]} />
+            <Rect x={26} y={110} width={63} height={59} fill="#f1f5f9" opacity={0.65} cornerRadius={[0, 0, 5, 5]} />
+            {/* Zinc Electrode Plate */}
+            <Rect x={38} y={70} width={12} height={80} fill="#94a3b8" stroke="#cbd5e1" strokeWidth={1} cornerRadius={2} />
+            <KonvaText text="Zn Anode (-)" x={24} y={173} fontSize={7} fontFamily="sans-serif" fontStyle="bold" fill="#94a3b8" />
+            <KonvaText text={`${znConc}M ZnSO₄`} x={26} y={183} fontSize={7} fontFamily="sans-serif" fill="#64748b" />
+
+            {/* Right Cathode Half-Cell (Cu in CuSO4) */}
+            <Rect x={115} y={90} width={65} height={80} fill="#0b1329" stroke="#94a3b8" strokeWidth={1.5} cornerRadius={[0, 0, 6, 6]} />
+            <Rect x={116} y={110} width={63} height={59} fill="#0284c7" opacity={0.80} cornerRadius={[0, 0, 5, 5]} />
+            {/* Copper Electrode Plate */}
+            <Rect x={155} y={70} width={12} height={80} fill="#b45309" stroke="#d97706" strokeWidth={1} cornerRadius={2} />
+            <KonvaText text="Cu Cathode (+)" x={112} y={173} fontSize={7} fontFamily="sans-serif" fontStyle="bold" fill="#f59e0b" />
+            <KonvaText text={`${cuConc}M CuSO₄`} x={116} y={183} fontSize={7} fontFamily="sans-serif" fill="#0284c7" />
+
+            {/* Agar-Agar Salt Bridge (Inverted U-Tube) */}
+            {saltBridge ? (
+              <Group>
+                <Line
+                  points={[55, 120, 55, 80, 150, 80, 150, 120]}
+                  stroke="#38bdf8"
+                  strokeWidth={9}
+                  lineCap="round"
+                  lineJoin="round"
+                />
+                <Line
+                  points={[55, 120, 55, 80, 150, 80, 150, 120]}
+                  stroke="#e2e8f0"
+                  strokeWidth={5}
+                  lineCap="round"
+                  lineJoin="round"
+                />
+                <KonvaText text="KCl Salt Bridge" x={75} y={70} fontSize={6.5} fontFamily="sans-serif" fontStyle="bold" fill="#38bdf8" />
+              </Group>
+            ) : (
+              <Group>
+                <Line
+                  points={[55, 60, 55, 45, 150, 45, 150, 60]}
+                  stroke="#475569"
+                  strokeWidth={5}
+                  lineCap="round"
+                  dash={[3, 3]}
+                />
+                <KonvaText text="SALT BRIDGE REMOVED" x={60} y={48} fontSize={6.5} fontFamily="sans-serif" fontStyle="bold" fill="#ef4444" />
+              </Group>
+            )}
+
+            {/* Voltmeter Wires */}
+            <Line points={[44, 70, 44, 45, 205, 45, 205, 60]} stroke="#000000" strokeWidth={1.5} />
+            <Line points={[161, 70, 161, 45, 245, 45, 245, 60]} stroke="#dc2626" strokeWidth={1.5} />
+
+            {/* Right: Digital Voltmeter & Nernst Analytics */}
+            <Rect x={195} y={42} width={width - 210} height={height - 60} fill="#090d16" stroke="#334155" strokeWidth={1} cornerRadius={6} />
+
+            {/* High-Impedance Digital Voltmeter LED Display */}
+            <Rect x={205} y={50} width={width - 230} height={38} fill="#020617" stroke="#334155" strokeWidth={1} cornerRadius={4} />
+            <KonvaText
+              text={readingText}
+              x={215}
+              y={58}
+              fontSize={18}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill={!saltBridge ? '#64748b' : revPol ? '#f87171' : '#34d399'}
+            />
+
+            {/* EMF Details & Nernst Quotient */}
+            <KonvaText text={`E° cell (Standard): +1.103 V`} x={205} y={96} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#f8fafc" />
+            <KonvaText text={`Q = [Zn²⁺]/[Cu²⁺] = ${(znConc / cuConc).toFixed(2)}`} x={205} y={112} fontSize={8.5} fontFamily="sans-serif" fill="#cbd5e1" />
+            <KonvaText text={`log₁₀ Q = ${logQ >= 0 ? '+' : ''}${logQ.toFixed(2)}`} x={205} y={126} fontSize={8.5} fontFamily="sans-serif" fill="#38bdf8" />
+
+            {/* Circuit Status Badge */}
+            <Rect
+              x={205}
+              y={145}
+              width={110}
+              height={18}
+              fill={saltBridge ? '#065f46' : '#7f1d1d'}
+              stroke={saltBridge ? '#10b981' : '#ef4444'}
+              strokeWidth={1}
+              cornerRadius={3}
+            />
+            <KonvaText
+              text={saltBridge ? '✓ CLOSED CIRCUIT' : '✗ OPEN CIRCUIT (0.00V)'}
+              x={210}
+              y={149}
+              fontSize={7.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={saltBridge ? '#34d399' : '#fca5a5'}
+            />
+
+            {/* Nernst Formula Footer */}
+            <Rect x={198} y={height - 42} width={width - 216} height={18} fill="#1e293b" cornerRadius={3} />
+            <KonvaText
+              text="E = 1.103 - 0.0296 · log₁₀([Zn²⁺] / [Cu²⁺])"
+              x={203}
+              y={height - 38}
+              width={width - 225}
+              fontSize={7.5}
+              fontFamily="Courier New, monospace"
+              fill="#cbd5e1"
+            />
+          </Group>
+        );
+      }
+
       case 'generic-box':
       default: {
         const displayVal =

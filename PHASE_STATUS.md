@@ -11,10 +11,10 @@
 | Category | Total Experiments | Implemented (Active) | Under Development | Status |
 |----------|-------------------|----------------------|-------------------|--------|
 | **Physics** | **25** | **25** (5 Foundation + 10 Class 11 + 10 Class 12) | **0** (Physics Curriculum 100% Complete) | **100% Complete (Active Operational)** |
-| **Chemistry** | **27** | **16** (5 Foundation + 11 Class 11) | **11** (Class 12: 11) | **Active (Phase 8 Complete — Class 11 100% Complete)** |
+| **Chemistry** | **27** | **21** (5 Foundation + 11 Class 11 + 5 Class 12) | **6** (Class 12: 6) | **Active (Phase 9 Complete — 5 Class 12 Labs Operational)** |
 | **Biology** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
 | **Mathematics** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
-| **Total** | **52** | **41** (78.8%) | **11** (21.2%) | **Verified Operational Baseline** |
+| **Total** | **52** | **46** (88.5%) | **6** (11.5%) | **Verified Operational Baseline** |
 
 ---
 
@@ -85,14 +85,14 @@
 | 15 | `salt-analysis-class11` | Salt Analysis (Class 11) | Class 11 | **Implemented** | Multi-tube qualitative salt analysis workbench with standard catalogue of 8 salts ($\text{NH}_4\text{Cl}, \text{Pb(NO}_3)_2, \text{CuSO}_4, \text{FeSO}_4, \text{AlCl}_3, \text{ZnSO}_4, \text{CaCl}_2, \text{MgSO}_4$) across Zero through Group VI cations and dilute/conc/independent acid radicals with systematic educational decision trees. |
 | 16 | `organic-element-detection` | Detection of Elements in Organic Compounds | Class 11 | **Implemented** | Safe virtual qualitative identification testing on pre-fused Lassaigne's sodium fusion extract: Prussian blue test for Nitrogen ($\text{Fe}_4[\text{Fe(CN)}_6]_3$), sodium nitroprusside (purple) and lead acetate (black $\text{PbS}$) tests for Sulphur, and $\text{AgNO}_3$ differential solubility tests for Halogens ($\text{AgCl, AgBr, AgI}$). |
 
-### Class 12 Experiments — 11 of 11 Registered (Under Development)
-| # | ID | Title | Class Level | Status | Reused Engine / Target Capabilities |
-|---|----|-------|-------------|--------|-------------------------------------|
-| 17 | `surface-chemistry` | Surface Chemistry | Class 12 | **Under Development** | Lyophilic and lyophobic sol preparation, dialysis purification simulation. |
-| 18 | `chemical-kinetics` | Chemical Kinetics | Class 12 | **Under Development** | Thiosulphate clock reaction $\text{Na}_2\text{S}_2\text{O}_3 + \text{HCl}$, optical cross obscurity timing vs temperature/concentration. |
-| 19 | `thermochemistry` | Thermochemistry | Class 12 | **Under Development** | Calorimeter cup, enthalpy of solution ($\text{CuSO}_4$) and neutralization ($\text{HCl} + \text{NaOH}$). |
-| 20 | `electrochemistry` | Electrochemistry | Class 12 | **Under Development** | Daniell cell $\text{Zn} \mid \text{Zn}^{2+} \parallel \text{Cu}^{2+} \mid \text{Cu}$, salt bridge, Nernst equation EMF calculation. |
-| 21 | `paper-chromatography-class12` | Paper Chromatography | Class 12 | **Under Development** | **Reuses Foundation module (`paper-chromatography`)** with Class 12 presets ($\text{Pb}^{2+}/\text{Cd}^{2+}$, plant pigments). |
+### Class 12 Experiments — 11 of 11 Registered (5 Implemented — Phase 9 Complete, 6 Under Development)
+| # | ID | Title | Class Level | Status | Scientific Engine & Capabilities |
+|---|----|-------|-------------|--------|----------------------------------|
+| 17 | `surface-chemistry` | Surface Chemistry | Class 12 | **Implemented** | Colloidal dispersion workbench: lyophobic hydrated ferric hydroxide sol $\text{Fe(OH)}_3$ (+ve sol via $\text{FeCl}_3$ boiling water hydrolysis) vs lyophilic starch sol vs true $\text{NaCl}$ solution, 650nm transverse laser Tyndall effect scattering cone (92% vs 52% vs 0%), and Hardy-Schulze coagulation rule ($[\text{Fe(CN)}_6]^{4-} \gg \text{SO}_4^{2-} \gg \text{Cl}^-$). |
+| 18 | `chemical-kinetics` | Chemical Kinetics | Class 12 | **Implemented** | Redox precipitation kinetics: $\text{Na}_2\text{S}_2\text{O}_3 + 2\text{HCl} \to 2\text{NaCl} + \text{SO}_2 + \text{S}\downarrow + \text{H}_2\text{O}$, white glazed tile with black cross mark ($+$), top-down colloidal sulphur obscuration timing ($t = 16\text{s} \dots 80\text{s}$), first-order rate law $\text{Rate} = 1/t \propto [\text{Na}_2\text{S}_2\text{O}_3]$, and Arrhenius activation energy temperature acceleration ($Q_{10} \approx 2$). |
+| 19 | `thermochemistry` | Thermochemistry | Class 12 | **Implemented** | Insulated polystyrene cup calorimeter assembly with precision differential Beckman thermometer and stirrer, strong acid-base neutralization ($50\text{ mL } 1.0\text{M }\text{HCl} + 50\text{ mL } 1.0\text{M }\text{NaOH}$), water equivalent $W = 25\text{ J/K}$, peak temperature rise ($\Delta T \approx +6.5^\circ\text{C}$), heat evolved $q = (mc + W)\Delta T$, and experimental enthalpy $\Delta H_{\text{neut}} = -57.32\text{ kJ/mol}$ (vs theoretical $-57.32\text{ kJ/mol}$, $<1\%$ error). |
+| 20 | `electrochemistry` | Electrochemistry | Class 12 | **Implemented** | Galvanic Daniell Cell ($\text{Zn}(\text{s}) + \text{Cu}^{2+}(\text{aq}) \to \text{Zn}^{2+}(\text{aq}) + \text{Cu}(\text{s})$), dual half-cell beakers, metallic zinc anode and copper cathode plates, agar-agar $\text{KCl}$ salt bridge, digital high-impedance voltmeter, standard cell potential $E^\circ = +1.103\text{ V}$, open-circuit detection ($0.000\text{ V}$ without salt bridge), reversed polarity detection, and Nernst equation verification $E = E^\circ - 0.0296\log_{10}([\text{Zn}^{2+}]/[\text{Cu}^{2+}])$. |
+| 21 | `paper-chromatography-class12` | Paper Chromatography | Class 12 | **Implemented** | **Reuses & extends chromatography engine** for Class 12 analytical separations: inorganic metal cation separation ($\text{Pb}^{2+}$ and $\text{Cd}^{2+}$) visualized via yellow ammonium sulphide spray reagent ($\text{PbS}$ brown-black spot $R_f \approx 0.38$, $\text{CdS}$ bright canary yellow spot $R_f \approx 0.72$), or biological spinach leaf chloroplast pigment partition (chlorophyll b $0.35$, chlorophyll a $0.48$, xanthophyll $0.70$, carotene $0.95$). |
 | 22 | `inorganic-compound-prep` | Inorganic Compound Preparation | Class 12 | **Under Development** | Double salt synthesis: Mohr's salt, Potash alum crystallization. |
 | 23 | `organic-compound-prep` | Organic Compound Preparation | Class 12 | **Under Development** | Acetanilide, dibenzalacetone preparation, crystal recovery and yield. |
 | 24 | `functional-group-identification` | Functional Group Identification | Class 12 | **Under Development** | Diagnostic tests for alcohols, phenols, aldehydes, ketones, carboxylic acids. |
@@ -106,8 +106,8 @@
 
 ### Automated Test Suite Execution
 - **Unit & Integration Tests (Vitest):**
-  - **36 Test Files** evaluated.
-  - **299 Tests Passing** (100% pass rate).
+  - **41 Test Files** evaluated.
+  - **324 Tests Passing** (100% pass rate).
   - Includes full coverage of:
     - Electrical MNA nodal circuit solver.
     - Ray optics thin-lens model and mirrors/prism.
@@ -119,15 +119,20 @@
     - Acid-base titration with phenolphthalein/methyl orange & titration curves.
     - Systematic qualitative salt analysis decision trees (Groups 0 to VI).
     - Safe virtual Lassaigne extract element identification (N, S, Halogens).
+    - Colloid preparation, Tyndall scattering cone, and Hardy-Schulze rule.
+    - Chemical kinetics cross obscuration timing and Arrhenius rate scaling.
+    - Calorimetry water equivalent and enthalpy of neutralization (HCl + NaOH).
+    - Galvanic Daniell cell EMF, salt bridge requirement, and Nernst equation.
+    - Class 12 inorganic metal cation & photosynthetic pigment chromatography.
     - Central registry schema validation for all 52 curriculum experiments.
     - Error boundary isolation and IndexedDB persistence.
 - **End-to-End Tests (Playwright):**
-  - **76 Tests Passing** across Chromium, Firefox, WebKit.
-  - Validates subject navigation, class filtering, experiment loading for all implemented physics and chemistry labs, canvas object manipulation, mode switching, and 404 resilience.
+  - **86 Tests Passing** across Chromium, Firefox, WebKit.
+  - Validates subject navigation, class filtering, experiment loading for all 46 implemented physics and chemistry labs, canvas object manipulation, mode switching, and 404 resilience.
 - **Static Analysis & Build Verification:**
   - TypeScript Compiler (`tsc -b`): **0 Errors**.
   - ESLint (`npm run lint`): **0 Errors**.
-  - Production Build (`npm run build`): Clean minified bundle generated in `< 1.5s`.
+  - Production Build (`npm run build`): Clean minified bundle generated in `< 1.4s`.
 
 ---
 

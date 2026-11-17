@@ -24,7 +24,7 @@ export const SUBJECTS: SubjectMetadata[] = [
     badgeBg: 'bg-emerald-100 dark:bg-emerald-950/60',
     badgeText: 'text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
     totalExperiments: 27,
-    availableExperiments: 16,
+    availableExperiments: 21,
     iconName: 'FlaskConical',
   },
   {
@@ -1357,14 +1357,14 @@ export const EXPERIMENTS: ExperimentMetadata[] = [
   },
 
   // =========================================================================
-  // CHEMISTRY — CLASS 12 (11 EXPERIMENTS — UNDER DEVELOPMENT)
+  // CHEMISTRY — CLASS 12 (11 EXPERIMENTS — 5 IMPLEMENTED, 6 UNDER DEVELOPMENT)
   // =========================================================================
   {
     id: 'surface-chemistry',
     title: 'Surface Chemistry',
     subjectId: 'chemistry',
     classLevel: 'class-12',
-    implementationStatus: 'under-development',
+    implementationStatus: 'implemented',
     shortDescription: 'Prepare lyophilic sols (starch, egg albumin) and lyophobic sols (ferric hydroxide, arsenious sulphide).',
     fullDescription: 'Colloidal dispersions exhibit distinctive surface and stability properties. Students prepare reversible lyophilic sols by simple warming and hydration, and irreversible lyophobic sols (such as hydrated ferric hydroxide sol Fe(OH)3) via hydrolysis of FeCl3 in boiling water. They observe the Tyndall effect and compare coagulation thresholds with electrolytes.',
     difficulty: 'Intermediate',
@@ -1395,7 +1395,7 @@ export const EXPERIMENTS: ExperimentMetadata[] = [
     title: 'Chemical Kinetics',
     subjectId: 'chemistry',
     classLevel: 'class-12',
-    implementationStatus: 'under-development',
+    implementationStatus: 'implemented',
     shortDescription: 'Study reaction rate dependence on reactant concentration between sodium thiosulphate and hydrochloric acid.',
     fullDescription: 'The reaction between sodium thiosulphate and hydrochloric acid precipitates colloidal sulphur: Na2S2O3 + 2HCl → 2NaCl + SO2 + S(s) + H2O. Students measure the time taken for accumulating sulphur turbidity to obscure a black cross mark viewed from above across varying thiosulphate concentrations, proving rate ∝ [Na2S2O3].',
     difficulty: 'Intermediate',
@@ -1426,7 +1426,7 @@ export const EXPERIMENTS: ExperimentMetadata[] = [
     title: 'Thermochemistry',
     subjectId: 'chemistry',
     classLevel: 'class-12',
-    implementationStatus: 'under-development',
+    implementationStatus: 'implemented',
     shortDescription: 'Determine the enthalpy of neutralization of a strong acid with a strong base using a calorimeter.',
     fullDescription: 'Neutralization of strong mineral acids by strong alkalis in dilute aqueous solution is fundamentally the formation of liquid water from hydronium and hydroxide ions: H⁺(aq) + OH⁻(aq) → H2O(l). Students measure temperature rise inside an insulated Dewar / polystyrene calorimeter and calculate the standard enthalpy of neutralization (theoretical ΔH = -57.3 kJ/mol).',
     difficulty: 'Intermediate',
@@ -1455,7 +1455,7 @@ export const EXPERIMENTS: ExperimentMetadata[] = [
     title: 'Electrochemistry',
     subjectId: 'chemistry',
     classLevel: 'class-12',
-    implementationStatus: 'under-development',
+    implementationStatus: 'implemented',
     shortDescription: 'Set up a galvanic Daniel Cell and study cell potential variation with varying Zn²⁺ and Cu²⁺ concentrations.',
     fullDescription: 'A galvanic Daniel cell converts chemical energy into electrical energy: Zn(s) + Cu²⁺(aq) → Zn²⁺(aq) + Cu(s). Students set up zinc and copper half-cells joined by an agar-agar potassium chloride salt bridge, measure electromotive force (EMF) with a high-resistance digital voltmeter, and verify Nernst equation predictions.',
     difficulty: 'Intermediate',
@@ -1485,7 +1485,7 @@ export const EXPERIMENTS: ExperimentMetadata[] = [
     title: 'Paper Chromatography',
     subjectId: 'chemistry',
     classLevel: 'class-12',
-    implementationStatus: 'under-development',
+    implementationStatus: 'implemented',
     reusedModuleId: 'paper-chromatography',
     activityPresetId: 'class12-cation-separation',
     shortDescription: 'Separate and identify inorganic cations (Pb²⁺, Cd²⁺, Cu²⁺) or spinach leaf pigments using Class 12 chromatography.',

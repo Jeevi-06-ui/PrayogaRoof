@@ -73,6 +73,28 @@ export const INK_SAMPLES: Record<string, InkSampleDefinition> = {
       { name: 'Carotene (Orange-Yellow)', color: '#ea580c', rf: 0.95 },
     ],
   },
+  'class12-cation-mixture': {
+    id: 'class12-cation-mixture',
+    name: 'Class 12 Cation Mixture (Pb²⁺ and Cd²⁺)',
+    description: 'Analytical separation of inorganic metal cations visualized via ammonium sulphide spray.',
+    initialSpotColor: '#94a3b8',
+    pigments: [
+      { name: 'Lead(II) Ion Pb²⁺ (Precipitates PbS brown-black)', color: '#475569', rf: 0.38 },
+      { name: 'Cadmium(II) Ion Cd²⁺ (Precipitates CdS bright canary yellow)', color: '#eab308', rf: 0.72 },
+    ],
+  },
+  'class12-leaf-extract': {
+    id: 'class12-leaf-extract',
+    name: 'Class 12 Spinach Chloroplast Extract',
+    description: 'Separation of photosynthetic pigments: carotene, xanthophyll, chlorophyll a, chlorophyll b.',
+    initialSpotColor: '#166534',
+    pigments: [
+      { name: 'Chlorophyll b (Olive Green)', color: '#65a30d', rf: 0.35 },
+      { name: 'Chlorophyll a (Blue-Green)', color: '#059669', rf: 0.48 },
+      { name: 'Xanthophyll (Yellow)', color: '#facc15', rf: 0.70 },
+      { name: 'Carotene (Orange-Yellow)', color: '#f97316', rf: 0.95 },
+    ],
+  },
 };
 
 export const CHROMATOGRAPHY_ASSUMPTIONS = Object.assign(

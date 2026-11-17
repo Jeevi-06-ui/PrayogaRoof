@@ -132,20 +132,21 @@ flowchart TD
 
 ### Phase 11: Chemistry Class 12 — Physical, Organic & Analytical Chemistry (11 Experiments)
 **Focus:** Reaction kinetics, electrochemical cells, redox titrations, functional group organic tests, and advanced salt analysis.
+**Current Status:** 5 of 11 Experiments Implemented and Operational (Phase 9 Complete).
 
-| # | Experiment ID | Title | Planned Engine & Reusability |
-|---|---------------|-------|------------------------------|
-| 1 | `surface-chemistry` | Surface Chemistry | Lyophilic starch sol and lyophobic ferric hydroxide/arsenious sulphide sol preparation, dialysis purification simulation. |
-| 2 | `chemical-kinetics` | Chemical Kinetics | Clock reaction: $\text{Na}_2\text{S}_2\text{O}_3 + 2\text{HCl} \to \text{S} \downarrow + 2\text{NaCl} + \text{SO}_2 + \text{H}_2\text{O}$; optical cross obscurity timing vs temperature and concentration. |
-| 3 | `thermochemistry` | Thermochemistry | Polystyrene cup calorimeter, enthalpy of solution of $\text{CuSO}_4$, enthalpy of neutralisation ($\text{HCl} + \text{NaOH}$), heat capacity calibration. |
-| 4 | `electrochemistry` | Electrochemistry | Daniell cell setup: $\text{Zn} \mid \text{Zn}^{2+} (aq) \parallel \text{Cu}^{2+} (aq) \mid \text{Cu}$, porous pot/salt bridge, Nernst equation verification $E_{\text{cell}} = E^\circ_{\text{cell}} - \frac{0.0591}{2}\log\frac{[\text{Zn}^{2+}]}{[\text{Cu}^{2+}]}$. |
-| 5 | `paper-chromatography-class12` | Paper Chromatography | **Reuses Foundation Chromatography module (`paper-chromatography`)** with Class 12 presets (separation of $\text{Pb}^{2+}$ and $\text{Cd}^{2+}$, or red/blue leaf pigments). |
-| 6 | `inorganic-compound-prep` | Inorganic Compound Preparation | Synthesis of double salts: Ferrous Ammonium Sulphate (Mohr's Salt) and Potash Alum, crystal yield and geometry. |
-| 7 | `organic-compound-prep` | Organic Compound Preparation | Preparation of acetanilide, dibenzalacetone, or $p$-nitroacetanilide; crystallization and yield calculation. |
-| 8 | `functional-group-identification` | Functional Group Identification | Systematic diagnostic tests for alcohols (Ceric ammonium nitrate, sodium metal), phenols ($\text{FeCl}_3$), aldehydes (Tollens' silver mirror, Fehling's), ketones, and carboxylic acids ($\text{NaHCO}_3$ effervescence). |
-| 9 | `food-component-testing` | Food Component Testing | Biochemical spot tests: Biuret & Ninhydrin for proteins, iodine test for starch, saponification & Sudan III for fats. |
-| 10 | `redox-titration-kmno4` | Redox Titration – Potassium Permanganate | Self-indicating $\text{KMnO}_4$ burette titration against Mohr's salt and oxalic acid in dilute $\text{H}_2\text{SO}_4$, warm heating to $60^\circ\text{C}$, equivalence end-point detection. |
-| 11 | `salt-analysis-class12` | Salt Analysis (Class 12) | Advanced qualitative analysis including interfering anions ($\text{PO}_4^{3-}, \text{C}_2\text{O}_4^{2-}, \text{BO}_3^{3-}, \text{F}^-$) and group-wise separation schemes. |
+| # | Experiment ID | Title | Status | Core Scientific Model Implemented / Operational |
+|---|---------------|-------|--------|-------------------------------------------------|
+| 1 | `surface-chemistry` | Surface Chemistry | **Implemented** | Lyophilic starch sol and lyophobic ferric hydroxide sol preparation via boiling water hydrolysis of FeCl3, 650nm transverse laser Tyndall effect scattering cone, and Hardy-Schulze coagulation rule. |
+| 2 | `chemical-kinetics` | Chemical Kinetics | **Implemented** | Redox precipitation kinetics: $\text{Na}_2\text{S}_2\text{O}_3 + 2\text{HCl} \to \text{S}\downarrow + 2\text{NaCl} + \text{SO}_2 + \text{H}_2\text{O}$, white glazed tile with black cross mark ($+$), top-down colloidal sulphur obscuration timing, first-order rate law $\text{Rate} = 1/t \propto [\text{Na}_2\text{S}_2\text{O}_3]$, and Arrhenius activation energy temperature acceleration. |
+| 3 | `thermochemistry` | Thermochemistry | **Implemented** | Polystyrene cup calorimeter, water equivalent $W = 25\text{ J/K}$, enthalpy of neutralization ($\text{HCl} + \text{NaOH}$, theoretical $\Delta H^\circ = -57.32\text{ kJ/mol}$), temperature-time cooling curve, and enthalpy of solution ($\text{KNO}_3$). |
+| 4 | `electrochemistry` | Electrochemistry | **Implemented** | Galvanic Daniell cell: $\text{Zn} \mid \text{Zn}^{2+} \parallel \text{Cu}^{2+} \mid \text{Cu}$, agar-agar $\text{KCl}$ salt bridge, digital high-impedance voltmeter, standard cell potential $E^\circ = +1.103\text{ V}$, open-circuit 0.000 V without salt bridge, reversed polarity, and Nernst equation verification. |
+| 5 | `paper-chromatography-class12` | Paper Chromatography | **Implemented** | **Reuses & extends Foundation module (`paper-chromatography`)** with Class 12 presets: analytical separation of inorganic transition metal cations ($\text{Pb}^{2+}$ and $\text{Cd}^{2+}$) visualized via yellow ammonium sulphide spray reagent, and spinach chloroplast leaf pigment separation. |
+| 6 | `inorganic-compound-prep` | Inorganic Compound Preparation | **Under Development** | Synthesis of double salts: Ferrous Ammonium Sulphate (Mohr's Salt) and Potash Alum, crystal yield and geometry. |
+| 7 | `organic-compound-prep` | Organic Compound Preparation | **Under Development** | Preparation of acetanilide, dibenzalacetone, or $p$-nitroacetanilide; crystallization and yield calculation. |
+| 8 | `functional-group-identification` | Functional Group Identification | **Under Development** | Systematic diagnostic tests for alcohols (Ceric ammonium nitrate, sodium metal), phenols ($\text{FeCl}_3$), aldehydes (Tollens' silver mirror, Fehling's), ketones, and carboxylic acids ($\text{NaHCO}_3$ effervescence). |
+| 9 | `food-component-testing` | Food Component Testing | **Under Development** | Biochemical spot tests: Biuret & Ninhydrin for proteins, iodine test for starch, saponification & Sudan III for fats. |
+| 10 | `redox-titration-kmno4` | Redox Titration – Potassium Permanganate | **Under Development** | Self-indicating $\text{KMnO}_4$ burette titration against Mohr's salt and oxalic acid in dilute $\text{H}_2\text{SO}_4$, warm heating to $60^\circ\text{C}$, equivalence end-point detection. |
+| 11 | `salt-analysis-class12` | Salt Analysis (Class 12) | **Under Development** | Advanced qualitative analysis including interfering anions ($\text{PO}_4^{3-}, \text{C}_2\text{O}_4^{2-}, \text{BO}_3^{3-}, \text{F}^-$) and group-wise separation schemes. |
 
 ---
 

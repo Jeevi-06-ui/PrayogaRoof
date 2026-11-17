@@ -895,6 +895,64 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
         value: `[${pos}] ${inf}`,
         unit: '',
       };
+    } else if (experimentId === 'surface-chemistry') {
+      const colUpdate = Object.entries(updates).find(([id]) => id.includes('colloid'))?.[1];
+      const sol = colUpdate?.solName ?? 'Fe(OH)₃ Sol';
+      const tyndall = colUpdate?.tyndallIntensityPercent ?? 92;
+      const coag = colUpdate?.coagulationStatus ?? 'stable-colloid';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${String(sol)}`,
+        value: `Tyndall: ${tyndall}% | Coagulation: ${coag}`,
+        unit: '',
+      };
+    } else if (experimentId === 'chemical-kinetics') {
+      const kinUpdate = Object.entries(updates).find(([id]) => id.includes('kinetics'))?.[1];
+      const cThio = kinUpdate?.effectiveThioM ?? 0.0833;
+      const tObs = kinUpdate?.timeToObscureSec ?? 16.0;
+      const rate = kinUpdate?.ratePerSec ?? 0.0625;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: [Na₂S₂O₃] = ${cThio} M`,
+        value: `t = ${tObs} s | Rate = ${rate} s⁻¹`,
+        unit: '',
+      };
+    } else if (experimentId === 'thermochemistry') {
+      const calUpdate = Object.entries(updates).find(([id]) => id.includes('calorimeter'))?.[1];
+      const rxn = calUpdate?.reactionName ?? 'HCl + NaOH Neutralization';
+      const curT = calUpdate?.currentTempC ?? 28.5;
+      const dH = calUpdate?.experimentalDeltaH ?? -57.32;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${String(rxn)}`,
+        value: `Peak T = ${curT} °C | ΔH = ${dH} kJ/mol`,
+        unit: '',
+      };
+    } else if (experimentId === 'electrochemistry') {
+      const danUpdate = Object.entries(updates).find(([id]) => id.includes('daniell'))?.[1];
+      const emfText = danUpdate?.voltmeterReadingText ?? '+1.103 V';
+      const qVal = danUpdate?.reactionQuotientQ ?? 1.0;
+      const logQ = danUpdate?.logQ ?? 0.0;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Q = [Zn²⁺]/[Cu²⁺] = ${qVal} (logQ = ${logQ})`,
+        value: `EMF = ${emfText}`,
+        unit: '',
+      };
+    } else if (experimentId === 'paper-chromatography-class12') {
+      const paperUpdate = Object.entries(updates).find(([id]) => id.includes('paper'))?.[1];
+      const rfSummary = paperUpdate?.rfSummary ?? 'Bands separated';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Cation Chromatogram`,
+        value: `${rfSummary}`,
+        unit: '',
+      };
     } else {
       let volt = 0;
       let curr = 0;
@@ -1860,12 +1918,12 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
           })}
 
           {/* Goal verification checklist */}
-          {goals.length > 0 && (
+          {(goals ?? []).length > 0 && (
             <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
               <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 Experiment Verification Goals
               </h5>
-              {goals.map((g) => (
+              {(goals ?? []).map((g) => (
                 <div key={g.id} className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
                   <span>{g.description}</span>
@@ -1998,7 +2056,17 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                                                                             ? 'Salt Analysis Quick Log'
                                                                             : experimentId === 'organic-element-detection'
                                                                               ? 'Element Detection Quick Log'
-                                                                              : 'Active Bench Quick Log'}
+                                                                              : experimentId === 'surface-chemistry'
+                                                                                ? 'Surface Chemistry Quick Log'
+                                                                                : experimentId === 'chemical-kinetics'
+                                                                                  ? 'Kinetics Obscuration Quick Log'
+                                                                                  : experimentId === 'thermochemistry'
+                                                                                    ? 'Calorimetry Quick Log'
+                                                                                    : experimentId === 'electrochemistry'
+                                                                                      ? 'Daniell Cell EMF Quick Log'
+                                                                                      : experimentId === 'paper-chromatography-class12'
+                                                                                        ? 'Cation Chromatography Quick Log'
+                                                                                        : 'Active Bench Quick Log'}
               </span>
               <p className="text-[10px] text-blue-700/80 dark:text-blue-400 leading-snug">
                 {experimentId === 'convex-lens'
@@ -2063,7 +2131,17 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                                                                             ? 'Instantly log analytical test name, diagnostic visual observation, and inferred radical.'
                                                                             : experimentId === 'organic-element-detection'
                                                                               ? 'Instantly log Lassaigne extract test procedure, element detected, and positive/negative status.'
-                                                                              : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
+                                                                              : experimentId === 'surface-chemistry'
+                                                                                ? 'Instantly log sol sample, laser Tyndall scattering intensity %, and Hardy-Schulze coagulation status.'
+                                                                                : experimentId === 'chemical-kinetics'
+                                                                                  ? 'Instantly log reactant concentration [Na₂S₂O₃], cross obscuration time t, and reaction rate 1/t.'
+                                                                                  : experimentId === 'thermochemistry'
+                                                                                    ? 'Instantly log peak temperature rise ΔT, heat evolved q, and calculated enthalpy of neutralization ΔH.'
+                                                                                    : experimentId === 'electrochemistry'
+                                                                                      ? 'Instantly log concentration quotient [Zn²⁺]/[Cu²⁺], log Q, and measured cell potential EMF.'
+                                                                                      : experimentId === 'paper-chromatography-class12'
+                                                                                        ? 'Instantly log solvent front distance, separated cation spot positions, and calculated Rf values.'
+                                                                                        : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
               </p>
               <Button
                 type="button"

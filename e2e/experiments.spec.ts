@@ -267,6 +267,36 @@ test.describe('PrayogaProof E2E Test Suite', () => {
     await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
   });
 
+  test('Loads Surface Chemistry workspace and verifies colloidal sol & Tyndall workbench', async ({ page }) => {
+    await page.goto('/workspace/surface-chemistry');
+    await expect(page.getByText(/Surface Chemistry/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Chemical Kinetics workspace and verifies cross obscuration station', async ({ page }) => {
+    await page.goto('/workspace/chemical-kinetics');
+    await expect(page.getByText(/Chemical Kinetics/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Thermochemistry workspace and verifies Dewar calorimeter assembly', async ({ page }) => {
+    await page.goto('/workspace/thermochemistry');
+    await expect(page.getByText(/Thermochemistry/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Electrochemistry workspace and verifies Daniell cell & voltmeter setup', async ({ page }) => {
+    await page.goto('/workspace/electrochemistry');
+    await expect(page.getByText(/Electrochemistry/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Class 12 Paper Chromatography workspace and verifies cation separation strip', async ({ page }) => {
+    await page.goto('/workspace/paper-chromatography-class12');
+    await expect(page.getByText(/Paper Chromatography/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
   test('Handles 404 route gracefully with return navigation', async ({ page }) => {
     await page.goto('/non-existent-route');
     await expect(page.getByText(/404 - Laboratory Page Not Found/i)).toBeVisible();
