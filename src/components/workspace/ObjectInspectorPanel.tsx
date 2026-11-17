@@ -751,6 +751,81 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
         value: `Vapp=${vApp}V, VD=${vD}V, I=${curr}, rac=${rac}Ω`,
         unit: '',
       };
+    } else if (experimentId === 'basic-lab-techniques') {
+      const buretteUpdate = Object.entries(updates).find(([id]) => id.includes('burette'))?.[1];
+      const balanceUpdate = Object.entries(updates).find(([id]) => id.includes('balance'))?.[1];
+      const vol = buretteUpdate?.deliveredVolumeMl ?? 20.0;
+      const mass = balanceUpdate?.displayedMassGrams ?? 20.0;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Volumetric Transfer`,
+        value: `Burette Titre = ${vol} mL, Balance Net Mass = ${mass} g (ρ ≈ 1.00 g/mL)`,
+        unit: '',
+      };
+    } else if (experimentId === 'melting-point') {
+      const thieleUpdate = Object.entries(updates).find(([id]) => id.includes('thiele'))?.[1];
+      const compound = thieleUpdate?.sampleName ?? 'Benzoic Acid';
+      const temp = thieleUpdate?.currentTempC ?? 122.4;
+      const phase = thieleUpdate?.phase ?? 'liquid';
+      const obs = thieleUpdate?.observation ?? 'Clear liquid meniscus formed';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Melting Point (${compound})`,
+        value: `T = ${temp}°C, Phase = ${String(phase).toUpperCase()} (${obs})`,
+        unit: '',
+      };
+    } else if (experimentId === 'boiling-point') {
+      const bpUpdate = Object.entries(updates).find(([id]) => id.includes('boiling'))?.[1];
+      const liquid = bpUpdate?.liquidName ?? 'Absolute Ethanol';
+      const bath = bpUpdate?.bathTempC ?? 78.3;
+      const stream = bpUpdate?.bubbleStream ?? 'continuous-rapid-stream';
+      const reEntry = bpUpdate?.liquidEnteredCapillary ? 'Liquid sucked into capillary' : 'Bubble stream active';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Boiling Point (${liquid})`,
+        value: `Bath T = ${bath}°C, Stream = ${stream} (${reEntry})`,
+        unit: '',
+      };
+    } else if (experimentId === 'crystallisation-class11') {
+      const dishUpdate = Object.entries(updates).find(([id]) => id.includes('dish'))?.[1];
+      const yieldG = dishUpdate?.crystalYieldGrams ?? 16.5;
+      const status = dishUpdate?.saturationStatus ?? 'supersaturated';
+      const rec = ((Number(yieldG) / 20.0) * 100).toFixed(1);
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Recrystallisation Yield`,
+        value: `Yield = ${yieldG} g pure crystals (${rec}% recovery yield, ${status})`,
+        unit: '',
+      };
+    } else if (experimentId === 'ph-determination') {
+      const selectedUpdate = selectedObject ? updates[selectedObject.id] : null;
+      const ph = selectedUpdate?.samplePH ?? 3.6;
+      const title = selectedObject?.title ?? 'Fruit Juice / Buffer / Salt';
+      const obs = selectedUpdate?.observationText ?? 'pH determination logged';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${title}`,
+        value: `pH = ${Number(ph).toFixed(2)} (${obs})`,
+        unit: '',
+      };
+    } else if (experimentId === 'strong-vs-weak-acids') {
+      const benchUpdate = Object.entries(updates).find(([id]) => id.includes('bench') || id.includes('acid'))?.[1];
+      const sPH = benchUpdate?.strongPH ?? 1.0;
+      const wPH = benchUpdate?.weakPH ?? 2.88;
+      const ratio = benchUpdate?.hydroniumRatio ?? 76.1;
+      const h2 = benchUpdate?.totalHydrogenYieldMl ?? 24.0;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Acid Strength & Kinetics`,
+        value: `HCl pH=${sPH} (α=100%) vs CH₃COOH pH=${wPH} (α=1.31%). [H⁺] ratio: ${ratio}×, H₂ yield: ${h2} mL`,
+        unit: '',
+      };
     } else {
       let volt = 0;
       let curr = 0;

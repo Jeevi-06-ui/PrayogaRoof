@@ -1,4 +1,21 @@
 import { ConceptualQuestion } from '../circuit/types';
+import {
+  BASIC_LAB_TECHNIQUES_QUESTIONS,
+  MELTING_POINT_QUESTIONS,
+  BOILING_POINT_QUESTIONS,
+  CRYSTALLISATION_CLASS11_QUESTIONS,
+  PH_DETERMINATION_QUESTIONS,
+  STRONG_VS_WEAK_ACIDS_QUESTIONS,
+} from './class11Questions';
+
+export {
+  BASIC_LAB_TECHNIQUES_QUESTIONS,
+  MELTING_POINT_QUESTIONS,
+  BOILING_POINT_QUESTIONS,
+  CRYSTALLISATION_CLASS11_QUESTIONS,
+  PH_DETERMINATION_QUESTIONS,
+  STRONG_VS_WEAK_ACIDS_QUESTIONS,
+};
 
 export const PH_TESTING_QUESTIONS: ConceptualQuestion[] = [
   {
@@ -252,6 +269,18 @@ export function getChemistryQuestions(experimentId: string): ConceptualQuestion[
       return DISPLACEMENT_REACTION_QUESTIONS;
     case 'crystallisation':
       return CRYSTALLISATION_QUESTIONS;
+    case 'basic-lab-techniques':
+      return BASIC_LAB_TECHNIQUES_QUESTIONS;
+    case 'melting-point':
+      return MELTING_POINT_QUESTIONS;
+    case 'boiling-point':
+      return BOILING_POINT_QUESTIONS;
+    case 'crystallisation-class11':
+      return CRYSTALLISATION_CLASS11_QUESTIONS;
+    case 'ph-determination':
+      return PH_DETERMINATION_QUESTIONS;
+    case 'strong-vs-weak-acids':
+      return STRONG_VS_WEAK_ACIDS_QUESTIONS;
     default:
       return [];
   }

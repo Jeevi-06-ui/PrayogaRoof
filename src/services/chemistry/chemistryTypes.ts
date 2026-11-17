@@ -11,7 +11,11 @@ export type SubstanceCategory =
   | 'strong-base'
   | 'natural-indicator'
   | 'synthetic-indicator'
-  | 'salt-solution';
+  | 'salt-solution'
+  | 'solid-organic'
+  | 'organic-solvent'
+  | 'buffer-solution'
+  | 'metal';
 
 export interface ChemicalSubstance {
   id: string;

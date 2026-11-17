@@ -93,20 +93,21 @@ flowchart TD
 
 ### Phase 9: Chemistry Class 11 — Core Techniques, Equilibria & Titration (11 Experiments)
 **Focus:** Quantitative volumetric titrations, thermal phase changes, chemical equilibria, and systematic qualitative inorganic analysis.
+**Current Status:** 6 of 11 Experiments Implemented and Operational (Phase 7 Complete).
 
-| # | Experiment ID | Title | Planned Engine & Reusability |
-|---|---------------|-------|------------------------------|
-| 1 | `basic-lab-techniques` | Basic Laboratory Techniques | Glass cutting, bending, jet drawing, wash bottle assembly, and Bunsen non-luminous flame zoning. |
-| 2 | `melting-point` | Melting Point Determination | Thiele tube liquid paraffin bath, melting capillary tube, thermometer immersion, phase transition temperature logging. |
-| 3 | `boiling-point` | Boiling Point Determination | Reflux/capillary boiling tube, vapor equilibrium monitoring, ambient barometric boiling point calculation. |
-| 4 | `crystallisation-class11` | Crystallisation | **Reuses Foundation Crystallisation module (`crystallisation`)** with Class 11 presets (impure potash alum and benzoic acid purification). |
-| 5 | `ph-determination` | pH Determination | **Reuses Foundation pH module (`ph-testing`)** with Class 11 fruit juices, unknown molarity salts ($\text{NaCl}, \text{CH}_3\text{COONa}, \text{NH}_4\text{Cl}$). |
-| 6 | `strong-vs-weak-acids` | Strong vs Weak Acids | Comparative dissociation kinetics, conductance estimation, and pH titration curves ($\text{HCl}$ vs $\text{CH}_3\text{COOH}$). |
-| 7 | `chemical-equilibrium` | Chemical Equilibrium | Reversible colorimetric equilibria: $\text{Fe}^{3+} + \text{SCN}^- \rightleftharpoons [\text{Fe(SCN)}]^{2+}$ (blood red) and Le Chatelier perturbation response. |
-| 8 | `standard-solution-prep` | Standard Solution Preparation | Analytical chemical balance weighing, transfer funnel, volumetric flask dilution to meniscus, molarity calculation ($M = \frac{w \cdot 1000}{M_w \cdot V}$). |
-| 9 | `acid-base-titration` | Acid-Base Titration | Draggable stopcock glass burette, conical flask swirling, phenolphthalein / methyl orange color jump, concordant titer value calculator. |
-| 10 | `salt-analysis-class11` | Salt Analysis (Class 11) | Systematic dry and wet tests for basic radicals ($\text{Pb}^{2+}, \text{Cu}^{2+}, \text{Al}^{3+}, \text{Fe}^{3+}, \text{Zn}^{2+}, \text{Ca}^{2+}, \text{Mg}^{2+}, \text{NH}_4^+$) and acid radicals ($\text{CO}_3^{2-}, \text{S}^{2-}, \text{SO}_4^{2-}, \text{NO}_3^-, \text{Cl}^-$). |
-| 11 | `organic-element-detection` | Detection of Elements in Organic Compounds | Lassaigne's sodium fusion extract preparation, Prussian blue test for Nitrogen, lead acetate test for Sulphur, silver nitrate test for Halogens. |
+| # | Experiment ID | Title | Status | Core Scientific Model Implemented / Operational |
+|---|---------------|-------|--------|-------------------------------------------------|
+| 1 | `basic-lab-techniques` | Basic Laboratory Techniques | **Implemented** | 50 mL graduated burette on retort stand with stopcock valve, digital analytical balance ($d = 0.001\text{ g}$) with electronic tare subtraction, volumetric cylinder meniscus alignment, gravimetric transfer verification ($\rho \approx 1.000\text{ g/mL}$). |
+| 2 | `melting-point` | Melting Point Determination | **Implemented** | Thiele tube with liquid paraffin convection circulation loop, precision thermometer (0–360°C), micro-capillary sample holder, pure compounds (Benzoic acid $122.4^\circ\text{C}$, Urea $133.0^\circ\text{C}$, Naphthalene $80.2^\circ\text{C}$) sharp melting vs impure sample (5% cinnamic acid) depressed melting range ($114.5 - 118.5^\circ\text{C}$). |
+| 3 | `boiling-point` | Boiling Point Determination | **Implemented** | Siwoloboff inverted micro-capillary in fusion tube, volatile solvents (Ethanol $78.3^\circ\text{C}$, Acetone $56.1^\circ\text{C}$, Ethyl Acetate $77.1^\circ\text{C}$, Water $100^\circ\text{C}$), Clausius-Clapeyron barometric pressure correction, continuous vapor bubble train, liquid suction re-entry temperature capture. |
+| 4 | `crystallisation-class11` | Crystallisation | **Implemented** | **Reuses & extends crystallisation engine** for Class 11 impure sample purification: hot solvent dissolution, hot gravity filtration with fluted filter paper, concentration to crystallisation point, undisturbed lattice growth, percentage recovery yield calculation ($82.5\%$). |
+| 5 | `ph-determination` | pH Determination | **Implemented** | **Reuses & extends pH engine** for Class 11: biological fruit juices (orange juice pH 3.6, tomato extract pH 4.3, apple juice pH 3.9), salt hydrolysis shifts (acidic $\text{NH}_4\text{Cl}$ pH 5.13 vs basic $\text{CH}_3\text{COONa}$ pH 8.87), Henderson-Hasselbalch equimolar acetate buffer (pH 4.74). |
+| 6 | `strong-vs-weak-acids` | Strong vs Weak Acids | **Implemented** | Dual comparator workstation comparing equimolar ($0.1\text{ M}, 0.01\text{ M}, 0.001\text{ M}$) $\text{HCl}$ vs $\text{CH}_3\text{COOH}$, Ostwald's dilution law ($\alpha = 100\%$ vs $\alpha = 1.31\%$), $[H^+]$ ratio ($76.1\times$), magnesium effervescence rate (vigorous vs gentle), identical stoichiometric $\text{H}_2$ volume ($24.0\text{ mL}$). |
+| 7 | `chemical-equilibrium` | Chemical Equilibrium | Under Development | Reversible colorimetric equilibria: $\text{Fe}^{3+} + \text{SCN}^- \rightleftharpoons [\text{Fe(SCN)}]^{2+}$ (blood red) and Le Chatelier perturbation response. |
+| 8 | `standard-solution-prep` | Standard Solution Preparation | Under Development | Analytical chemical balance weighing, transfer funnel, volumetric flask dilution to mark, molarity calculation ($M = \frac{w \cdot 1000}{M_w \cdot V}$). |
+| 9 | `acid-base-titration` | Acid-Base Titration | Under Development | Draggable stopcock glass burette, conical flask swirling, phenolphthalein / methyl orange color jump, concordant titer value calculator. |
+| 10 | `salt-analysis-class11` | Salt Analysis (Class 11) | Under Development | Systematic dry and wet tests for basic radicals ($\text{Pb}^{2+}, \text{Cu}^{2+}, \text{Al}^{3+}, \text{Fe}^{3+}, \text{Zn}^{2+}, \text{Ca}^{2+}, \text{Mg}^{2+}, \text{NH}_4^+$) and acid radicals ($\text{CO}_3^{2-}, \text{S}^{2-}, \text{SO}_4^{2-}, \text{NO}_3^-, \text{Cl}^-$). |
+| 11 | `organic-element-detection` | Detection of Elements in Organic Compounds | Under Development | Lassaigne's sodium fusion extract preparation, Prussian blue test for Nitrogen, lead acetate test for Sulphur, silver nitrate test for Halogens. |
 
 ---
 

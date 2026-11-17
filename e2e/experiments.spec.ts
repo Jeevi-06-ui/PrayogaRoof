@@ -25,13 +25,18 @@ test.describe('PrayogaProof E2E Test Suite', () => {
     await expect(page.getByRole('link', { name: 'Simple Pendulum' })).toBeVisible();
   });
 
-  test('Navigates to Chemistry and lists all 5 active experiments', async ({ page }) => {
+  test('Navigates to Chemistry and lists all active experiments', async ({ page }) => {
     await page.goto('/subjects/chemistry');
     await expect(page.getByRole('link', { name: 'pH Testing' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Natural Indicators' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Paper Chromatography' }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: 'Displacement Reaction' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Crystallisation' }).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Basic Laboratory Techniques' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Melting Point Determination' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Boiling Point Determination' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'pH Determination' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Strong vs Weak Acids' })).toBeVisible();
   });
 
   test('Biology subject route displays Coming Soon message without breaking', async ({ page }) => {
@@ -194,6 +199,42 @@ test.describe('PrayogaProof E2E Test Suite', () => {
     if (await inspectorTab.isVisible()) {
       await inspectorTab.click();
     }
+  });
+
+  test('Loads Basic Laboratory Techniques workspace and verifies burette/balance apparatus', async ({ page }) => {
+    await page.goto('/workspace/basic-lab-techniques');
+    await expect(page.getByText(/Basic Laboratory Techniques & Volumetric Transfer/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Melting Point Determination workspace and verifies Thiele tube paraffin bath', async ({ page }) => {
+    await page.goto('/workspace/melting-point');
+    await expect(page.getByText(/Melting Point Determination with Thiele’s Tube/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Boiling Point Determination workspace and verifies Siwoloboff inverted capillary setup', async ({ page }) => {
+    await page.goto('/workspace/boiling-point');
+    await expect(page.getByText(/Boiling Point Determination by Inverted Capillary Method/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Crystallisation Class 11 workspace and verifies impure sample purification', async ({ page }) => {
+    await page.goto('/workspace/crystallisation-class11');
+    await expect(page.getByText(/Purification of Impure Samples by Fractional Crystallisation/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads pH Determination workspace and verifies spotting plate and biological samples', async ({ page }) => {
+    await page.goto('/workspace/ph-determination');
+    await expect(page.getByText(/pH Determination of Fruit Juices, Salts & Buffers/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Strong vs Weak Acids workspace and verifies acid comparator bench', async ({ page }) => {
+    await page.goto('/workspace/strong-vs-weak-acids');
+    await expect(page.getByText(/Strong vs Weak Acids: Equilibrium Ionisation & Reaction Kinetics/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
   });
 
   test('Handles 404 route gracefully with return navigation', async ({ page }) => {

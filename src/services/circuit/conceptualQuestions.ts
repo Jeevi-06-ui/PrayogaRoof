@@ -30,6 +30,12 @@ import {
   PAPER_CHROMATOGRAPHY_QUESTIONS,
   DISPLACEMENT_REACTION_QUESTIONS,
   CRYSTALLISATION_QUESTIONS,
+  BASIC_LAB_TECHNIQUES_QUESTIONS,
+  MELTING_POINT_QUESTIONS,
+  BOILING_POINT_QUESTIONS,
+  CRYSTALLISATION_CLASS11_QUESTIONS,
+  PH_DETERMINATION_QUESTIONS,
+  STRONG_VS_WEAK_ACIDS_QUESTIONS,
 } from '../chemistry/chemistryQuestions';
 
 export const OHMS_LAW_QUESTIONS: ConceptualQuestion[] = [
@@ -127,6 +133,12 @@ export function getConceptualQuestions(experimentId: string): ConceptualQuestion
   if (experimentId === 'paper-chromatography') return PAPER_CHROMATOGRAPHY_QUESTIONS;
   if (experimentId === 'displacement-reaction') return DISPLACEMENT_REACTION_QUESTIONS;
   if (experimentId === 'crystallisation') return CRYSTALLISATION_QUESTIONS;
+  if (experimentId === 'basic-lab-techniques') return BASIC_LAB_TECHNIQUES_QUESTIONS;
+  if (experimentId === 'melting-point') return MELTING_POINT_QUESTIONS;
+  if (experimentId === 'boiling-point') return BOILING_POINT_QUESTIONS;
+  if (experimentId === 'crystallisation-class11') return CRYSTALLISATION_CLASS11_QUESTIONS;
+  if (experimentId === 'ph-determination') return PH_DETERMINATION_QUESTIONS;
+  if (experimentId === 'strong-vs-weak-acids') return STRONG_VS_WEAK_ACIDS_QUESTIONS;
   if (experimentId === 'vernier-callipers') return VERNIER_CALLIPERS_QUESTIONS;
   if (experimentId === 'screw-gauge') return SCREW_GAUGE_QUESTIONS;
   if (experimentId === 'irregular-lamina') return IRREGULAR_LAMINA_QUESTIONS;

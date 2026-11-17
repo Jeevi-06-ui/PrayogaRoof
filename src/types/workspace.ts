@@ -125,6 +125,11 @@ export interface EquipmentDefinition {
     | 'concave-lens'
     | 'optical-prism'
     | 'pn-diode-board'
+    | 'thiele-tube'
+    | 'boiling-tube'
+    | 'chemical-balance'
+    | 'graduated-burette'
+    | 'acid-bench'
     | 'generic-box'
     | 'sensor-probe';
   colorTheme?: string;

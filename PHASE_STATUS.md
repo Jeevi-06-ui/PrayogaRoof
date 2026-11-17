@@ -11,10 +11,10 @@
 | Category | Total Experiments | Implemented (Active) | Under Development | Status |
 |----------|-------------------|----------------------|-------------------|--------|
 | **Physics** | **25** | **25** (5 Foundation + 10 Class 11 + 10 Class 12) | **0** (Physics Curriculum 100% Complete) | **100% Complete (Active Operational)** |
-| **Chemistry** | **27** | **5** (Foundation) | **22** (Class 11: 11, Class 12: 11) | Active Hybrid |
+| **Chemistry** | **27** | **11** (5 Foundation + 6 Class 11) | **16** (Class 11: 5, Class 12: 11) | **Active (Phase 7 Complete)** |
 | **Biology** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
 | **Mathematics** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
-| **Total** | **52** | **30** (57.7%) | **22** (42.3%) | **Verified Operational Baseline** |
+| **Total** | **52** | **36** (69.2%) | **16** (30.8%) | **Verified Operational Baseline** |
 
 ---
 
@@ -70,15 +70,15 @@
 | 4 | `displacement-reaction` | Displacement Reaction | Foundation | **Implemented** | Single displacement redox kinetics ($\text{Fe} + \text{CuSO}_4 \to \text{FeSO}_4 + \text{Cu}$), copper plating visualization, solution color transition from blue to pale green. |
 | 5 | `crystallisation` | Crystallisation | Foundation | **Implemented** | Thermal evaporation engine, Bunsen burner heating, saturated copper sulphate solution preparation, cooling crystallization on watch glass. |
 
-### Class 11 Experiments — 11 of 11 Registered (Under Development)
-| # | ID | Title | Class Level | Status | Reused Engine / Target Capabilities |
-|---|----|-------|-------------|--------|-------------------------------------|
-| 6 | `basic-lab-techniques` | Basic Laboratory Techniques | Class 11 | **Under Development** | Glass bending, jet drawing, Bunsen burner flame adjustment. |
-| 7 | `melting-point` | Melting Point Determination | Class 11 | **Under Development** | Thiele tube liquid paraffin bath, melting capillary tube, temperature curve. |
-| 8 | `boiling-point` | Boiling Point Determination | Class 11 | **Under Development** | Boiling capillary tube, vapor equilibrium monitoring, boiling point measurement. |
-| 9 | `crystallisation-class11` | Crystallisation | Class 11 | **Under Development** | **Reuses Foundation module (`crystallisation`)** with Class 11 presets (potash alum, benzoic acid). |
-| 10 | `ph-determination` | pH Determination | Class 11 | **Under Development** | **Reuses Foundation module (`ph-testing`)** with Class 11 presets (fruit juices, unknown salt solutions). |
-| 11 | `strong-vs-weak-acids` | Strong vs Weak Acids | Class 11 | **Under Development** | Comparative dissociation kinetics, conductance curves ($\text{HCl}$ vs $\text{CH}_3\text{COOH}$). |
+### Class 11 Experiments — 6 of 11 Operational (Phase 7 Complete)
+| # | ID | Title | Class Level | Status | Scientific Engine & Capabilities |
+|---|----|-------|-------------|--------|----------------------------------|
+| 6 | `basic-lab-techniques` | Basic Laboratory Techniques | Class 11 | **Implemented** | Precision 50 mL graduated burette on retort stand with stopcock valve, digital analytical balance ($d = 0.001\text{ g}$) with electronic tare subtraction, volumetric cylinder meniscus alignment, gravimetric transfer verification ($\rho \approx 1.000\text{ g/mL}$). |
+| 7 | `melting-point` | Melting Point Determination | Class 11 | **Implemented** | Thiele tube with liquid paraffin convection circulation loop, precision thermometer (0–360°C), micro-capillary sample holder, pure compounds (Benzoic acid $122.4^\circ\text{C}$, Urea $133.0^\circ\text{C}$, Naphthalene $80.2^\circ\text{C}$) sharp melting vs impure sample (5% cinnamic acid) depressed melting range ($114.5 - 118.5^\circ\text{C}$). |
+| 8 | `boiling-point` | Boiling Point Determination | Class 11 | **Implemented** | Siwoloboff inverted micro-capillary in fusion tube, volatile solvents (Ethanol $78.3^\circ\text{C}$, Acetone $56.1^\circ\text{C}$, Ethyl Acetate $77.1^\circ\text{C}$, Water $100^\circ\text{C}$), Clausius-Clapeyron barometric pressure correction, continuous vapor bubble train, liquid suction re-entry temperature capture. |
+| 9 | `crystallisation-class11` | Crystallisation | Class 11 | **Implemented** | **Reuses & extends crystallisation engine** for Class 11 impure sample purification: hot solvent dissolution, hot gravity filtration with fluted filter paper, concentration to crystallisation point, undisturbed lattice growth, percentage recovery yield calculation ($82.5\%$). |
+| 10 | `ph-determination` | pH Determination | Class 11 | **Implemented** | **Reuses & extends pH engine** for Class 11: biological fruit juices (orange juice pH 3.6, tomato extract pH 4.3, apple juice pH 3.9), salt hydrolysis shifts (acidic $\text{NH}_4\text{Cl}$ pH 5.13 vs basic $\text{CH}_3\text{COONa}$ pH 8.87), Henderson-Hasselbalch equimolar acetate buffer (pH 4.74). |
+| 11 | `strong-vs-weak-acids` | Strong vs Weak Acids | Class 11 | **Implemented** | Dual comparator workstation comparing equimolar ($0.1\text{ M}, 0.01\text{ M}, 0.001\text{ M}$) $\text{HCl}$ vs $\text{CH}_3\text{COOH}$, Ostwald's dilution law ($\alpha = 100\%$ vs $\alpha = 1.31\%$), $[H^+]$ ratio ($76.1\times$), magnesium effervescence rate (vigorous vs gentle), identical stoichiometric $\text{H}_2$ volume ($24.0\text{ mL}$). |
 | 12 | `chemical-equilibrium` | Chemical Equilibrium | Class 11 | **Under Development** | $\text{Fe}^{3+} + \text{SCN}^- \rightleftharpoons [\text{Fe(SCN)}]^{2+}$ Le Chatelier perturbation response. |
 | 13 | `standard-solution-prep` | Standard Solution Preparation | Class 11 | **Under Development** | Analytical balance weighing, transfer funnel, volumetric flask dilution to mark. |
 | 14 | `acid-base-titration` | Acid-Base Titration | Class 11 | **Under Development** | Stopcock burette, conical flask swirling, phenolphthalein end-point, concordant titer calculation. |

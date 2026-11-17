@@ -5460,6 +5460,671 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
         );
       }
 
+      case 'chemical-balance': {
+        const displayedMass = Number(object.state.displayedMassGrams ?? object.properties.sampleMassGrams ?? 0);
+        const isTared = Number(object.state.tareOffsetGrams ?? object.properties.tareOffsetGrams ?? 0) > 0;
+        const dishPlaced = object.properties.watchGlassPlaced !== false;
+
+        return (
+          <Group>
+            {/* Balance Body Housing */}
+            <Rect
+              x={5}
+              y={25}
+              width={width - 10}
+              height={height - 30}
+              fill="#1e293b"
+              stroke={isSelected ? '#38bdf8' : '#334155'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={10}
+              shadowColor="#0f172a"
+              shadowBlur={8}
+              shadowOpacity={0.2}
+            />
+
+            {/* Weighing Pan Support Column & Stainless Steel Pan */}
+            <Rect x={width / 2 - 12} y={15} width={24} height={15} fill="#64748b" />
+            <Rect
+              x={width / 2 - 50}
+              y={8}
+              width={100}
+              height={10}
+              fill="#cbd5e1"
+              stroke="#94a3b8"
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+
+            {/* Watch Glass / Weighing Dish */}
+            {dishPlaced && (
+              <Line
+                points={[
+                  width / 2 - 35, 8,
+                  width / 2 - 25, 4,
+                  width / 2 + 25, 4,
+                  width / 2 + 35, 8,
+                ]}
+                stroke="#38bdf8"
+                strokeWidth={2}
+                tension={0.5}
+                closed
+                fill="#f0f9ff"
+                opacity={0.85}
+              />
+            )}
+
+            {/* Sample Powder Pile on Dish */}
+            {displayedMass > 0 && (
+              <Line
+                points={[
+                  width / 2 - 15, 6,
+                  width / 2 - 5, 1,
+                  width / 2 + 5, 1,
+                  width / 2 + 15, 6,
+                ]}
+                stroke="#e2e8f0"
+                strokeWidth={1}
+                fill="#f8fafc"
+                closed
+              />
+            )}
+
+            {/* 7-Segment Digital Blue LCD Display */}
+            <Rect
+              x={18}
+              y={45}
+              width={width - 36}
+              height={44}
+              fill="#020617"
+              stroke="#0284c7"
+              strokeWidth={1.5}
+              cornerRadius={6}
+            />
+            <KonvaText
+              text={`${displayedMass.toFixed(3)} g`}
+              x={24}
+              y={54}
+              fontSize={22}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+            <KonvaText
+              text={isTared ? '[NET/TARED]' : '[GROSS]'}
+              x={width - 95}
+              y={50}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isTared ? '#34d399' : '#fbbf24'}
+            />
+            <KonvaText
+              text="d = 0.001g"
+              x={width - 75}
+              y={72}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fill="#64748b"
+            />
+
+            {/* Control Panel Buttons: TARE / ZERO */}
+            <Rect
+              x={width - 70}
+              y={height - 24}
+              width={55}
+              height={16}
+              fill="#0f766e"
+              cornerRadius={3}
+            />
+            <KonvaText
+              text="TARE/ZERO"
+              x={width - 66}
+              y={height - 21}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#ccfbf1"
+            />
+
+            {/* Apparatus Title */}
+            <KonvaText
+              text={object.title}
+              x={18}
+              y={height - 22}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#94a3b8"
+            />
+          </Group>
+        );
+      }
+
+      case 'graduated-burette': {
+        const capacity = Number(object.properties.capacityMl ?? 50);
+        const delivered = Number(object.state.deliveredVolumeMl ?? object.properties.deliveredVolumeMl ?? 0);
+        const stopcockOpen = Boolean(object.state.stopcockOpen ?? object.properties.stopcockOpen ?? false);
+        const remaining = Math.max(0, capacity - delivered);
+        const liquidFraction = remaining / capacity;
+
+        // Burette dimensions
+        const tubeX = 40;
+        const tubeY = 15;
+        const tubeW = 20;
+        const tubeH = 210;
+        const fillHeight = tubeH * liquidFraction;
+        const meniscusY = tubeY + (tubeH - fillHeight);
+
+        return (
+          <Group>
+            {/* Stand Rod & Base */}
+            <Rect x={10} y={height - 15} width={75} height={12} fill="#334155" cornerRadius={3} />
+            <Rect x={18} y={10} width={6} height={height - 25} fill="#475569" />
+            {/* Clamp holding burette */}
+            <Rect x={24} y={70} width={18} height={8} fill="#64748b" cornerRadius={2} />
+            <Rect x={24} y={160} width={18} height={8} fill="#64748b" cornerRadius={2} />
+
+            {/* Glass Tube Body */}
+            <Rect
+              x={tubeX}
+              y={tubeY}
+              width={tubeW}
+              height={tubeH}
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#94a3b8'}
+              strokeWidth={isSelected ? 2.5 : 1.5}
+              opacity={0.9}
+              cornerRadius={[2, 2, 0, 0]}
+            />
+
+            {/* Liquid Fill */}
+            {fillHeight > 0 && (
+              <Rect
+                x={tubeX + 1}
+                y={meniscusY}
+                width={tubeW - 2}
+                height={fillHeight}
+                fill="#38bdf8"
+                opacity={0.65}
+              />
+            )}
+
+            {/* Curved Meniscus */}
+            {fillHeight > 0 && fillHeight < tubeH && (
+              <Line
+                points={[
+                  tubeX + 1, meniscusY,
+                  tubeX + tubeW / 2, meniscusY + 2,
+                  tubeX + tubeW - 1, meniscusY,
+                ]}
+                stroke="#0284c7"
+                strokeWidth={1.5}
+              />
+            )}
+
+            {/* Graduations (0, 10, 20, 30, 40, 50 mL) */}
+            {[0, 10, 20, 30, 40, 50].map((v, i) => {
+              const gy = tubeY + (tubeH * i) / 5;
+              return (
+                <Group key={v}>
+                  <Line
+                    points={[tubeX, gy, tubeX + 8, gy]}
+                    stroke="#475569"
+                    strokeWidth={1}
+                  />
+                  <KonvaText
+                    text={`${v}`}
+                    x={tubeX - 14}
+                    y={gy - 4}
+                    fontSize={7}
+                    fontFamily="sans-serif"
+                    fill="#64748b"
+                  />
+                </Group>
+              );
+            })}
+
+            {/* Teflon Stopcock Assembly */}
+            <Rect
+              x={tubeX - 2}
+              y={tubeY + tubeH}
+              width={tubeW + 4}
+              height={16}
+              fill="#0369a1"
+              cornerRadius={2}
+            />
+            {/* Valve Handle: Horizontal if closed, Vertical if open */}
+            <Rect
+              x={stopcockOpen ? tubeX + 7 : tubeX - 8}
+              y={stopcockOpen ? tubeY + tubeH - 4 : tubeY + tubeH + 4}
+              width={stopcockOpen ? 6 : 24}
+              height={stopcockOpen ? 24 : 7}
+              fill={stopcockOpen ? '#22c55e' : '#ef4444'}
+              cornerRadius={2}
+            />
+
+            {/* Tapered Dispensing Jet / Tip */}
+            <Line
+              points={[
+                tubeX + 4, tubeY + tubeH + 16,
+                tubeX + tubeW - 4, tubeY + tubeH + 16,
+                tubeX + tubeW / 2 + 1, tubeY + tubeH + 34,
+                tubeX + tubeW / 2 - 1, tubeY + tubeH + 34,
+              ]}
+              closed
+              fill="#e2e8f0"
+              stroke="#94a3b8"
+              strokeWidth={1}
+            />
+
+            {/* Falling Droplet if Stopcock Open */}
+            {stopcockOpen && (
+              <Circle
+                x={tubeX + tubeW / 2}
+                y={tubeY + tubeH + 42}
+                radius={2.5}
+                fill="#38bdf8"
+              />
+            )}
+
+            {/* Reading Badge */}
+            <Rect
+              x={tubeX + tubeW + 4}
+              y={meniscusY - 8}
+              width={42}
+              height={16}
+              fill="#0f172a"
+              cornerRadius={3}
+            />
+            <KonvaText
+              text={`${delivered.toFixed(1)}mL`}
+              x={tubeX + tubeW + 6}
+              y={meniscusY - 5}
+              fontSize={9}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+          </Group>
+        );
+      }
+
+      case 'thiele-tube': {
+        const currentTemp = Number(object.state.currentTempC ?? object.properties.currentTempC ?? 110);
+        const phase = String(object.state.phase ?? 'solid');
+        const isHeating = object.properties.isHeating !== false;
+        const mp = Number(object.state.meltingPointC ?? 122.4);
+
+        return (
+          <Group>
+            {/* Apparatus Base Card */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#334155'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Triangular Convective Loop Arm & Paraffin Fill */}
+            <Line
+              points={[
+                75, 70,
+                145, 130,
+                75, 190,
+              ]}
+              stroke="#fef08a"
+              strokeWidth={18}
+              lineCap="round"
+              lineJoin="round"
+              opacity={0.6}
+            />
+            <Line
+              points={[
+                75, 70,
+                145, 130,
+                75, 190,
+              ]}
+              stroke="#ca8a04"
+              strokeWidth={2}
+              lineCap="round"
+              lineJoin="round"
+            />
+
+            {/* Main Vertical Tube with Liquid Paraffin */}
+            <Rect
+              x={40}
+              y={35}
+              width={42}
+              height={180}
+              fill="#fef08a"
+              stroke="#ca8a04"
+              strokeWidth={2}
+              cornerRadius={[0, 0, 18, 18]}
+              opacity={0.7}
+            />
+
+            {/* Thermometer Immersion */}
+            <Rect x={58} y={20} width={7} height={165} fill="#f8fafc" stroke="#94a3b8" strokeWidth={1} cornerRadius={3} />
+            {/* Red Alcohol / Mercury Thread */}
+            <Rect
+              x={60}
+              y={185 - Math.min(150, (currentTemp / 200) * 150)}
+              width={3}
+              height={Math.min(150, (currentTemp / 200) * 150)}
+              fill="#ef4444"
+            />
+            {/* Thermometer Bulb */}
+            <Circle x={61.5} y={185} radius={6} fill="#ef4444" />
+
+            {/* Sample Capillary Tube tied to bulb */}
+            <Rect x={70} y={145} width={5} height={42} fill="#ffffff" stroke="#64748b" strokeWidth={0.8} />
+            {/* Solid Powder vs Melted Meniscus */}
+            <Rect
+              x={71}
+              y={165}
+              width={3}
+              height={20}
+              fill={phase === 'liquid' ? '#38bdf8' : phase === 'coexistence' ? '#cbd5e1' : '#ffffff'}
+            />
+
+            {/* Bunsen Heating Point on Side Arm */}
+            {isHeating && (
+              <Group>
+                <Circle x={145} y={130} radius={10} fill="#f97316" opacity={0.8} />
+                <Circle x={145} y={130} radius={5} fill="#fef08a" />
+                <KonvaText text="FLAME" x={132} y={145} fontSize={7} fontFamily="sans-serif" fontStyle="bold" fill="#fdba74" />
+              </Group>
+            )}
+
+            {/* Digital Temperature & State Readout Header */}
+            <Rect x={12} y={12} width={width - 24} height={20} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={`T = ${currentTemp.toFixed(1)}°C  (m.p. ~${mp.toFixed(1)}°C)`}
+              x={18}
+              y={17}
+              fontSize={10}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+
+            {/* Phase Badge Footer */}
+            <Rect
+              x={12}
+              y={height - 28}
+              width={width - 24}
+              height={20}
+              fill={phase === 'liquid' ? '#042f2e' : phase === 'coexistence' ? '#451a03' : '#1e293b'}
+              stroke={phase === 'liquid' ? '#10b981' : phase === 'coexistence' ? '#f59e0b' : '#475569'}
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+            <KonvaText
+              text={
+                phase === 'liquid'
+                  ? '✓ FULLY MELTED: Transparent clear meniscus'
+                  : phase === 'coexistence'
+                    ? '⚠️ MELTING ONSET: Solid-liquid coexistence'
+                    : 'SOLID: Microcrystalline packed powder'
+              }
+              x={16}
+              y={height - 23}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={phase === 'liquid' ? '#34d399' : phase === 'coexistence' ? '#fbbf24' : '#94a3b8'}
+            />
+          </Group>
+        );
+      }
+
+      case 'boiling-tube': {
+        const bathTemp = Number(object.state.bathTempC ?? object.properties.bathTempC ?? 78.3);
+        const bubbleStream = String(object.state.bubbleStream ?? 'slow-occasional-bubbles');
+        const liquidEntered = Boolean(object.state.liquidEnteredCapillary ?? false);
+        const bp = Number(object.state.standardBoilingPointC ?? 78.3);
+
+        const isContinuous = bubbleStream === 'continuous-rapid-stream';
+
+        return (
+          <Group>
+            {/* Outer Apparatus Frame */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#334155'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Paraffin / Water Heating Bath Beaker */}
+            <Rect
+              x={35}
+              y={45}
+              width={width - 70}
+              height={165}
+              fill="#fef9c3"
+              stroke="#ca8a04"
+              strokeWidth={1.5}
+              opacity={0.6}
+              cornerRadius={[0, 0, 12, 12]}
+            />
+
+            {/* Inner Fusion / Ignition Tube with Sample Liquid */}
+            <Rect
+              x={width / 2 - 16}
+              y={60}
+              width={32}
+              height={140}
+              fill="#e0f2fe"
+              stroke="#0284c7"
+              strokeWidth={1.5}
+              cornerRadius={[0, 0, 8, 8]}
+              opacity={0.85}
+            />
+
+            {/* Inverted Capillary Tube (Sealed at top, open at bottom) */}
+            <Rect
+              x={width / 2 - 4}
+              y={75}
+              width={8}
+              height={115}
+              fill="#ffffff"
+              stroke="#475569"
+              strokeWidth={1}
+            />
+            {/* Sealed top tip dot */}
+            <Circle x={width / 2} y={75} radius={3.5} fill="#475569" />
+
+            {/* Liquid inside capillary if sucked in upon cooling */}
+            {liquidEntered && (
+              <Rect
+                x={width / 2 - 3}
+                y={110}
+                width={6}
+                height={80}
+                fill="#0284c7"
+                opacity={0.8}
+              />
+            )}
+
+            {/* Vapor Bubbles Streaming from Capillary Bottom */}
+            {isContinuous && (
+              <Group>
+                <Circle x={width / 2} y={185} radius={3} fill="#ffffff" stroke="#38bdf8" strokeWidth={1} />
+                <Circle x={width / 2 + 3} y={175} radius={4} fill="#ffffff" stroke="#38bdf8" strokeWidth={1} />
+                <Circle x={width / 2 - 2} y={160} radius={4.5} fill="#ffffff" stroke="#38bdf8" strokeWidth={1} />
+                <Circle x={width / 2 + 1} y={145} radius={5} fill="#ffffff" stroke="#38bdf8" strokeWidth={1} />
+              </Group>
+            )}
+
+            {/* Bath Thermometer */}
+            <Rect x={width / 2 + 25} y={40} width={6} height={165} fill="#f8fafc" stroke="#94a3b8" strokeWidth={1} />
+            <Circle x={width / 2 + 28} y={195} radius={5} fill="#ef4444" />
+
+            {/* Digital Readout Header */}
+            <Rect x={12} y={12} width={width - 24} height={22} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={`Bath: ${bathTemp.toFixed(1)}°C | T_b: ${bp.toFixed(1)}°C`}
+              x={18}
+              y={17}
+              fontSize={10}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+
+            {/* Observation Badge Footer */}
+            <Rect
+              x={12}
+              y={height - 28}
+              width={width - 24}
+              height={20}
+              fill={liquidEntered ? '#042f2e' : isContinuous ? '#172554' : '#1e293b'}
+              stroke={liquidEntered ? '#10b981' : isContinuous ? '#3b82f6' : '#475569'}
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+            <KonvaText
+              text={
+                liquidEntered
+                  ? '✓ TRUE B.P.: Liquid sucked up into capillary on cooling!'
+                  : isContinuous
+                    ? '⚡ BOILING: Continuous rapid vapor bubble train'
+                    : 'PRE-BOILING: Slow trapped air expansion'
+              }
+              x={16}
+              y={height - 23}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={liquidEntered ? '#34d399' : isContinuous ? '#60a5fa' : '#94a3b8'}
+            />
+          </Group>
+        );
+      }
+
+      case 'acid-bench': {
+        const conc = Number(object.properties.concentrationM ?? 0.1);
+        const sPH = Number(object.state.strongPH ?? 1.0);
+        const wPH = Number(object.state.weakPH ?? 2.88);
+        const ratio = Number(object.state.hydroniumRatio ?? 76.1);
+        const sAlpha = Number(object.state.strongAlphaPercent ?? 100);
+        const wAlpha = Number(object.state.weakAlphaPercent ?? 1.31);
+        const mgAdded = object.properties.magnesiumAdded !== false;
+
+        return (
+          <Group>
+            {/* Bench Enclosure */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#334155'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Header: Concentration & Title */}
+            <Rect x={12} y={10} width={width - 24} height={20} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text={`Equimolar Acid Comparator (${conc} M)`}
+              x={18}
+              y={15}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text={`[H⁺] Ratio: ${ratio.toFixed(1)}×`}
+              x={width - 110}
+              y={15}
+              fontSize={10}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+
+            {/* LEFT CELL: Strong Acid (0.1M HCl) */}
+            <Rect
+              x={15}
+              y={35}
+              width={width / 2 - 20}
+              height={height - 70}
+              fill="#450a0a"
+              stroke="#ef4444"
+              strokeWidth={1}
+              cornerRadius={6}
+              opacity={0.8}
+            />
+            <KonvaText text="STRONG: 0.1M HCl" x={22} y={42} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#fca5a5" />
+            <KonvaText text={`pH = ${sPH.toFixed(2)}`} x={22} y={56} fontSize={14} fontFamily="Courier New, monospace" fontStyle="bold" fill="#ffffff" />
+            <KonvaText text={`α = ${sAlpha.toFixed(1)}% (100% ionised)`} x={22} y={74} fontSize={8} fontFamily="sans-serif" fill="#fecaca" />
+
+            {/* Vigorous effervescence in HCl */}
+            {mgAdded && (
+              <Group>
+                <Rect x={40} y={height - 50} width={30} height={5} fill="#94a3b8" />
+                <Circle x={45} y={height - 60} radius={3} fill="#ffffff" opacity={0.9} />
+                <Circle x={55} y={height - 70} radius={4} fill="#ffffff" opacity={0.85} />
+                <Circle x={50} y={height - 85} radius={3.5} fill="#ffffff" opacity={0.8} />
+                <Circle x={62} y={height - 65} radius={2.5} fill="#ffffff" opacity={0.9} />
+                <Circle x={42} y={height - 78} radius={3} fill="#ffffff" opacity={0.8} />
+                <KonvaText text="⚡ VIGOROUS H₂↑" x={22} y={height - 42} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#fca5a5" />
+              </Group>
+            )}
+
+            {/* RIGHT CELL: Weak Acid (0.1M CH3COOH) */}
+            <Rect
+              x={width / 2 + 5}
+              y={35}
+              width={width / 2 - 20}
+              height={height - 70}
+              fill="#431407"
+              stroke="#f97316"
+              strokeWidth={1}
+              cornerRadius={6}
+              opacity={0.8}
+            />
+            <KonvaText text="WEAK: 0.1M CH₃COOH" x={width / 2 + 12} y={42} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#fdba74" />
+            <KonvaText text={`pH = ${wPH.toFixed(2)}`} x={width / 2 + 12} y={56} fontSize={14} fontFamily="Courier New, monospace" fontStyle="bold" fill="#ffffff" />
+            <KonvaText text={`α = ${wAlpha.toFixed(2)}% (Equilibrium)`} x={width / 2 + 12} y={74} fontSize={8} fontFamily="sans-serif" fill="#fed7aa" />
+
+            {/* Gentle effervescence in Acetic */}
+            {mgAdded && (
+              <Group>
+                <Rect x={width / 2 + 35} y={height - 50} width={30} height={5} fill="#94a3b8" />
+                <Circle x={width / 2 + 45} y={height - 60} radius={2.5} fill="#ffffff" opacity={0.8} />
+                <Circle x={width / 2 + 55} y={height - 75} radius={3} fill="#ffffff" opacity={0.7} />
+                <KonvaText text="~ GENTLE H₂↑" x={width / 2 + 12} y={height - 42} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#fdba74" />
+              </Group>
+            )}
+
+            {/* Scientific Insight Footer */}
+            <Rect x={12} y={height - 30} width={width - 24} height={22} fill="#1e293b" cornerRadius={4} />
+            <KonvaText
+              text="Rate ∝ [H⁺] (Strength) | Total Stoichiometric H₂ = 24.0 mL (Identical Capacity)"
+              x={16}
+              y={height - 24}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#34d399"
+            />
+          </Group>
+        );
+      }
+
       case 'generic-box':
       default: {
         const displayVal =

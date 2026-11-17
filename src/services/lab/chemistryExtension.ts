@@ -19,6 +19,11 @@ import {
 } from '../chemistry/chromatographyModel';
 import { calculateDisplacementState } from '../chemistry/displacementModel';
 import { calculateCrystallisation } from '../chemistry/crystallisationModel';
+import {
+  calculateMeltingPointState,
+  calculateBoilingPointState,
+} from '../chemistry/phaseTransitionModel';
+import { compareEquimolarAcids } from '../chemistry/acidStrengthModel';
 
 export const REAGENT_OPTIONS = [
   { label: 'Pure Distilled Water (H₂O)', value: 'pure-water' },
@@ -34,6 +39,21 @@ export const REAGENT_OPTIONS = [
   { label: '0.5M Copper(II) Sulphate (CuSO₄)', value: 'cuso4' },
   { label: '0.5M Iron(II) Sulphate (FeSO₄)', value: 'feso4' },
   { label: 'Chromatography Mobile Phase (Water/Ethanol 80:20)', value: 'water-ethanol-eluent' },
+  { label: 'Fresh Orange Juice (pH 3.6)', value: 'orange-juice' },
+  { label: 'Fresh Tomato Extract (pH 4.3)', value: 'tomato-juice' },
+  { label: 'Natural Apple Juice (pH 3.9)', value: 'apple-juice' },
+  { label: '0.1M Ammonium Chloride (NH₄Cl, pH 5.13)', value: 'nh4cl-solution' },
+  { label: '0.1M Sodium Acetate (CH₃COONa, pH 8.87)', value: 'ch3coona-solution' },
+  { label: '0.1M Sodium Chloride (NaCl, pH 7.0)', value: 'nacl-solution' },
+  { label: 'Acetate Buffer Solution (pH 4.74)', value: 'acetate-buffer' },
+  { label: 'Pure Benzoic Acid Crystals (m.p. 122.4°C)', value: 'benzoic-acid-solid' },
+  { label: 'Pure Urea Granules (m.p. 133.0°C)', value: 'urea-solid' },
+  { label: 'Pure Naphthalene Flakes (m.p. 80.2°C)', value: 'naphthalene-solid' },
+  { label: 'Impure Benzoic Acid (5% Cinnamic Acid)', value: 'impure-benzoic-acid' },
+  { label: 'Absolute Ethanol (b.p. 78.3°C)', value: 'ethanol-liquid' },
+  { label: 'Pure Acetone (b.p. 56.1°C)', value: 'acetone-liquid' },
+  { label: 'Pure Ethyl Acetate (b.p. 77.1°C)', value: 'ethyl-acetate-liquid' },
+  { label: 'Magnesium Metal Ribbon', value: 'mg-ribbon' },
 ];
 
 export const CHEMISTRY_EQUIPMENT: EquipmentDefinition[] = [
@@ -1096,6 +1116,327 @@ export const CHEMISTRY_EQUIPMENT: EquipmentDefinition[] = [
     renderType: 'watch-glass',
     colorTheme: '#38bdf8',
   },
+  {
+    id: 'graduated-burette-50ml',
+    name: 'Graduated Burette on Retort Stand (50mL)',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Precision 50 mL graduated glass burette with Teflon stopcock and 0.1 mL scale divisions for quantitative acid-base titrations and volumetric dispensing.',
+    iconName: 'Pipette',
+    defaultWidth: 90,
+    defaultHeight: 280,
+    rotatable: false,
+    ports: [
+      {
+        id: 'top-in',
+        name: 'Burette Top Inlet',
+        type: 'fluid-in',
+        xOffset: 45,
+        yOffset: 0,
+        direction: 'north',
+        color: '#38bdf8',
+      },
+      {
+        id: 'tip-out',
+        name: 'Dispensing Tip Outlet',
+        type: 'fluid-out',
+        xOffset: 45,
+        yOffset: 280,
+        direction: 'south',
+        color: '#38bdf8',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'capacityMl',
+        label: 'Total Capacity',
+        type: 'number',
+        defaultValue: 50,
+        min: 50,
+        max: 50,
+        unit: 'mL',
+        editable: false,
+      },
+      {
+        id: 'liquidVolume',
+        label: 'Current Liquid Volume',
+        type: 'number',
+        defaultValue: 50,
+        min: 0,
+        max: 50,
+        step: 0.5,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'deliveredVolumeMl',
+        label: 'Delivered Volume (Titre)',
+        type: 'number',
+        defaultValue: 0,
+        min: 0,
+        max: 50,
+        step: 0.1,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'stopcockOpen',
+        label: 'Stopcock Valve Open',
+        type: 'boolean',
+        defaultValue: false,
+        editable: true,
+      },
+      {
+        id: 'reagentSolution',
+        label: 'Titrant Solution',
+        type: 'select',
+        defaultValue: 'hcl',
+        options: REAGENT_OPTIONS,
+        editable: true,
+      },
+    ],
+    renderType: 'graduated-burette',
+    colorTheme: '#0284c7',
+  },
+  {
+    id: 'digital-analytical-balance',
+    name: 'Digital Analytical Balance (0.001g)',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'High-precision electronic laboratory balance with electromagnetic force restoration, digital tare button, and milligram resolution.',
+    iconName: 'Scale',
+    defaultWidth: 170,
+    defaultHeight: 130,
+    rotatable: false,
+    ports: [
+      {
+        id: 'pan-surface',
+        name: 'Weighing Pan Surface',
+        type: 'generic',
+        xOffset: 85,
+        yOffset: 45,
+        direction: 'north',
+        color: '#64748b',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'sampleMassGrams',
+        label: 'Sample Mass on Pan',
+        type: 'number',
+        defaultValue: 5.25,
+        min: 0,
+        max: 210,
+        step: 0.001,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'tareOffsetGrams',
+        label: 'Tare Offset Mass',
+        type: 'number',
+        defaultValue: 0,
+        min: 0,
+        max: 210,
+        step: 0.001,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'tarePressed',
+        label: 'Tare Button Pressed (Zero Pan)',
+        type: 'boolean',
+        defaultValue: false,
+        editable: true,
+      },
+      {
+        id: 'watchGlassPlaced',
+        label: 'Weighing Dish on Pan',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+    ],
+    renderType: 'chemical-balance',
+    colorTheme: '#475569',
+  },
+  {
+    id: 'thiele-melting-apparatus',
+    name: 'Thiele Tube Melting Point Apparatus',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Standard Thiele tube apparatus filled with liquid paraffin for uniform convective heat circulation, equipped with a precision thermometer and sample capillary tube.',
+    iconName: 'Flame',
+    defaultWidth: 180,
+    defaultHeight: 260,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'sampleId',
+        label: 'Organic Solid Sample',
+        type: 'select',
+        defaultValue: 'benzoic-acid-solid',
+        options: [
+          { label: 'Pure Benzoic Acid (m.p. 122.4°C)', value: 'benzoic-acid-solid' },
+          { label: 'Pure Urea (m.p. 133.0°C)', value: 'urea-solid' },
+          { label: 'Pure Naphthalene (m.p. 80.2°C)', value: 'naphthalene-solid' },
+          { label: 'Impure Benzoic Acid (5% Cinnamic Acid, m.p. 114.5-118.5°C)', value: 'impure-benzoic-acid' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'currentTempC',
+        label: 'Paraffin Bath Temperature',
+        type: 'number',
+        defaultValue: 110,
+        min: 20,
+        max: 200,
+        step: 0.5,
+        unit: '°C',
+        editable: true,
+      },
+      {
+        id: 'isHeating',
+        label: 'Bunsen Burner Heating',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'heatingRateDegPerSec',
+        label: 'Heating Rate',
+        type: 'number',
+        defaultValue: 1.0,
+        min: 0.5,
+        max: 3.0,
+        step: 0.5,
+        unit: '°C/s',
+        editable: true,
+      },
+    ],
+    renderType: 'thiele-tube',
+    colorTheme: '#d97706',
+  },
+  {
+    id: 'boiling-point-apparatus',
+    name: 'Inverted Capillary Boiling Point Apparatus',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Siwoloboff micro-boiling tube assembly with inverted capillary tube sealed at top, immersed in a paraffin heating bath with digital thermometer.',
+    iconName: 'Flame',
+    defaultWidth: 180,
+    defaultHeight: 260,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'liquidId',
+        label: 'Volatile Liquid Sample',
+        type: 'select',
+        defaultValue: 'ethanol-liquid',
+        options: [
+          { label: 'Absolute Ethanol (b.p. 78.3°C)', value: 'ethanol-liquid' },
+          { label: 'Pure Acetone (b.p. 56.1°C)', value: 'acetone-liquid' },
+          { label: 'Pure Ethyl Acetate (b.p. 77.1°C)', value: 'ethyl-acetate-liquid' },
+          { label: 'Pure Distilled Water (b.p. 100.0°C)', value: 'pure-water' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'bathTempC',
+        label: 'Bath Temperature',
+        type: 'number',
+        defaultValue: 70,
+        min: 20,
+        max: 150,
+        step: 0.5,
+        unit: '°C',
+        editable: true,
+      },
+      {
+        id: 'isHeating',
+        label: 'Heating Active',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'barometricPressureKPa',
+        label: 'Atmospheric Pressure',
+        type: 'number',
+        defaultValue: 101.325,
+        min: 70.0,
+        max: 110.0,
+        step: 0.5,
+        unit: 'kPa',
+        editable: true,
+      },
+    ],
+    renderType: 'boiling-tube',
+    colorTheme: '#2563eb',
+  },
+  {
+    id: 'acid-comparison-bench',
+    name: 'Acid Strength & Kinetics Comparator Bench',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Dual-cell reaction comparison station testing equimolar strong acid (HCl) vs weak acid (CH₃COOH) with live [H⁺] meters, dissociation degree α, and magnesium reaction effervescence kinetics.',
+    iconName: 'Activity',
+    defaultWidth: 280,
+    defaultHeight: 200,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'concentrationM',
+        label: 'Acid Concentration',
+        type: 'number',
+        defaultValue: 0.1,
+        min: 0.001,
+        max: 1.0,
+        step: 0.01,
+        unit: 'M',
+        editable: true,
+      },
+      {
+        id: 'solutionVolumeMl',
+        label: 'Solution Volume per Cell',
+        type: 'number',
+        defaultValue: 50,
+        min: 10,
+        max: 100,
+        step: 5,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'magnesiumAdded',
+        label: 'Magnesium Ribbon Added',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'mgMassMg',
+        label: 'Magnesium Ribbon Mass',
+        type: 'number',
+        defaultValue: 24.3,
+        min: 5,
+        max: 100,
+        step: 1,
+        unit: 'mg',
+        editable: true,
+      },
+    ],
+    renderType: 'acid-bench',
+    colorTheme: '#4f46e5',
+  },
 ];
 
 export const CHEMISTRY_LAB_DEFINITIONS: LabDefinition[] = [
@@ -1806,6 +2147,814 @@ export const CHEMISTRY_LAB_DEFINITIONS: LabDefinition[] = [
     defaultNotebookNotes:
       "Crystallisation & Purification of Copper Sulphate:\n- Principle: Purification technique based on the steep temperature dependency of solute solubility in water.\n- Crystal Habit: Triclinic pinacoidal blue crystals of Copper(II) Sulphate Pentahydrate (CuSO4·5H2O).\n\nSolubility Model: S(T) = 14.3 + 0.25*T + 0.003*T²  [g anhydrous CuSO4 / 100 mL H2O]\n- At 20°C (Room Temp): S(20) ≈ 20.5 g / 100 mL\n- At 85°C (Hot Solution): S(85) ≈ 57.2 g / 100 mL\n\nCrystallisation vs Simple Evaporation to Dryness:\n- Evaporation to dryness traps all soluble and insoluble impurities in the residue.\n- Slow crystallisation allows pure CuSO4·5H2O lattice growth while impurities remain dissolved in the mother liquor.\n\nStoichiometry of Pentahydrate Hydration:\n- Molar mass anhydrous CuSO4 = 159.61 g/mol\n- Molar mass pentahydrate CuSO4·5H2O = 249.68 g/mol\n- Yield multiplier: 249.68 / 159.61 = 1.564 g hydrate per g anhydrous solute\n\nSafety Precautions: Virtual laboratory simulation. In physical labs, use crucible tongs to handle hot porcelain dishes and wear splash-proof goggles.",
   },
+  {
+    experimentId: 'basic-lab-techniques',
+    title: 'Basic Laboratory Techniques & Volumetric Transfer',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'borosilicate-beaker',
+      'beaker-100ml',
+      'beaker-50ml',
+      'conical-flask',
+      'graduated-measuring-cylinder',
+      'pasteur-pipette-dropper',
+      'glass-stirring-rod',
+      'glass-funnel',
+      'fluted-filter-paper',
+      'graduated-burette-50ml',
+      'digital-analytical-balance',
+      'reagent-bottle',
+      'watch-glass',
+    ],
+    initialObjects: [
+      {
+        id: 'burette-stand-1',
+        equipmentId: 'graduated-burette-50ml',
+        title: 'Graduated Burette (50 mL)',
+        x: 80,
+        y: 60,
+        rotation: 0,
+        width: 90,
+        height: 280,
+        properties: { capacityMl: 50, liquidVolume: 50, deliveredVolumeMl: 0, stopcockOpen: false, reagentSolution: 'hcl' },
+        state: { meniscusReading: 0, status: 'Burette filled to 0.00 mL mark' },
+      },
+      {
+        id: 'flask-receiver-1',
+        equipmentId: 'conical-flask',
+        title: 'Titration Conical Flask (150 mL)',
+        x: 75,
+        y: 350,
+        rotation: 0,
+        width: 100,
+        height: 120,
+        properties: { capacityMl: 150, liquidVolume: 0, reagentSolution: 'pure-water' },
+        state: { fillPercentage: 0, status: 'Clean receiving vessel' },
+      },
+      {
+        id: 'balance-1',
+        equipmentId: 'digital-analytical-balance',
+        title: 'Digital Analytical Balance',
+        x: 320,
+        y: 120,
+        rotation: 0,
+        width: 170,
+        height: 130,
+        properties: { sampleMassGrams: 5.000, tareOffsetGrams: 0, tarePressed: false, watchGlassPlaced: true },
+        state: { displayedMassGrams: 20.320, status: 'Gross weight with watch glass' },
+      },
+      {
+        id: 'cylinder-1',
+        equipmentId: 'graduated-measuring-cylinder',
+        title: 'Graduated Cylinder (100 mL)',
+        x: 540,
+        y: 100,
+        rotation: 0,
+        width: 90,
+        height: 160,
+        properties: { capacityMl: 100, liquidVolume: 25, reagentSolution: 'pure-water' },
+        state: { fillPercentage: 25, status: '25.0 mL aliquot measured' },
+      },
+      {
+        id: 'beaker-water-source',
+        equipmentId: 'beaker-100ml',
+        title: 'Stock Beaker (Distilled H₂O)',
+        x: 690,
+        y: 110,
+        rotation: 0,
+        width: 110,
+        height: 130,
+        properties: { capacityMl: 100, liquidVolume: 75, reagentSolution: 'pure-water' },
+        state: { samplePH: 7.0, status: 'Purified solvent reserve' },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'blt-step-1',
+        stepNumber: 1,
+        title: 'Digital Balance Calibration and Taring',
+        instruction:
+          'Place the watch glass on the analytical balance pan. Press the Tare button to zero the balance, compensating for the tare weight so that subsequent readings reflect only the net sample mass.',
+      },
+      {
+        id: 'blt-step-2',
+        stepNumber: 2,
+        title: 'Meniscus Reading in Graduated Cylinder',
+        instruction:
+          'Pour water into the measuring cylinder. Position your eye at the same horizontal level as the liquid surface to read the bottom of the concave meniscus, eliminating parallax error.',
+      },
+      {
+        id: 'blt-step-3',
+        stepNumber: 3,
+        title: 'Inspect and Fill the 50 mL Burette',
+        instruction:
+          'Ensure the Teflon stopcock is closed (horizontal). Fill the burette with 0.1M HCl solution above the zero graduation, then tap gently to dislodge any air bubbles trapped in the delivery tip.',
+      },
+      {
+        id: 'blt-step-4',
+        stepNumber: 4,
+        title: 'Deliver Measured Titre into Conical Flask',
+        instruction:
+          'Position the conical flask beneath the burette jet. Open the stopcock valve to deliver liquid. Observe the descending meniscus and close the valve exactly when the desired volume has been dispensed.',
+      },
+      {
+        id: 'blt-step-5',
+        stepNumber: 5,
+        title: 'Gravimetric Verification of Transferred Aliquot',
+        instruction:
+          'Transfer the dispensed volume to the tared balance. Given that the density of dilute aqueous solutions at 25°C is ~1.000 g/mL, verify that 20.0 mL corresponds to ~20.000 g.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-tare-balance',
+        description: 'Zero the digital balance using the tare feature to measure net mass.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-burette-delivery',
+        description: 'Open the burette stopcock and deliver a measured volume into the receiving flask.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-volumetric-accuracy',
+        description: 'Verify volume reading from meniscus alignment without parallax error.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Basic Laboratory Techniques — Observations & Principles:\n1. Parallax Elimination:\n- Transparent aqueous liquids form a concave meniscus due to glass wetting (adhesive forces > cohesive forces).\n- Always align the eye perpendicular to the graduated scale and read the lowest point of the concave meniscus.\n- For mercury or opaque liquids, read the upper convex boundary.\n\n2. Analytical Weighing Principles:\n- Gross Mass = Tare (vessel mass) + Net Mass (sample mass)\n- Electronic tare subtraction: Displayed Mass = Gross Mass - Tare Mass\n- Never weigh warm objects: convection currents inside draft shield exert upward aerodynamic buoyant forces.\n\n3. Volumetric Glassware Classification:\n- TD (To Deliver): Burettes and volumetric pipettes calibrated to release specified volume with drainage retention.\n- TC (To Contain): Volumetric flasks and measuring cylinders calibrated to hold exact specified volume.\n\n4. Laboratory Safety:\n- Always add acid to water, never water to acid (exothermic hydration hazard).\n- Lubricate glass tubing with water/glycerin before inserting through rubber corks.",
+  },
+  {
+    experimentId: 'melting-point',
+    title: 'Melting Point Determination with Thiele’s Tube',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'thiele-melting-apparatus',
+      'bunsen-burner',
+      'chemical-thermometer',
+      'reagent-bottle',
+    ],
+    initialObjects: [
+      {
+        id: 'thiele-1',
+        equipmentId: 'thiele-melting-apparatus',
+        title: 'Thiele Tube Paraffin Assembly',
+        x: 180,
+        y: 80,
+        rotation: 0,
+        width: 180,
+        height: 260,
+        properties: { sampleId: 'benzoic-acid-solid', currentTempC: 118, isHeating: true, heatingRateDegPerSec: 1.0 },
+        state: { meltFraction: 0, phase: 'solid', status: 'Pre-heating paraffin bath' },
+      },
+      {
+        id: 'burner-thiele-1',
+        equipmentId: 'bunsen-burner',
+        title: 'Bunsen Burner (Side-Arm)',
+        x: 215,
+        y: 360,
+        rotation: 0,
+        width: 110,
+        height: 100,
+        properties: { isLit: true, flameType: 'non-luminous', burnerPower: 350 },
+        state: { status: 'Gentle heating under triangular circulation loop' },
+      },
+      {
+        id: 'reagent-benzoic',
+        equipmentId: 'reagent-bottle',
+        title: 'Sample: Pure Benzoic Acid',
+        x: 480,
+        y: 120,
+        rotation: 0,
+        width: 90,
+        height: 120,
+        properties: { reagentSolution: 'benzoic-acid-solid', capacityMl: 100, liquidVolume: 50 },
+        state: { status: 'Dry crystalline standard (m.p. 122.4°C)' },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'mp-step-1',
+        stepNumber: 1,
+        title: 'Capillary Packing and Thiele Tube Setup',
+        instruction:
+          'Ensure the organic solid sample is pulverized into fine powder. Pack into a thin-walled capillary tube sealed at one end to a height of 2-3 mm. Attach to the thermometer bulb with a rubber band above the liquid paraffin level.',
+      },
+      {
+        id: 'mp-step-2',
+        stepNumber: 2,
+        title: 'Convection Loop Heating in Thiele Tube',
+        instruction:
+          'Apply the non-luminous Bunsen flame specifically to the triangular side-arm of the Thiele tube. This sets up continuous thermal convection currents, maintaining uniform bath temperature without mechanical stirring.',
+      },
+      {
+        id: 'mp-step-3',
+        stepNumber: 3,
+        title: 'Observe Solid Softening (Melting Onset)',
+        instruction:
+          'As bath temperature approaches the expected melting point, slow the heating rate to ~1°C/min. Watch the opaque powder in the capillary closely for the first signs of sintering (formation of tiny droplets).',
+      },
+      {
+        id: 'mp-step-4',
+        stepNumber: 4,
+        title: 'Record Sharp Melting Point and Meniscus Formation',
+        instruction:
+          'Record the temperature at which the entire sample transforms into a completely clear, transparent liquid meniscus. Pure Benzoic Acid melts sharply at 122.0 - 122.8°C.',
+      },
+      {
+        id: 'mp-step-5',
+        stepNumber: 5,
+        title: 'Investigate Melting Point Depression with Impurities',
+        instruction:
+          'Select the Impure Benzoic Acid sample (containing 5% cinnamic acid). Observe that melting begins much earlier (~114.5°C) and spans a wide range (114.5 - 118.5°C), demonstrating the colligative effect of foreign solutes.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-heat-thiele',
+        description: 'Heat paraffin bath to the melting point transition range.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-detect-liquefaction',
+        description: 'Observe phase change from solid crystals to transparent liquid meniscus.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-purity-assessment',
+        description: 'Distinguish between sharp melting (pure solid) and wide depressed range (impure mixture).',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Melting Point Determination — Experimental Record:\n\n1. Physical Principle:\n- Melting point is the temperature at which solid and liquid phases of a substance coexist in thermodynamic equilibrium at 1 atm:\n  Solid ⇌ Liquid  (ΔG_fus = ΔH_fus - T_m·ΔS_fus = 0  ==>  T_m = ΔH_fus / ΔS_fus)\n\n2. Standard Calibration Reference Values:\n- Benzoic Acid (C₆H₅COOH): 122.4°C (Literature sharp range: 122.0 - 122.8°C)\n- Urea ((NH₂)₂CO): 133.0°C (Literature sharp range: 132.5 - 133.5°C)\n- Naphthalene (C₁₀H₈): 80.2°C (Literature sharp range: 80.0 - 80.5°C)\n- Impure Benzoic Acid (5% Cinnamic Acid): 114.5 - 118.5°C (Depressed onset and broad range)\n\n3. Criterion of Purity:\n- Pure organic compounds melt sharply within a narrow range of 0.5 - 1.0°C.\n- Soluble impurities disrupt crystal lattice regularity, lowering the chemical potential and melting temperature (Freezing Point Depression: ΔT_f = K_f · m).\n\n4. Thiele Tube Convection Mechanism:\n- Heating the triangular arm creates a density gradient: warmer paraffin rises along the arm and flows down the main tube, ensuring uniform bath temperature without turbulent mechanical stirring.",
+  },
+  {
+    experimentId: 'boiling-point',
+    title: 'Boiling Point Determination by Inverted Capillary Method',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'boiling-point-apparatus',
+      'bunsen-burner',
+      'chemical-thermometer',
+      'reagent-bottle',
+    ],
+    initialObjects: [
+      {
+        id: 'boiling-apparatus-1',
+        equipmentId: 'boiling-point-apparatus',
+        title: 'Siwoloboff Boiling Apparatus',
+        x: 180,
+        y: 80,
+        rotation: 0,
+        width: 180,
+        height: 260,
+        properties: { liquidId: 'ethanol-liquid', bathTempC: 75, isHeating: true, barometricPressureKPa: 101.325 },
+        state: { bubbleStream: 'slow-occasional-bubbles', status: 'Pre-heating oil bath' },
+      },
+      {
+        id: 'burner-bp-1',
+        equipmentId: 'bunsen-burner',
+        title: 'Bunsen Burner',
+        x: 215,
+        y: 360,
+        rotation: 0,
+        width: 110,
+        height: 100,
+        properties: { isLit: true, flameType: 'non-luminous', burnerPower: 300 },
+        state: { status: 'Regulated indirect bath heating' },
+      },
+      {
+        id: 'reagent-ethanol',
+        equipmentId: 'reagent-bottle',
+        title: 'Volatile Sample: Absolute Ethanol',
+        x: 480,
+        y: 120,
+        rotation: 0,
+        width: 90,
+        height: 120,
+        properties: { reagentSolution: 'ethanol-liquid', capacityMl: 100, liquidVolume: 50 },
+        state: { status: 'Pure volatile alcohol (b.p. 78.3°C)' },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'bp-step-1',
+        stepNumber: 1,
+        title: 'Prepare Micro-Boiling Tube and Inverted Capillary',
+        instruction:
+          'Place ~1 mL of the test liquid into a fusion tube. Insert a micro-capillary tube sealed at one end with its open end pointing downward into the liquid (Siwoloboff’s method).',
+      },
+      {
+        id: 'bp-step-2',
+        stepNumber: 2,
+        title: 'Submerge Assembly in Heating Bath',
+        instruction:
+          'Fasten the fusion tube to the thermometer bulb so that the liquid sample level coincides with the thermometer mercury reservoir. Immerse into the paraffin oil bath.',
+      },
+      {
+        id: 'bp-step-3',
+        stepNumber: 3,
+        title: 'Observe Air Bubble Expansion on Heating',
+        instruction:
+          'Apply gentle indirect heat. Trapped air inside the inverted capillary expands according to Charles’s Law (V ∝ T), releasing occasional slow bubbles from the open tip.',
+      },
+      {
+        id: 'bp-step-4',
+        stepNumber: 4,
+        title: 'Identify Continuous Rapid Vapor Bubble Stream',
+        instruction:
+          'As temperature reaches the boiling point, the liquid’s vapor pressure equals external atmospheric pressure. A rapid, continuous train of vapor bubbles streams out of the capillary tip.',
+      },
+      {
+        id: 'bp-step-5',
+        stepNumber: 5,
+        title: 'Extinguish Flame and Capture Liquid Re-entry Temperature',
+        instruction:
+          'Remove the flame. The bath cools slowly. The instant the rapid bubble stream ceases and liquid rushes up into the capillary tube, record the exact thermometer reading: this is the true boiling point.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-reach-boiling-stream',
+        description: 'Heat sample liquid until a continuous rapid vapor bubble stream emerges.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-detect-liquid-suction',
+        description: 'Capture the exact boiling point at the moment liquid rushes into the capillary on cooling.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-barometric-correction',
+        description: 'Understand vapor pressure equilibrium and Clausius-Clapeyron atmospheric pressure dependence.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Boiling Point Determination — Experimental Record:\n\n1. Thermodynamic Definition:\n- The boiling point is the temperature at which the saturated vapor pressure of a liquid equals the surrounding barometric pressure:\n  P_vap(T_b) = P_atm\n\n2. Siwoloboff Inverted Capillary Mechanism:\n- The inverted sealed capillary acts as a vapor bubble nucleation site.\n- Stage 1 (T < T_b): Trapped air expands slowly (Charles's law), producing sporadic bubbles.\n- Stage 2 (T ≥ T_b): Liquid vapor pressure P_vap ≥ P_atm. Pure sample vapor continuously displaces liquid from the capillary, producing an uninterrupted stream of bubbles.\n- Stage 3 (Cooling): As soon as T drops below T_b by even 0.1°C, P_vap falls below P_atm, causing atmospheric pressure to abruptly force liquid up inside the capillary bore. This marks the true equilibrium boiling point.\n\n3. Standard Atmospheric Reference Values (101.325 kPa):\n- Absolute Ethanol (C₂H₅OH): 78.3°C\n- Pure Acetone (CH₃COCH₃): 56.1°C\n- Pure Ethyl Acetate (CH₃COOCH₂CH₃): 77.1°C\n- Pure Distilled Water (H₂O): 100.0°C\n\n4. Pressure Correction (Clausius-Clapeyron):\n- ln(P₂/P₁) = -ΔH_vap/R · (1/T₂ - 1/T₁)\n- In high altitude regions where barometric pressure is lower than 1 atm, liquids boil at correspondingly reduced temperatures.",
+  },
+  {
+    experimentId: 'crystallisation-class11',
+    title: 'Purification of Impure Samples by Fractional Crystallisation',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'borosilicate-beaker',
+      'beaker-100ml',
+      'beaker-50ml',
+      'conical-flask',
+      'glass-funnel',
+      'fluted-filter-paper',
+      'glass-stirring-rod',
+      'porcelain-evaporating-dish',
+      'watch-glass',
+      'bunsen-burner',
+      'digital-analytical-balance',
+      'reagent-bottle',
+    ],
+    initialObjects: [
+      {
+        id: 'dish-impure-sample',
+        equipmentId: 'porcelain-evaporating-dish',
+        title: 'Porcelain Evaporating Dish',
+        x: 100,
+        y: 120,
+        rotation: 0,
+        width: 140,
+        height: 90,
+        properties: { soluteMassGrams: 20, initialWaterVolumeMl: 40, solutionTemperatureC: 85, evaporationTimeMins: 15, isHeating: true },
+        state: { saturationStatus: 'supersaturated', crystalYieldGrams: 16.5, status: 'Crystallisation Point Reached' },
+      },
+      {
+        id: 'burner-crys-c11',
+        equipmentId: 'bunsen-burner',
+        title: 'Bunsen Burner Stand',
+        x: 115,
+        y: 250,
+        rotation: 0,
+        width: 110,
+        height: 100,
+        properties: { isLit: true, flameType: 'non-luminous', burnerPower: 350 },
+        state: { status: 'Concentrating hot filtered solution' },
+      },
+      {
+        id: 'funnel-setup',
+        equipmentId: 'glass-funnel',
+        title: 'Hot Water Funnel & Fluted Paper',
+        x: 320,
+        y: 110,
+        rotation: 0,
+        width: 110,
+        height: 130,
+        properties: { isFilterPaperPresent: true, funnelStatus: 'Clean' },
+        state: { status: 'Hot gravity filtration active' },
+      },
+      {
+        id: 'flask-receiver-c11',
+        equipmentId: 'conical-flask',
+        title: 'Receiver Conical Flask',
+        x: 325,
+        y: 260,
+        rotation: 0,
+        width: 100,
+        height: 120,
+        properties: { capacityMl: 150, liquidVolume: 40, reagentSolution: 'cuso4' },
+        state: { fillPercentage: 27, status: 'Hot clear filtrate collected' },
+      },
+      {
+        id: 'balance-crys',
+        equipmentId: 'digital-analytical-balance',
+        title: 'Analytical Balance (Yield Check)',
+        x: 520,
+        y: 120,
+        rotation: 0,
+        width: 170,
+        height: 130,
+        properties: { sampleMassGrams: 16.500, tareOffsetGrams: 15.320, tarePressed: false, watchGlassPlaced: true },
+        state: { displayedMassGrams: 16.500, status: 'Pure dry crystal mass: 16.500 g' },
+      },
+      {
+        id: 'watch-glass-cover',
+        equipmentId: 'watch-glass',
+        title: 'Watch Glass Cover',
+        x: 720,
+        y: 130,
+        rotation: 0,
+        width: 100,
+        height: 50,
+        properties: { isCoveringDish: true },
+        state: { status: 'Placed over dish for undisturbed cooling' },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'c11-crys-step-1',
+        stepNumber: 1,
+        title: 'Dissolve Impure Sample in Minimum Boiling Solvent',
+        instruction:
+          'Weigh 20.0 g of the impure sample (copper sulphate or benzoic acid with insoluble dust/sand). Dissolve in minimum quantity (~40 mL) of boiling distilled water with continuous stirring.',
+      },
+      {
+        id: 'c11-crys-step-2',
+        stepNumber: 2,
+        title: 'Rapid Hot Gravity Filtration',
+        instruction:
+          'Filter the boiling solution immediately through fluted filter paper in a preheated glass funnel. The insoluble grit and particulate matter remain on the filter paper while the hot clear solution passes through.',
+      },
+      {
+        id: 'c11-crys-step-3',
+        stepNumber: 3,
+        title: 'Concentrate Filtrate to Crystallisation Point',
+        instruction:
+          'Heat the filtrate gently in a porcelain dish to evaporate excess solvent until the crystallisation point is reached: a glass rod dipped into the hot solution and blown dry develops an opaque crust of micro-crystals.',
+      },
+      {
+        id: 'c11-crys-step-4',
+        stepNumber: 4,
+        title: 'Undisturbed Slow Cooling',
+        instruction:
+          'Extinguish the flame. Cover the dish with a watch glass and allow the saturated solution to cool undisturbed at room temperature. Slow cooling permits orderly crystal lattice growth without trapping mother liquor.',
+      },
+      {
+        id: 'c11-crys-step-5',
+        stepNumber: 5,
+        title: 'Separate, Dry, and Weigh Pure Crystals',
+        instruction:
+          'Filter off mother liquor using vacuum/suction filtration. Dry the purified crystals between folds of filter paper and weigh on the analytical balance to determine percentage recovery yield.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-hot-filtration',
+        description: 'Filter boiling solution through fluted paper to eliminate insoluble impurities.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-saturation-point',
+        description: 'Evaporate to crystallisation point where solute saturation ratio reaches ≥ 1.0.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-percentage-yield',
+        description: 'Calculate percentage recovery yield: (mass of dry pure crystals / initial crude mass) × 100%.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Fractional Crystallisation & Purification — Laboratory Record:\n\n1. Recrystallisation Principles:\n- Differential temperature solubility coefficient: The compound must have high solubility at solvent boiling point and low solubility at room/ice temperature.\n- Separation of Impurities:\n  a) Insoluble impurities removed during hot gravity filtration.\n  b) Soluble impurities remain dissolved in mother liquor during cooling because their concentrations remain well below their saturation limits.\n\n2. Recovery Yield Calculation:\n- Initial Crude Sample Mass: 20.000 g\n- Insoluble Residue on Filter: 1.800 g\n- Purified Dry Crystals Harvested: 16.500 g\n- Percentage Recovery Yield = (16.500 g / 20.000 g) × 100% = 82.5%\n\n3. Fluted Filter Paper Advantage:\n- Fluted folding increases effective surface area and creates air channels between paper and funnel cone, drastically accelerating filtration velocity before premature cooling causes clogging.\n\n4. Crystallisation Point Test:\n- Dip a clean glass stirring rod into the simmering solution, withdraw it, and blow gently. Appearance of a thin white/translucent crystalline film verifies that the solution has reached the saturation threshold.",
+  },
+  {
+    experimentId: 'ph-determination',
+    title: 'pH Determination of Fruit Juices, Salts & Buffers',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'beaker-100ml',
+      'beaker-50ml',
+      'spotting-plate-cavities',
+      'pasteur-pipette-dropper',
+      'universal-ph-strip',
+      'reagent-bottle',
+    ],
+    initialObjects: [
+      {
+        id: 'spot-plate-ph',
+        equipmentId: 'spotting-plate-cavities',
+        title: 'Porcelain Spotting Plate',
+        x: 60,
+        y: 110,
+        rotation: 0,
+        width: 180,
+        height: 120,
+        properties: {},
+        state: { cavityStatus: 'Ready for micro-aliquots' },
+      },
+      {
+        id: 'beaker-orange',
+        equipmentId: 'beaker-50ml',
+        title: 'Orange Juice (pH 3.6)',
+        x: 270,
+        y: 80,
+        rotation: 0,
+        width: 90,
+        height: 110,
+        properties: { capacityMl: 50, liquidVolume: 25, reagentSolution: 'orange-juice' },
+        state: { samplePH: 3.6, liquidColor: '#f97316', status: 'Citrus juice sample' },
+      },
+      {
+        id: 'beaker-nh4cl',
+        equipmentId: 'beaker-50ml',
+        title: '0.1M NH₄Cl (pH 5.13)',
+        x: 380,
+        y: 80,
+        rotation: 0,
+        width: 90,
+        height: 110,
+        properties: { capacityMl: 50, liquidVolume: 25, reagentSolution: 'nh4cl-solution' },
+        state: { samplePH: 5.13, liquidColor: '#f8fafc', status: 'Acidic salt solution' },
+      },
+      {
+        id: 'beaker-ch3coona',
+        equipmentId: 'beaker-50ml',
+        title: '0.1M CH₃COONa (pH 8.87)',
+        x: 490,
+        y: 80,
+        rotation: 0,
+        width: 90,
+        height: 110,
+        properties: { capacityMl: 50, liquidVolume: 25, reagentSolution: 'ch3coona-solution' },
+        state: { samplePH: 8.87, liquidColor: '#f8fafc', status: 'Basic salt solution' },
+      },
+      {
+        id: 'beaker-buffer',
+        equipmentId: 'beaker-50ml',
+        title: 'Acetate Buffer (pH 4.74)',
+        x: 600,
+        y: 80,
+        rotation: 0,
+        width: 90,
+        height: 110,
+        properties: { capacityMl: 50, liquidVolume: 25, reagentSolution: 'acetate-buffer' },
+        state: { samplePH: 4.74, liquidColor: '#f8fafc', status: 'Equimolar buffer standard' },
+      },
+      {
+        id: 'pipette-ph-1',
+        equipmentId: 'pasteur-pipette-dropper',
+        title: 'Universal Indicator Dropper',
+        x: 710,
+        y: 90,
+        rotation: 0,
+        width: 90,
+        height: 150,
+        properties: { drawnReagent: 'universal-indicator', dropCount: 2 },
+        state: { status: 'Dispensing indicator dye' },
+      },
+      {
+        id: 'strip-ph-1',
+        equipmentId: 'universal-ph-strip',
+        title: 'Narrow-Range pH Strip',
+        x: 270,
+        y: 240,
+        rotation: 0,
+        width: 90,
+        height: 150,
+        properties: { dippedInSample: 'orange-juice' },
+        state: { indicatedPH: 3.6, colorHex: '#f97316', status: 'pH 3.6 (Orange: Citric/Ascorbic)' },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'phd-step-1',
+        stepNumber: 1,
+        title: 'Dispense Aliquots into Porcelain Spotting Plate',
+        instruction:
+          'Using clean droppers, transfer 3 drops of each test solution (Orange Juice, 0.1M NH₄Cl, 0.1M CH₃COONa, Acetate Buffer) into separate labeled cavities of the spotting plate.',
+      },
+      {
+        id: 'phd-step-2',
+        stepNumber: 2,
+        title: 'Apply Universal Indicator & Match Color Chart',
+        instruction:
+          'Add 1 drop of Universal Indicator to each cavity. Compare the developed hue against the standard pH color scale: Orange Juice yields bright orange (pH ~3.6); NH₄Cl yields yellow-green (pH ~5.1); CH₃COONa yields blue-green (pH ~8.9).',
+      },
+      {
+        id: 'phd-step-3',
+        stepNumber: 3,
+        title: 'Verify Salt Hydrolysis Equilibrium',
+        instruction:
+          'Observe that NH₄Cl (salt of weak base + strong acid) hydrolyzes acidic (pH 5.13) via NH₄⁺ + H₂O ⇌ NH₃ + H₃O⁺. In contrast, CH₃COONa (salt of weak acid + strong base) hydrolyzes alkaline (pH 8.87) via CH₃COO⁻ + H₂O ⇌ CH₃COOH + OH⁻.',
+      },
+      {
+        id: 'phd-step-4',
+        stepNumber: 4,
+        title: 'Evaluate Buffer Capacity with Acetate Buffer',
+        instruction:
+          'Test the acetate buffer solution (pH 4.74). Notice how its equimolar composition of acetic acid and sodium acetate maintains constant pH, resisting hydronium/hydroxide shifts according to the Henderson-Hasselbalch relation.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-measure-fruit-juice',
+        description: 'Determine the pH of natural fruit juice using indicator colorimetry.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-salt-hydrolysis',
+        description: 'Contrast acidic cation hydrolysis in NH₄Cl against basic anion hydrolysis in CH₃COONa.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-buffer-action',
+        description: 'Verify buffer action and Henderson-Hasselbalch equilibrium in acetate buffer.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Quantitative pH Determination — Experimental Record:\n\n1. Mathematical Formulation:\n- pH = -log₁₀[H₃O⁺]  |  pOH = -log₁₀[OH⁻]  |  pH + pOH = 14.00 (at 25°C, Kw = 1.0 × 10⁻¹⁴)\n\n2. Tested Solutions & Chemical Equivalence:\n- Fresh Orange Juice: pH 3.6 (Citric acid C₆H₈O₇ + Ascorbic acid C₆H₈O₆)\n- Fresh Tomato Extract: pH 4.3 (Citric + Malic acids)\n- Natural Apple Juice: pH 3.9 (Predominantly L-malic acid)\n\n3. Salt Hydrolysis Mechanics:\n- Ammonium Chloride (NH₄Cl): Salt of Strong Acid (HCl) + Weak Base (NH₄OH)\n  NH₄⁺ + H₂O ⇌ NH₃ + H₃O⁺  ==>  pH = 7 - 0.5(pKb + log C) = 7 - 0.5(4.74 + (-1)) = 5.13  (Acidic)\n- Sodium Acetate (CH₃COONa): Salt of Weak Acid (CH₃COOH) + Strong Base (NaOH)\n  CH₃COO⁻ + H₂O ⇌ CH₃COOH + OH⁻  ==>  pH = 7 + 0.5(pKa + log C) = 7 + 0.5(4.74 + (-1)) = 8.87  (Basic)\n- Sodium Chloride (NaCl): Neutral, neither ion hydrolyzes appreciably ==> pH 7.00\n\n4. Buffer Solutions (Henderson-Hasselbalch):\n- Acidic Buffer: pH = pKa + log([Salt]/[Acid])\n- For equimolar 0.1M CH₃COOH + 0.1M CH₃COONa:\n  pH = 4.74 + log(0.1/0.1) = 4.74 + 0 = 4.74\n- Addition of small amounts of strong acid is neutralized by CH₃COO⁻; addition of base is neutralized by CH₃COOH.",
+  },
+  {
+    experimentId: 'strong-vs-weak-acids',
+    title: 'Strong vs Weak Acids: Equilibrium Ionisation & Reaction Kinetics',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'acid-comparison-bench',
+      'beaker-100ml',
+      'graduated-measuring-cylinder',
+      'pasteur-pipette-dropper',
+      'universal-ph-strip',
+      'reagent-bottle',
+    ],
+    initialObjects: [
+      {
+        id: 'acid-bench-1',
+        equipmentId: 'acid-comparison-bench',
+        title: 'Acid Comparison Comparator Bench',
+        x: 180,
+        y: 80,
+        rotation: 0,
+        width: 280,
+        height: 200,
+        properties: { concentrationM: 0.1, solutionVolumeMl: 50, magnesiumAdded: true, mgMassMg: 24.3 },
+        state: {
+          strongPH: 1.0,
+          weakPH: 2.88,
+          hydroniumRatio: 76.1,
+          strongAlphaPercent: 100,
+          weakAlphaPercent: 1.31,
+          totalHydrogenYieldMl: 24.0,
+          status: 'HCl (α=100%, pH 1.0) vs CH₃COOH (α=1.31%, pH 2.88). [H⁺] ratio: 76.1×',
+        },
+      },
+      {
+        id: 'beaker-hcl-stock',
+        equipmentId: 'beaker-100ml',
+        title: 'Stock: 0.1M HCl (aq)',
+        x: 520,
+        y: 90,
+        rotation: 0,
+        width: 110,
+        height: 130,
+        properties: { capacityMl: 100, liquidVolume: 60, reagentSolution: 'hcl' },
+        state: { samplePH: 1.0, status: 'Strong mineral acid (α = 1.00)' },
+      },
+      {
+        id: 'beaker-acetic-stock',
+        equipmentId: 'beaker-100ml',
+        title: 'Stock: 0.1M CH₃COOH (aq)',
+        x: 660,
+        y: 90,
+        rotation: 0,
+        width: 110,
+        height: 130,
+        properties: { capacityMl: 100, liquidVolume: 60, reagentSolution: 'acetic-acid' },
+        state: { samplePH: 2.88, status: 'Weak organic acid (Ka = 1.75 × 10⁻⁵)' },
+      },
+      {
+        id: 'strip-acid-1',
+        equipmentId: 'universal-ph-strip',
+        title: 'HCl Indicator Strip',
+        x: 190,
+        y: 320,
+        rotation: 0,
+        width: 90,
+        height: 150,
+        properties: { dippedInSample: 'hcl' },
+        state: { indicatedPH: 1.0, colorHex: '#ef4444', status: 'Scarlet Red (pH 1.0)' },
+      },
+      {
+        id: 'strip-acid-2',
+        equipmentId: 'universal-ph-strip',
+        title: 'CH₃COOH Indicator Strip',
+        x: 340,
+        y: 320,
+        rotation: 0,
+        width: 90,
+        height: 150,
+        properties: { dippedInSample: 'acetic-acid' },
+        state: { indicatedPH: 2.88, colorHex: '#f97316', status: 'Orange (pH 2.88)' },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'swa-step-1',
+        stepNumber: 1,
+        title: 'Configure Equimolar Acid Solutions',
+        instruction:
+          'Set up 0.1M Hydrochloric Acid and 0.1M Acetic Acid in the comparative test chambers. Both solutions have identical total molar solute concentration (0.10 mol/L).',
+      },
+      {
+        id: 'swa-step-2',
+        stepNumber: 2,
+        title: 'Measure and Contrast Equilibrium pH',
+        instruction:
+          'Record the measured pH: HCl registers pH 1.00 ([H⁺] = 0.100 M), whereas CH₃COOH registers pH 2.88 ([H⁺] = 0.00131 M). Despite equal molarity, the strong acid possesses ~76.1 times higher free hydronium ion concentration!',
+      },
+      {
+        id: 'swa-step-3',
+        stepNumber: 3,
+        title: 'Calculate Degree of Dissociation (α)',
+        instruction:
+          'Strong HCl is completely ionised (α = 1.00 = 100%). Acetic acid exists in dynamic dissociation equilibrium: CH₃COOH ⇌ CH₃COO⁻ + H⁺ with Ka = 1.75 × 10⁻⁵, giving an ionisation degree of only α = 1.31% at 0.1M.',
+      },
+      {
+        id: 'swa-step-4',
+        stepNumber: 4,
+        title: 'Add Magnesium Metal Strips and Compare Reaction Rates',
+        instruction:
+          'Introduce identical 24.3 mg strips of cleaned magnesium ribbon into both vessels simultaneously. Observe that HCl produces vigorous, rapid hydrogen gas effervescence while CH₃COOH exhibits a mild, gentle bubbling rate.',
+      },
+      {
+        id: 'swa-step-5',
+        stepNumber: 5,
+        title: 'Verify Stoichiometric Equivalence of Total Hydrogen Evolved',
+        instruction:
+          'Notice that when the magnesium completely reacts (limiting reactant: 1.0 mmol Mg), BOTH vessels produce exactly 24.0 mL of H₂ gas at STP. This proves: Acid strength governs the REACTION RATE, while stoichiometric amount determines TOTAL YIELD.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-compare-ph',
+        description: 'Measure and compare the pH of equimolar strong and weak acid solutions.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-calculate-alpha',
+        description: 'Calculate degree of dissociation α for weak acetic acid using Ostwald’s dilution law.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-kinetics-vs-stoichiometry',
+        description: 'Verify that initial effervescence rate depends on [H⁺] while total H₂ yield depends on stoichiometry.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Strong vs Weak Acids — Ionisation Equilibrium & Kinetics:\n\n1. Ionisation Models:\n- Strong Acid (HCl): Full dissociation (single arrow)\n  HCl(aq) + H₂O(l) ⟶ H₃O⁺(aq) + Cl⁻(aq)\n  At C = 0.1M: [H₃O⁺] = 0.100 M ==> pH = -log(0.1) = 1.00  |  α = 100%\n\n- Weak Acid (CH₃COOH): Reversible dissociation equilibrium\n  CH₃COOH(aq) + H₂O(l) ⇌ H₃O⁺(aq) + CH₃COO⁻(aq)\n  Ka = [H₃O⁺][CH₃COO⁻] / [CH₃COOH] = (C·α²) / (1 - α) ≈ C·α² = 1.75 × 10⁻⁵\n  At C = 0.1M: α = √(Ka/C) = √(1.75×10⁻⁵ / 0.1) = 0.01323 (1.32%)\n  [H₃O⁺] = C·α = 0.001314 M ==> pH = -log(0.001314) = 2.88\n\n2. Ostwald's Dilution Law:\n- As solution concentration decreases, the degree of dissociation α increases:\n  At 0.1M: α = 1.31%, pH = 2.88\n  At 0.01M: α = 4.10%, pH = 3.39\n  At 0.001M: α = 12.4%, pH = 3.91\n\n3. Reaction Kinetics with Active Metals (Magnesium Ribbon):\n  Mg(s) + 2H⁺(aq) ⟶ Mg²⁺(aq) + H₂(g)↑\n- Rate Law: Rate = k · [H⁺] · Surface_Area\n  Ratio of initial effervescence rates = [H⁺]_HCl / [H⁺]_acetic = 0.100 / 0.001314 = 76.1×\n\n4. Critical Scientific Distinction:\n- ACID STRENGTH: Governed by Ka / [H⁺], dictating initial reaction velocity and pH.\n- ACID CAPACITY / AMOUNT: Governed by total available moles (C × V), dictating total neutralisation titre and gas volume evolved.",
+  },
 ];
 
 export const chemistryExtension: SubjectLabExtension = {
@@ -2069,6 +3218,192 @@ export const chemistryExtension: SubjectLabExtension = {
           `Crystallisation: ${crysState.crystalYieldGrams.toFixed(1)}g pure CuSO₄·5H₂O crystals nucleated.`
         );
       }
+    }
+
+    // Evaluate graduated burettes
+    const burettes = objects.filter((o) => o.equipmentId === 'graduated-burette-50ml');
+    for (const b of burettes) {
+      const capacity = Number(b.properties.capacityMl ?? 50);
+      const stopcockOpen = Boolean(b.properties.stopcockOpen ?? false);
+      let delivered = Number(b.properties.deliveredVolumeMl ?? 0);
+      if (stopcockOpen && delivered < capacity) {
+        delivered = Math.min(capacity, delivered + 0.1);
+      }
+      const remaining = Math.max(0, capacity - delivered);
+      const meniscus = Number(delivered.toFixed(2));
+      const reagent = String(b.properties.reagentSolution ?? 'hcl');
+
+      updates[b.id] = {
+        capacityMl: capacity,
+        liquidVolume: Number(remaining.toFixed(2)),
+        deliveredVolumeMl: meniscus,
+        meniscusReading: meniscus,
+        reagentSolution: reagent,
+        stopcockOpen,
+        status: `Burette reading: ${meniscus.toFixed(2)} mL delivered (${remaining.toFixed(2)} mL remaining in burette)`,
+      };
+      if (stopcockOpen) {
+        messages.push(`Burette dispensing: Meniscus at ${meniscus.toFixed(2)} mL.`);
+      }
+    }
+
+    // Evaluate digital analytical balances
+    const balances = objects.filter((o) => o.equipmentId === 'digital-analytical-balance');
+    for (const bal of balances) {
+      const sampleMass = Number(bal.properties.sampleMassGrams ?? 0);
+      const tareOffset = Number(bal.properties.tareOffsetGrams ?? 0);
+      const tarePressed = Boolean(bal.properties.tarePressed ?? false);
+      const dishPlaced = Boolean(bal.properties.watchGlassPlaced ?? true);
+      const dishMass = dishPlaced ? 15.320 : 0;
+
+      let effectiveTare = tareOffset;
+      if (tarePressed) {
+        effectiveTare = dishMass + sampleMass;
+      }
+      const grossMass = dishMass + sampleMass;
+      const netMass = Math.max(0, grossMass - effectiveTare);
+
+      updates[bal.id] = {
+        grossMassGrams: Number(grossMass.toFixed(3)),
+        netMassGrams: Number(netMass.toFixed(3)),
+        displayedMassGrams: Number(netMass.toFixed(3)),
+        tareOffsetGrams: Number(effectiveTare.toFixed(3)),
+        tarePressed: false,
+        status: `Analytical Balance: ${netMass.toFixed(3)} g ${effectiveTare > 0 ? '[TARED (NET)]' : '[GROSS]'}`,
+      };
+      messages.push(`Analytical balance display: ${netMass.toFixed(3)} g`);
+    }
+
+    // Evaluate Thiele melting point apparatuses
+    const thieleApparatuses = objects.filter((o) => o.equipmentId === 'thiele-melting-apparatus');
+    for (const thiele of thieleApparatuses) {
+      const rawSampleId = String(thiele.properties.sampleId ?? 'benzoic-acid-solid');
+      const sampleId = rawSampleId.replace('-solid', '');
+      const currentTemp = Number(thiele.properties.currentTempC ?? 110);
+      const isHeating = thiele.properties.isHeating !== false;
+      const heatingRate = Number(thiele.properties.heatingRateDegPerSec ?? 1.0);
+
+      const mpState = calculateMeltingPointState({ sampleId, currentTemperatureC: currentTemp });
+
+      const phase =
+        mpState.phaseState === 'liquid'
+          ? 'liquid'
+          : mpState.phaseState === 'softening'
+            ? 'coexistence'
+            : 'solid';
+
+      updates[thiele.id] = {
+        sampleName: mpState.sample.name,
+        meltingPointC: mpState.sample.trueMeltingPointC,
+        meltingRangeText: mpState.observedMeltingRangeText,
+        currentTempC: currentTemp,
+        isHeating,
+        heatingRateDegPerSec: heatingRate,
+        meltFraction: Number((mpState.liquidFraction * 100).toFixed(1)),
+        phase,
+        isMelting: mpState.isMeltingUnderway,
+        meniscusAppearance: mpState.isMeltingComplete
+          ? 'Clear liquid meniscus formed'
+          : mpState.isMeltingUnderway
+            ? 'Droplet formation / sintering'
+            : 'Opaque crystalline powder',
+        observation: mpState.status,
+        status: `T = ${currentTemp.toFixed(1)}°C: ${phase.toUpperCase()} (${mpState.status})`,
+      };
+
+      if (mpState.isMeltingUnderway || mpState.isMeltingComplete) {
+        messages.push(
+          `Melting transition for ${mpState.sample.name} at ${currentTemp.toFixed(1)}°C: ${mpState.status}`
+        );
+      }
+    }
+
+    // Evaluate boiling point inverted capillary apparatuses
+    const boilingApparatuses = objects.filter((o) => o.equipmentId === 'boiling-point-apparatus');
+    for (const bp of boilingApparatuses) {
+      const rawLiquidId = String(bp.properties.liquidId ?? 'ethanol-liquid');
+      const liquidId = rawLiquidId.replace('-liquid', '');
+      const bathTemp = Number(bp.properties.bathTempC ?? 78.3);
+      const isHeating = bp.properties.isHeating !== false;
+      const pressureKPa = Number(bp.properties.barometricPressureKPa ?? 101.325);
+
+      const bpState = calculateBoilingPointState({
+        liquidId,
+        currentTemperatureC: bathTemp,
+        ambientPressureKPa: pressureKPa,
+        isHeating,
+      });
+
+      const bubbleStream =
+        bpState.boilingState === 'continuous-vapor-stream'
+          ? 'continuous-rapid-stream'
+          : bpState.boilingState === 'trapped-air-bubbles'
+            ? 'slow-occasional-bubbles'
+            : bpState.boilingState === 'liquid-re-entry'
+              ? 'liquid-re-entry'
+              : 'none';
+
+      updates[bp.id] = {
+        liquidName: bpState.sample.name,
+        standardBoilingPointC: bpState.sample.normalBoilingPointC,
+        correctedBoilingPointC: bpState.pressureCorrectedBoilingPointC,
+        vaporPressureKPa: bpState.vaporPressureKPa,
+        bubbleStream,
+        bubbleFrequencyHz: bpState.bubbleFrequencyHz,
+        liquidEnteredCapillary: bpState.isLiquidReEntryCaptured,
+        capillaryObservation: bpState.status,
+        status: `Bath T = ${bathTemp.toFixed(1)}°C: ${bubbleStream.toUpperCase()} — ${bpState.status}`,
+      };
+
+      if (bpState.isBoiling) {
+        messages.push(
+          `Rapid continuous vapor stream issuing from capillary at ${bathTemp.toFixed(1)}°C for ${bpState.sample.name}.`
+        );
+      } else if (bpState.isLiquidReEntryCaptured) {
+        messages.push(
+          `True boiling point reached! Liquid sucked up into capillary at ${bathTemp.toFixed(1)}°C.`
+        );
+      }
+    }
+
+    // Evaluate acid comparison bench
+    const acidBenches = objects.filter(
+      (o) => o.equipmentId === 'acid-bench' || o.equipmentId === 'acid-comparison-bench'
+    );
+    for (const bench of acidBenches) {
+      const concM = Number(bench.properties.concentrationM ?? 0.1);
+      const volMl = Number(bench.properties.solutionVolumeMl ?? 50);
+
+      const comparison = compareEquimolarAcids(concM);
+
+      updates[bench.id] = {
+        concentrationM: concM,
+        solutionVolumeMl: volMl,
+        strongAcidName: comparison.strongAcid.acidName,
+        strongPH: comparison.strongAcid.ph,
+        strongAlpha: comparison.strongAcid.degreeOfIonisationAlpha,
+        strongAlphaPercent: comparison.strongAcid.percentIonisation,
+        strongHydroniumM: comparison.strongAcid.hydroniumConcentrationM,
+        strongEffervescence: comparison.strongAcid.magnesiumReaction.effervescenceIntensity,
+        strongH2YieldMl: comparison.strongAcid.magnesiumReaction.totalH2GasVolumeMl,
+
+        weakAcidName: comparison.weakAcid.acidName,
+        weakPH: comparison.weakAcid.ph,
+        weakAlpha: comparison.weakAcid.degreeOfIonisationAlpha,
+        weakAlphaPercent: comparison.weakAcid.percentIonisation,
+        weakHydroniumM: comparison.weakAcid.hydroniumConcentrationM,
+        weakEffervescence: comparison.weakAcid.magnesiumReaction.effervescenceIntensity,
+        weakH2YieldMl: comparison.weakAcid.magnesiumReaction.totalH2GasVolumeMl,
+
+        hydroniumRatio: comparison.hydroniumRatio,
+        totalHydrogenYieldMl: comparison.strongAcid.magnesiumReaction.totalH2GasVolumeMl,
+        kineticInsight: comparison.pedagogicalTakeaway,
+        status: `HCl pH ${comparison.strongAcid.ph.toFixed(2)} (α=100%) vs CH₃COOH pH ${comparison.weakAcid.ph.toFixed(2)} (α=${comparison.weakAcid.percentIonisation.toFixed(2)}%). [H⁺] ratio: ${comparison.hydroniumRatio.toFixed(1)}×`,
+      };
+
+      messages.push(
+        `Acid Comparison (${concM}M): HCl [H⁺]=${comparison.strongAcid.hydroniumConcentrationM.toFixed(3)}M vs CH₃COOH [H⁺]=${comparison.weakAcid.hydroniumConcentrationM.toExponential(2)}M.`
+      );
     }
 
     return {

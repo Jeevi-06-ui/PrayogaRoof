@@ -178,6 +178,25 @@ export function recomputeMixtureProperties(state: ContainerLiquidState): Contain
     reactionState = 'homogeneous';
   }
 
+  // If container holds a single substance without neutralization or multiple reactants, preserve its calibrated basePH
+  const nonIndicatorComponents = state.components.filter((c) => {
+    const cat = getSubstanceById(c.substanceId)?.category;
+    return cat !== 'natural-indicator' && cat !== 'synthetic-indicator';
+  });
+  if (nonIndicatorComponents.length === 1 && !(hasStrongAcid && hasStrongBase)) {
+    const singleSub = getSubstanceById(nonIndicatorComponents[0].substanceId);
+    if (
+      singleSub &&
+      (singleSub.category === 'weak-acid' ||
+        singleSub.category === 'weak-base' ||
+        singleSub.category === 'salt-solution' ||
+        singleSub.category === 'buffer-solution' ||
+        singleSub.category === 'neutral')
+    ) {
+      computedPH = singleSub.basePH;
+    }
+  }
+
   // 3. Determine Color based on Active Indicator or Base Substances
   let liquidColor = '#e0f2fe';
   let indicatorLabel = '';

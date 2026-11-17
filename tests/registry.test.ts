@@ -36,7 +36,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(physics?.availableExperiments).toBe(25);
 
     expect(chemistry?.totalExperiments).toBe(27);
-    expect(chemistry?.availableExperiments).toBe(5);
+    expect(chemistry?.availableExperiments).toBe(11);
   });
 
   describe('Physics Curriculum (25 Experiments)', () => {
@@ -134,32 +134,37 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(class12).toHaveLength(11);
     });
 
-    it('should have all 5 Foundation Chemistry experiments marked as implemented', () => {
+    it('should have 11 Chemistry experiments marked as implemented (5 Foundation + 6 Class 11)', () => {
       const implemented = getImplementedExperimentsBySubject('chemistry');
-      expect(implemented).toHaveLength(5);
+      expect(implemented).toHaveLength(11);
 
       const titles = implemented.map((e) => e.title);
-      expect(titles).toEqual([
-        'pH Testing',
-        'Natural Indicators',
-        'Paper Chromatography',
-        'Displacement Reaction',
-        'Crystallisation',
-      ]);
+      expect(titles).toContain('pH Testing');
+      expect(titles).toContain('Natural Indicators');
+      expect(titles).toContain('Paper Chromatography');
+      expect(titles).toContain('Displacement Reaction');
+      expect(titles).toContain('Crystallisation');
+      expect(titles).toContain('Basic Laboratory Techniques');
+      expect(titles).toContain('Melting Point Determination');
+      expect(titles).toContain('Boiling Point Determination');
+      expect(titles).toContain('pH Determination');
+      expect(titles).toContain('Strong vs Weak Acids');
 
       for (const exp of implemented) {
-        expect(exp.classLevel).toBe('foundation');
+        expect(['foundation', 'class-11']).toContain(exp.classLevel);
         expect(exp.implementationStatus).toBe('implemented');
       }
     });
 
-    it('should have 22 Class 11 & Class 12 Chemistry experiments marked as under-development with reuse mappings where applicable', () => {
+    it('should have 16 Class 11 & Class 12 Chemistry experiments marked as under-development with reuse mappings where applicable', () => {
       const class11 = getExperimentsByClassLevel('chemistry', 'class-11');
       const class12 = getExperimentsByClassLevel('chemistry', 'class-12');
 
-      for (const exp of [...class11, ...class12]) {
-        expect(exp.implementationStatus).toBe('under-development');
-      }
+      const class11UnderDev = class11.filter((e) => e.implementationStatus === 'under-development');
+      const class12UnderDev = class12.filter((e) => e.implementationStatus === 'under-development');
+
+      expect(class11UnderDev).toHaveLength(5);
+      expect(class12UnderDev).toHaveLength(11);
 
       // Check reuse mapping
       const crystallisationC11 = getExperimentById('crystallisation-class11');
@@ -180,8 +185,8 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     const implemented = all.filter((e) => e.implementationStatus === 'implemented');
     const underDev = all.filter((e) => e.implementationStatus === 'under-development');
 
-    expect(implemented).toHaveLength(30);
-    expect(underDev).toHaveLength(22);
+    expect(implemented).toHaveLength(36);
+    expect(underDev).toHaveLength(16);
 
     for (const exp of all) {
       expect(exp.id).toBeTruthy();
