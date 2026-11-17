@@ -93,6 +93,36 @@ test.describe('PrayogaProof E2E Test Suite', () => {
     await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
   });
 
+  test('Loads Parallelogram Law workspace and verifies vector force board', async ({ page }) => {
+    await page.goto('/workspace/parallelogram-law');
+    await expect(page.getByText(/Parallelogram Law of Vectors/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Limiting Friction workspace and verifies horizontal track', async ({ page }) => {
+    await page.goto('/workspace/limiting-friction');
+    await expect(page.getByText(/Laws of Limiting Friction/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Inclined Plane workspace and verifies variable-angle ramp', async ({ page }) => {
+    await page.goto('/workspace/inclined-plane-friction');
+    await expect(page.getByText(/Friction on an Inclined Plane/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Hooke’s Law workspace and verifies helical spring stand', async ({ page }) => {
+    await page.goto('/workspace/hookes-law');
+    await expect(page.getByText(/Hooke's Law and Spring Constant/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Boyle’s Law workspace and verifies gas cylinder and pressure gauge', async ({ page }) => {
+    await page.goto('/workspace/boyles-law');
+    await expect(page.getByText(/Boyle's Law/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
   test('Loads Paper Chromatography workspace and inspects paper strip properties', async ({ page }) => {
     await page.goto('/workspace/paper-chromatography');
 

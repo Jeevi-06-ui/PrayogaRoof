@@ -106,6 +106,15 @@ export interface EquipmentDefinition {
     | 'beam-balance'
     | 'weight-box'
     | 'unknown-mass'
+    | 'force-board'
+    | 'pulley-weight'
+    | 'friction-board'
+    | 'friction-block'
+    | 'inclined-plane'
+    | 'incline-slider'
+    | 'helical-spring-stand'
+    | 'slotted-weight-hanger'
+    | 'boyle-cylinder'
     | 'generic-box'
     | 'sensor-probe';
   colorTheme?: string;

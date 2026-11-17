@@ -8,6 +8,11 @@ import {
   IRREGULAR_LAMINA_QUESTIONS,
   SPHEROMETER_QUESTIONS,
   BEAM_BALANCE_QUESTIONS,
+  PARALLELOGRAM_LAW_QUESTIONS,
+  LIMITING_FRICTION_QUESTIONS,
+  INCLINED_PLANE_FRICTION_QUESTIONS,
+  HOOKES_LAW_QUESTIONS,
+  BOYLES_LAW_QUESTIONS,
 } from '../physics/physicsQuestions';
 import {
   PH_TESTING_QUESTIONS,
@@ -117,5 +122,10 @@ export function getConceptualQuestions(experimentId: string): ConceptualQuestion
   if (experimentId === 'irregular-lamina') return IRREGULAR_LAMINA_QUESTIONS;
   if (experimentId === 'spherometer') return SPHEROMETER_QUESTIONS;
   if (experimentId === 'beam-balance') return BEAM_BALANCE_QUESTIONS;
+  if (experimentId === 'parallelogram-law') return PARALLELOGRAM_LAW_QUESTIONS;
+  if (experimentId === 'limiting-friction') return LIMITING_FRICTION_QUESTIONS;
+  if (experimentId === 'inclined-plane-friction') return INCLINED_PLANE_FRICTION_QUESTIONS;
+  if (experimentId === 'hookes-law') return HOOKES_LAW_QUESTIONS;
+  if (experimentId === 'boyles-law') return BOYLES_LAW_QUESTIONS;
   return [...OHMS_LAW_QUESTIONS, ...SERIES_PARALLEL_QUESTIONS];
 }

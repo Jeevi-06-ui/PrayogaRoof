@@ -33,7 +33,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(math?.status).toBe('coming-soon');
 
     expect(physics?.totalExperiments).toBe(25);
-    expect(physics?.availableExperiments).toBe(10);
+    expect(physics?.availableExperiments).toBe(15);
 
     expect(chemistry?.totalExperiments).toBe(27);
     expect(chemistry?.availableExperiments).toBe(5);
@@ -55,9 +55,9 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(class12).toHaveLength(10);
     });
 
-    it('should have 10 Physics experiments marked as implemented (5 Foundation + 5 Class 11)', () => {
+    it('should have 15 Physics experiments marked as implemented (5 Foundation + 10 Class 11)', () => {
       const implemented = getImplementedExperimentsBySubject('physics');
-      expect(implemented).toHaveLength(10);
+      expect(implemented).toHaveLength(15);
 
       const titles = implemented.map((e) => e.title);
       expect(titles).toContain("Ohm's Law");
@@ -70,6 +70,11 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(titles).toContain('Area of an Irregular Lamina');
       expect(titles).toContain('Spherometer');
       expect(titles).toContain('Beam Balance');
+      expect(titles).toContain('Parallelogram Law of Vectors');
+      expect(titles).toContain('Laws of Limiting Friction');
+      expect(titles).toContain('Friction on an Inclined Plane');
+      expect(titles).toContain("Hooke's Law and Spring Constant");
+      expect(titles).toContain("Boyle's Law");
 
       for (const exp of implemented) {
         expect(['foundation', 'class-11']).toContain(exp.classLevel);
@@ -77,19 +82,12 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       }
     });
 
-    it('should have 15 Class 11 & Class 12 Physics experiments marked as under-development', () => {
+    it('should have 10 Class 12 Physics experiments marked as under-development (Class 11 is 100% complete)', () => {
       const class11 = getExperimentsByClassLevel('physics', 'class-11');
       const class12 = getExperimentsByClassLevel('physics', 'class-12');
 
       const class11UnderDev = class11.filter((e) => e.implementationStatus === 'under-development');
-      expect(class11UnderDev).toHaveLength(5);
-
-      const class11Titles = class11UnderDev.map((e) => e.title);
-      expect(class11Titles).toContain('Parallelogram Law of Vectors');
-      expect(class11Titles).toContain('Laws of Limiting Friction');
-      expect(class11Titles).toContain('Friction on an Inclined Plane');
-      expect(class11Titles).toContain("Hooke's Law and Spring Constant");
-      expect(class11Titles).toContain("Boyle's Law");
+      expect(class11UnderDev).toHaveLength(0);
 
       const class12Titles = class12.map((e) => e.title);
       expect(class12Titles).toHaveLength(10);
@@ -172,8 +170,8 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     const implemented = all.filter((e) => e.implementationStatus === 'implemented');
     const underDev = all.filter((e) => e.implementationStatus === 'under-development');
 
-    expect(implemented).toHaveLength(15);
-    expect(underDev).toHaveLength(37);
+    expect(implemented).toHaveLength(20);
+    expect(underDev).toHaveLength(32);
 
     for (const exp of all) {
       expect(exp.id).toBeTruthy();
@@ -207,13 +205,13 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(vernier?.classLevel).toBe('class-11');
     expect(vernier?.implementationStatus).toBe('implemented');
 
-    // Under-development Class 11
+    // Implemented Class 11 (Phase 4)
     const vectorLaw = getExperimentById('parallelogram-law');
     expect(vectorLaw).toBeDefined();
     expect(vectorLaw?.title).toBe('Parallelogram Law of Vectors');
     expect(vectorLaw?.subjectId).toBe('physics');
     expect(vectorLaw?.classLevel).toBe('class-11');
-    expect(vectorLaw?.implementationStatus).toBe('under-development');
+    expect(vectorLaw?.implementationStatus).toBe('implemented');
 
     // Under-development Class 12
     const prism = getExperimentById('prism-refractive-index');

@@ -550,6 +550,71 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
         value: `Left: ${left}g, Right: ${right}g (${String(status).toUpperCase()})`,
         unit: '',
       };
+    } else if (experimentId === 'parallelogram-law') {
+      const fbUpdate = Object.entries(updates).find(([id]) => id.includes('fb') || id.includes('force'))?.[1];
+      const p = fbUpdate?.forceP ?? 3.0;
+      const q = fbUpdate?.forceQ ?? 4.0;
+      const r = fbUpdate?.resultantMagnitudeN ?? 5.0;
+      const rAngle = fbUpdate?.resultantAngleDeg ?? 80.0;
+      const err = fbUpdate?.percentageError ?? 0.0;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Parallelogram Law`,
+        value: `P=${p}N, Q=${q}N => Resultant R=${r}N at ${rAngle}° (Error: ${err}%)`,
+        unit: '',
+      };
+    } else if (experimentId === 'limiting-friction') {
+      const fUpdate = Object.entries(updates).find(([id]) => id.includes('fb-slider') || id.includes('friction'))?.[1];
+      const normal = fUpdate?.normalReactionN ?? 1.96;
+      const pull = fUpdate?.appliedPullingForceN ?? 0.69;
+      const limit = fUpdate?.limitingFrictionN ?? 0.69;
+      const moving = fUpdate?.isMotionInitiated === true;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Limiting Friction`,
+        value: `N=${normal}N, Pull=${pull}N, Limit=${limit}N (${moving ? 'SLIDING' : 'STATIC'})`,
+        unit: '',
+      };
+    } else if (experimentId === 'inclined-plane-friction') {
+      const ipUpdate = Object.entries(updates).find(([id]) => id.includes('ramp') || id.includes('incline'))?.[1];
+      const angle = ipUpdate?.inclineAngleDeg ?? 20.0;
+      const normal = ipUpdate?.normalForceN ?? 1.84;
+      const par = ipUpdate?.parallelGravityN ?? 0.67;
+      const repose = ipUpdate?.angleReposeDeg ?? 19.3;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Inclined Plane (θ=${angle}°)`,
+        value: `N=${normal}N, F∥=${par}N, Repose θ_r=${repose}°`,
+        unit: '',
+      };
+    } else if (experimentId === 'hookes-law') {
+      const hUpdate = Object.entries(updates).find(([id]) => id.includes('spring') || id.includes('hooke'))?.[1];
+      const load = hUpdate?.totalSuspendedMassGrams ?? 150;
+      const f = hUpdate?.appliedForceN ?? 1.47;
+      const ext = hUpdate?.extensionMm ?? 58.8;
+      const k = hUpdate?.springConstantNpm ?? 25.0;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Hooke's Law (Load=${load}g)`,
+        value: `F=${f}N, Extension x=${ext}mm, k=${k}N/m`,
+        unit: '',
+      };
+    } else if (experimentId === 'boyles-law') {
+      const bUpdate = Object.entries(updates).find(([id]) => id.includes('boyle') || id.includes('cylinder'))?.[1];
+      const vol = bUpdate?.volumeMl ?? 60.0;
+      const p = bUpdate?.pressureKpa ?? 101.3;
+      const pv = bUpdate?.pvProductKpaMl ?? 6080;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Boyle's Law (V=${vol}mL)`,
+        value: `P=${p}kPa, P·V=${pv}kPa·mL (1/V=${(1 / Number(vol)).toFixed(4)}mL⁻¹)`,
+        unit: '',
+      };
     } else {
       let volt = 0;
       let curr = 0;
@@ -1613,7 +1678,17 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                                     ? 'Spherometer Quick Log'
                                     : experimentId === 'beam-balance'
                                       ? 'Beam Balance Quick Log'
-                                      : 'Active Bench Quick Log'}
+                                      : experimentId === 'parallelogram-law'
+                                        ? 'Parallelogram Law Quick Log'
+                                        : experimentId === 'limiting-friction'
+                                          ? 'Limiting Friction Quick Log'
+                                          : experimentId === 'inclined-plane-friction'
+                                            ? 'Inclined Plane Quick Log'
+                                            : experimentId === 'hookes-law'
+                                              ? "Hooke's Law Quick Log"
+                                              : experimentId === 'boyles-law'
+                                                ? "Boyle's Law Quick Log"
+                                                : 'Active Bench Quick Log'}
               </span>
               <p className="text-[10px] text-blue-700/80 dark:text-blue-400 leading-snug">
                 {experimentId === 'convex-lens'
@@ -1638,7 +1713,17 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                                     ? 'Instantly log outer leg distance, measured sagitta h, and calculated spherical radius of curvature R.'
                                     : experimentId === 'beam-balance'
                                       ? 'Instantly log left pan mass, right pan tare weights, and beam equilibrium status.'
-                                      : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
+                                      : experimentId === 'parallelogram-law'
+                                        ? 'Instantly log coplanar forces P, Q, θ, resultant R, and balancing equilibrant S.'
+                                        : experimentId === 'limiting-friction'
+                                          ? 'Instantly log normal reaction N, pulling force, and limiting friction f_s,max.'
+                                          : experimentId === 'inclined-plane-friction'
+                                            ? 'Instantly log slope angle θ, normal force, parallel force, and angle of repose θ_r.'
+                                            : experimentId === 'hookes-law'
+                                              ? 'Instantly log suspended load mass, stretching force F, pointer position, and extension x.'
+                                              : experimentId === 'boyles-law'
+                                                ? 'Instantly log cylinder volume V, pressure P, and P·V isothermal product.'
+                                                : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
               </p>
               <Button
                 type="button"

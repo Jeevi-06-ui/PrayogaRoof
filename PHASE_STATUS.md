@@ -10,11 +10,11 @@
 
 | Category | Total Experiments | Implemented (Active) | Under Development | Status |
 |----------|-------------------|----------------------|-------------------|--------|
-| **Physics** | **25** | **10** (5 Foundation + 5 Class 11) | **15** (Class 11: 5, Class 12: 10) | Active Hybrid |
+| **Physics** | **25** | **15** (5 Foundation + 10 Class 11) | **10** (Class 12: 10) | Active Hybrid |
 | **Chemistry** | **27** | **5** (Foundation) | **22** (Class 11: 11, Class 12: 11) | Active Hybrid |
 | **Biology** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
 | **Mathematics** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
-| **Total** | **52** | **15** (28.8%) | **37** (71.2%) | **Verified Operational Baseline** |
+| **Total** | **52** | **20** (38.5%) | **32** (61.5%) | **Verified Operational Baseline** |
 
 ---
 
@@ -29,7 +29,7 @@
 | 4 | `magnetic-field` | Magnetic Field | Foundation | **Implemented** | Dipole magnetic field model, Alnico bar magnet orientation, freely rotating plotting compass needles, field-line vector rendering. |
 | 5 | `simple-pendulum` | Simple Pendulum | Foundation | **Implemented** | Harmonic motion engine ($\theta(t) = \theta_0 \cos(\omega t)$), mass-independence verification ($dT/dm = 0$), $g$-determination from period and string length ($g = \frac{4\pi^2 L}{T^2}$). |
 
-### Class 11 Experiments — 5 Implemented, 5 Under Development
+### Class 11 Experiments — 10 of 10 Operational (100% Implemented)
 | # | ID | Title | Class Level | Status | Scientific Engine & Capabilities |
 |---|----|-------|-------------|--------|----------------------------------|
 | 6 | `vernier-callipers` | Vernier Callipers | Class 11 | **Implemented** | Draggable jaws, steel beam main scale (1 mm pitch), 10/20 vernier divisions, least count $LC = 0.1\text{ mm}$ / $0.05\text{ mm}$, zero error correction, cylinder & sphere volume ($V = \pi d^2 h / 4$ and $V = 4/3 \pi r^3$). |
@@ -37,11 +37,11 @@
 | 8 | `irregular-lamina` | Area of an Irregular Lamina | Class 11 | **Implemented** | Millimeter coordinate graph grid, 4x4 subgrid ray-casting boundary polygon integration, full ($N_1$), more-than-half ($N_2$), half ($N_3$) square counting, estimated area and boundary uncertainty $\Delta A$. |
 | 9 | `spherometer` | Spherometer | Class 11 | **Implemented** | Equilateral tripod legs, central micrometer screw, circumradius $r_0 = l/\sqrt{3}$, measured sagitta $h = |h_1 - h_0|$, curvature radius $R = \frac{l^2}{6h} + \frac{h}{2}$, convex/concave/plane classification with geometry bounds. |
 | 10 | `beam-balance` | Beam Balance | Class 11 | **Implemented** | Central brass pillar, dual scale pans, arrestment handle mechanism, calibrated weight box (50g–1g + mg riders), damped oscillation dynamics $\theta(t)$, and resting point equilibrium calculation. |
-| 11 | `parallelogram-law` | Parallelogram Law of Vectors | Class 11 | **Under Development** | Gravesande's apparatus, concurrent force pulleys, vector resultant calculation $\vec{R} = \sqrt{P^2 + Q^2 + 2PQ\cos\theta}$. |
-| 12 | `limiting-friction` | Laws of Limiting Friction | Class 11 | **Under Development** | Friction block on multi-surface beds, limiting friction force vs normal reaction linear ratio $\mu_s$. |
-| 13 | `inclined-plane-friction` | Friction on an Inclined Plane | Class 11 | **Under Development** | Tilting angle ramp, angle of repose determination, force decomposition along and perpendicular to plane. |
-| 14 | `hookes-law` | Hooke's Law and Spring Constant | Class 11 | **Under Development** | Helical spring suspension, slotted weight hanger, vertical anti-parallax scale, static $F = k \cdot x$ and dynamic $T = 2\pi\sqrt{m/k}$. |
-| 15 | `boyles-law` | Boyle's Law | Class 11 | **Under Development** | Mercury column pressure tube, atmospheric barometer correction, isothermal $P \cdot V = \text{constant}$ verification. |
+| 11 | `parallelogram-law` | Parallelogram Law of Vectors | Class 11 | **Implemented** | Gravesande's force board with dual pulleys, protractor grid, coplanar tensions $P, Q$, included angle $\theta$, analytical resultant $R = \sqrt{P^2 + Q^2 + 2PQ\cos\theta}$, component projections, and central equilibrant mass $S$. |
+| 12 | `limiting-friction` | Laws of Limiting Friction | Class 11 | **Implemented** | Horizontal friction track with 4 surface pairs (wood, glass, sandpaper, steel), normal reaction $N = M_{\text{block}} g$, limiting threshold $f_{s,\max} = \mu_s N$, kinetic transition, and area independence (broad vs narrow face). |
+| 13 | `inclined-plane-friction` | Friction on an Inclined Plane | Class 11 | **Implemented** | Variable-angle hinged ramp ($0^\circ \dots 60^\circ$), orthogonal gravitational decomposition ($N = mg\cos\theta, F_\parallel = mg\sin\theta$), angle of repose $\theta_r = \arctan(\mu_s)$, downward acceleration, and pulling effort up incline. |
+| 14 | `hookes-law` | Hooke's Law and Spring Constant | Class 11 | **Implemented** | Coiled helical spring with real-time elastic extension, vertical mirror scale (anti-parallax), linear $F = k \cdot x$ slope determination, elastic potential energy $U = \frac{1}{2}kx^2$, dynamic harmonic oscillation $T = 2\pi\sqrt{m/k}$, and plastic yield limit. |
+| 15 | `boyles-law` | Boyle's Law | Class 11 | **Implemented** | Airtight graduated gas cylinder (15–120 mL), movable piston, connected dial pressure gauge (0–300 kPa), isothermal $P \cdot V = \text{Constant}$ verification, manometer mercury head $\Delta h$, and linear $P$ vs $1/V$ plotting. |
 
 ### Class 12 Experiments — 10 of 10 Registered (Under Development)
 | # | ID | Title | Class Level | Status | Target Capabilities |

@@ -7,6 +7,13 @@ import {
   SPHEROMETER_QUESTIONS,
   BEAM_BALANCE_QUESTIONS,
 } from './class11Questions';
+import {
+  PARALLELOGRAM_LAW_QUESTIONS,
+  LIMITING_FRICTION_QUESTIONS,
+  INCLINED_PLANE_FRICTION_QUESTIONS,
+  HOOKES_LAW_QUESTIONS,
+  BOYLES_LAW_QUESTIONS,
+} from './class11QuestionsPart2';
 
 export {
   VERNIER_CALLIPERS_QUESTIONS,
@@ -14,6 +21,11 @@ export {
   IRREGULAR_LAMINA_QUESTIONS,
   SPHEROMETER_QUESTIONS,
   BEAM_BALANCE_QUESTIONS,
+  PARALLELOGRAM_LAW_QUESTIONS,
+  LIMITING_FRICTION_QUESTIONS,
+  INCLINED_PLANE_FRICTION_QUESTIONS,
+  HOOKES_LAW_QUESTIONS,
+  BOYLES_LAW_QUESTIONS,
 };
 
 export const CONVEX_LENS_QUESTIONS: ConceptualQuestion[] = [
@@ -182,6 +194,16 @@ export function getPhysicsQuestions(experimentId: string): ConceptualQuestion[] 
       return SPHEROMETER_QUESTIONS;
     case 'beam-balance':
       return BEAM_BALANCE_QUESTIONS;
+    case 'parallelogram-law':
+      return PARALLELOGRAM_LAW_QUESTIONS;
+    case 'limiting-friction':
+      return LIMITING_FRICTION_QUESTIONS;
+    case 'inclined-plane-friction':
+      return INCLINED_PLANE_FRICTION_QUESTIONS;
+    case 'hookes-law':
+      return HOOKES_LAW_QUESTIONS;
+    case 'boyles-law':
+      return BOYLES_LAW_QUESTIONS;
     default:
       return [];
   }

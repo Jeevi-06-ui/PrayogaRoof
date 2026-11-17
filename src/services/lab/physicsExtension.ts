@@ -22,6 +22,14 @@ import {
   calculateBeamBalanceState,
   STANDARD_LAMINA_VERTICES,
 } from '../physics/precisionMechanicsModel';
+import {
+  calculateVectorAddition,
+  calculateLimitingFriction,
+  calculateInclinedPlanePhysics,
+  calculateHookesLaw,
+  calculateBoylesLaw,
+  SurfacePair,
+} from '../physics/vectorMechanicsModel';
 
 export const PHYSICS_EQUIPMENT: EquipmentDefinition[] = [
   {
@@ -1396,6 +1404,484 @@ export const PHYSICS_EQUIPMENT: EquipmentDefinition[] = [
     renderType: 'unknown-mass',
     colorTheme: '#64748b',
   },
+  {
+    id: 'gravesand-force-board',
+    name: "Gravesand's Vector Force Board",
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Vertical drawing board with dual low-friction pulleys, protractor degree scale, central ring, and coplanar tension strings.',
+    iconName: 'Activity',
+    defaultWidth: 460,
+    defaultHeight: 340,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'forceP',
+        label: 'Force P (Left Pulley Tension)',
+        type: 'number',
+        defaultValue: 3.0,
+        min: 0.5,
+        max: 10.0,
+        step: 0.5,
+        unit: 'N',
+        editable: true,
+      },
+      {
+        id: 'anglePDeg',
+        label: 'Angle of P (θ₁ relative to horizontal)',
+        type: 'number',
+        defaultValue: 35.0,
+        min: 0.0,
+        max: 180.0,
+        step: 1.0,
+        unit: '°',
+        editable: true,
+      },
+      {
+        id: 'forceQ',
+        label: 'Force Q (Right Pulley Tension)',
+        type: 'number',
+        defaultValue: 4.0,
+        min: 0.5,
+        max: 10.0,
+        step: 0.5,
+        unit: 'N',
+        editable: true,
+      },
+      {
+        id: 'angleQDeg',
+        label: 'Angle of Q (θ₂ relative to horizontal)',
+        type: 'number',
+        defaultValue: 125.0,
+        min: 0.0,
+        max: 180.0,
+        step: 1.0,
+        unit: '°',
+        editable: true,
+      },
+      {
+        id: 'balancingMassGrams',
+        label: 'Central Equilibrant Weight S',
+        type: 'number',
+        defaultValue: 500.0,
+        min: 50.0,
+        max: 1000.0,
+        step: 10.0,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'showParallelogram',
+        label: 'Show Vector Parallelogram',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'showComponents',
+        label: 'Show X-Y Vector Components',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+    ],
+    renderType: 'force-board',
+    colorTheme: '#3b82f6',
+  },
+  {
+    id: 'vector-pulley-weight',
+    name: 'Suspended Weight Hanger',
+    subjectId: 'physics',
+    category: 'component',
+    description: 'Calibrated weight hanger with stacked 50g slotted disc weights suspended over low-friction pulley.',
+    iconName: 'Layers',
+    defaultWidth: 100,
+    defaultHeight: 180,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'hangerMassG',
+        label: 'Hanger Mass',
+        type: 'number',
+        defaultValue: 50.0,
+        unit: 'g',
+        editable: false,
+      },
+      {
+        id: 'slottedDiscsCount',
+        label: 'Number of 50g Discs',
+        type: 'number',
+        defaultValue: 4,
+        min: 0,
+        max: 10,
+        step: 1,
+        unit: 'discs',
+        editable: true,
+      },
+    ],
+    renderType: 'pulley-weight',
+    colorTheme: '#d97706',
+  },
+  {
+    id: 'friction-track',
+    name: 'Horizontal Friction Track & Pulley',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Horizontal testing plane with interchangeable contact surfaces (wood, glass, sandpaper) and low-friction end pulley.',
+    iconName: 'Maximize2',
+    defaultWidth: 480,
+    defaultHeight: 180,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'surfacePair',
+        label: 'Surface Material Pair',
+        type: 'select',
+        defaultValue: 'wood-on-wood',
+        options: [
+          { label: 'Wood on Polished Wood (μs = 0.35, μk = 0.28)', value: 'wood-on-wood' },
+          { label: 'Wood on Glass Plate (μs = 0.22, μk = 0.18)', value: 'wood-on-glass' },
+          { label: 'Wood on Rough Sandpaper (μs = 0.65, μk = 0.52)', value: 'wood-on-sandpaper' },
+          { label: 'Brass on Polished Steel (μs = 0.30, μk = 0.24)', value: 'metal-on-metal' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'trackLengthCm',
+        label: 'Track Active Length',
+        type: 'number',
+        defaultValue: 60.0,
+        unit: 'cm',
+        editable: false,
+      },
+    ],
+    renderType: 'friction-board',
+    colorTheme: '#64748b',
+  },
+  {
+    id: 'friction-slider-block',
+    name: 'Wooden Friction Block with Hook',
+    subjectId: 'physics',
+    category: 'component',
+    description: 'Rectangular wooden block with brass pulling hook, broad/narrow faces, and weight placement peg.',
+    iconName: 'Box',
+    defaultWidth: 150,
+    defaultHeight: 110,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'blockMassG',
+        label: 'Block Tare Mass',
+        type: 'number',
+        defaultValue: 150.0,
+        unit: 'g',
+        editable: false,
+      },
+      {
+        id: 'addedMassG',
+        label: 'Added Masses on Block',
+        type: 'number',
+        defaultValue: 50.0,
+        min: 0.0,
+        max: 500.0,
+        step: 50.0,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'panMassG',
+        label: 'Pulling Pan Tare Mass',
+        type: 'number',
+        defaultValue: 20.0,
+        unit: 'g',
+        editable: false,
+      },
+      {
+        id: 'addedPanMassG',
+        label: 'Weights Added to Pan',
+        type: 'number',
+        defaultValue: 50.0,
+        min: 0.0,
+        max: 400.0,
+        step: 5.0,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'contactOrientation',
+        label: 'Contact Face Orientation',
+        type: 'select',
+        defaultValue: 'broad-side',
+        options: [
+          { label: 'Broad Face (Area = 60 cm²)', value: 'broad-side' },
+          { label: 'Narrow Edge (Area = 20 cm²)', value: 'narrow-edge' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'friction-block',
+    colorTheme: '#b45309',
+  },
+  {
+    id: 'inclined-plane-ramp',
+    name: 'Variable-Angle Inclined Plane',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Hinged incline track with protractor angle quadrant arc, elevation clamp, and top pulley.',
+    iconName: 'TrendingUp',
+    defaultWidth: 460,
+    defaultHeight: 280,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'inclineAngleDeg',
+        label: 'Incline Angle (θ)',
+        type: 'number',
+        defaultValue: 20.0,
+        min: 0.0,
+        max: 60.0,
+        step: 0.5,
+        unit: '°',
+        editable: true,
+      },
+      {
+        id: 'surfacePair',
+        label: 'Plane Surface Pair',
+        type: 'select',
+        defaultValue: 'wood-on-wood',
+        options: [
+          { label: 'Wood on Wood (μs = 0.35, Angle of Repose = 19.3°)', value: 'wood-on-wood' },
+          { label: 'Wood on Glass (μs = 0.22, Angle of Repose = 12.4°)', value: 'wood-on-glass' },
+          { label: 'Wood on Sandpaper (μs = 0.65, Angle of Repose = 33.0°)', value: 'wood-on-sandpaper' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'pullingEffortGrams',
+        label: 'Counterbalance Mass in Pan',
+        type: 'number',
+        defaultValue: 0.0,
+        min: 0.0,
+        max: 500.0,
+        step: 10.0,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'showResolutions',
+        label: 'Show Force Vector Resolutions',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+    ],
+    renderType: 'inclined-plane',
+    colorTheme: '#475569',
+  },
+  {
+    id: 'incline-slider-box',
+    name: 'Inclined Plane Slider Box',
+    subjectId: 'physics',
+    category: 'component',
+    description: 'Friction slider block with towing hook positioned on the inclined plane slope.',
+    iconName: 'Box',
+    defaultWidth: 120,
+    defaultHeight: 80,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'blockMassG',
+        label: 'Block Mass',
+        type: 'number',
+        defaultValue: 200.0,
+        min: 50.0,
+        max: 500.0,
+        step: 25.0,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'sliderType',
+        label: 'Specimen Type',
+        type: 'select',
+        defaultValue: 'Wooden Slider Block',
+        options: [
+          { label: 'Wooden Slider Block', value: 'Wooden Slider Block' },
+          { label: 'Brass Roller (Low Rolling Friction)', value: 'Brass Roller' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'incline-slider',
+    colorTheme: '#854d0e',
+  },
+  {
+    id: 'helical-spring-stand',
+    name: 'Helical Spring on Mirror Scale',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Rigid vertical retort stand holding a coiled helical steel spring, red index pointer, and vertical millimeter mirror scale.',
+    iconName: 'Activity',
+    defaultWidth: 260,
+    defaultHeight: 460,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'springConstantNpm',
+        label: 'Spring Constant (k)',
+        type: 'number',
+        defaultValue: 25.0,
+        min: 10.0,
+        max: 50.0,
+        step: 1.0,
+        unit: 'N/m',
+        editable: true,
+      },
+      {
+        id: 'unstretchedLengthMm',
+        label: 'Unstretched Baseline Length (L₀)',
+        type: 'number',
+        defaultValue: 120.0,
+        min: 80.0,
+        max: 180.0,
+        step: 5.0,
+        unit: 'mm',
+        editable: false,
+      },
+      {
+        id: 'appliedMassG',
+        label: 'Slotted Load on Hanger',
+        type: 'number',
+        defaultValue: 100.0,
+        min: 0.0,
+        max: 500.0,
+        step: 50.0,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'hangerMassG',
+        label: 'Hanger Tare Mass',
+        type: 'number',
+        defaultValue: 50.0,
+        unit: 'g',
+        editable: false,
+      },
+      {
+        id: 'elasticLimitN',
+        label: 'Elastic Proportionality Limit',
+        type: 'number',
+        defaultValue: 6.0,
+        unit: 'N',
+        editable: false,
+      },
+    ],
+    renderType: 'helical-spring-stand',
+    colorTheme: '#0284c7',
+  },
+  {
+    id: 'slotted-mass-hanger',
+    name: 'Slotted Mass Hanger (50g sets)',
+    subjectId: 'physics',
+    category: 'component',
+    description: 'Precision brass mass hanger with five removable 50g slotted weights.',
+    iconName: 'Layers',
+    defaultWidth: 100,
+    defaultHeight: 160,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'hangerTareG',
+        label: 'Hanger Mass',
+        type: 'number',
+        defaultValue: 50.0,
+        unit: 'g',
+        editable: false,
+      },
+      {
+        id: 'discsCount',
+        label: 'Number of Slotted Discs',
+        type: 'number',
+        defaultValue: 2,
+        min: 0,
+        max: 8,
+        step: 1,
+        unit: 'discs',
+        editable: true,
+      },
+    ],
+    renderType: 'slotted-weight-hanger',
+    colorTheme: '#ca8a04',
+  },
+  {
+    id: 'boyles-law-cylinder',
+    name: "Boyle's Law Piston Cylinder & Gauge",
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Airtight graduated glass gas cylinder with movable piston, pressure dial gauge, and volume scale.',
+    iconName: 'Gauge',
+    defaultWidth: 420,
+    defaultHeight: 320,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'volumeMl',
+        label: 'Enclosed Gas Volume (V)',
+        type: 'number',
+        defaultValue: 60.0,
+        min: 15.0,
+        max: 120.0,
+        step: 1.0,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'atmosphericPressureKpa',
+        label: 'Ambient Atmospheric Pressure (P₀)',
+        type: 'number',
+        defaultValue: 101.325,
+        min: 90.0,
+        max: 110.0,
+        step: 0.5,
+        unit: 'kPa',
+        editable: false,
+      },
+      {
+        id: 'temperatureC',
+        label: 'Isothermal Temperature (T)',
+        type: 'number',
+        defaultValue: 25.0,
+        min: 10.0,
+        max: 40.0,
+        step: 1.0,
+        unit: '°C',
+        editable: false,
+      },
+      {
+        id: 'gasType',
+        label: 'Enclosed Gas',
+        type: 'select',
+        defaultValue: 'Dry Atmospheric Air',
+        options: [
+          { label: 'Dry Atmospheric Air (Ideal Approximation)', value: 'Dry Atmospheric Air' },
+          { label: 'Nitrogen (N₂)', value: 'Nitrogen' },
+          { label: 'Argon (Ar)', value: 'Argon' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'boyle-cylinder',
+    colorTheme: '#059669',
+  },
 ];
 
 export const PHYSICS_LAB_DEFINITIONS: LabDefinition[] = [
@@ -2574,6 +3060,538 @@ export const PHYSICS_LAB_DEFINITIONS: LabDefinition[] = [
     defaultNotebookNotes:
       "Physical Beam Balance & Mass Determination:\n- Principle of Moments: Equilibrium occurs when clockwise torque equals counter-clockwise torque.\n  m_left × g × L = m_right × g × L  =>  m_left = m_right\n\nMethod of Oscillations (Resting Point):\n- When turning points on index scale are d₁, d₂, d₃:\n  Resting Point (RP) = (d₁ + 2·d₂ + d₃) / 4\n\nSensitivity of Balance:\n- Sensitivity S = Deflection in divisions per unit mass difference (divisions / mg).\n- Minimum detectable threshold = ± 0.005 g (5 mg).\n\nPrecautions:\n1. Never add or remove weights without arresting the beam first.\n2. Handle all weights with forceps, never bare fingers.\n3. Close glass doors during final oscillation readings to eliminate air drafts.",
   },
+  {
+    experimentId: 'parallelogram-law',
+    title: 'Parallelogram Law of Vectors',
+    subjectId: 'physics',
+    allowedEquipmentIds: ['gravesand-force-board', 'vector-pulley-weight'],
+    initialObjects: [
+      {
+        id: 'fb-1',
+        equipmentId: 'gravesand-force-board',
+        title: "Gravesand's Force Board",
+        x: 60,
+        y: 60,
+        rotation: 0,
+        width: 480,
+        height: 360,
+        properties: {
+          forceP: 3.0,
+          anglePDeg: 35.0,
+          forceQ: 4.0,
+          angleQDeg: 125.0,
+          balancingMassGrams: 509.8,
+          showParallelogram: true,
+          showComponents: true,
+        },
+        state: {
+          resultantMagnitudeN: 5.0,
+          resultantAngleDeg: 80.0,
+          includedAngleDeg: 90.0,
+          equilibrantN: 5.0,
+          percentageError: 0.0,
+          isBalanced: true,
+        },
+      },
+      {
+        id: 'pw-left',
+        equipmentId: 'vector-pulley-weight',
+        title: 'Force P Slotted Weights (300g)',
+        x: 580,
+        y: 60,
+        rotation: 0,
+        width: 110,
+        height: 180,
+        properties: {
+          hangerMassG: 50.0,
+          slottedDiscsCount: 5,
+        },
+        state: { totalWeightN: 3.0 },
+      },
+      {
+        id: 'pw-right',
+        equipmentId: 'vector-pulley-weight',
+        title: 'Force Q Slotted Weights (400g)',
+        x: 580,
+        y: 260,
+        rotation: 0,
+        width: 110,
+        height: 180,
+        properties: {
+          hangerMassG: 50.0,
+          slottedDiscsCount: 7,
+        },
+        state: { totalWeightN: 4.0 },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'par-step-1',
+        stepNumber: 1,
+        title: 'Set Tension Force P on Left Pulley (3.0 N)',
+        instruction:
+          'Adjust Force P to 3.0 N (or 300g load) and angle θ₁ to 35.0° on the vector force board.',
+      },
+      {
+        id: 'par-step-2',
+        stepNumber: 2,
+        title: 'Set Tension Force Q on Right Pulley (4.0 N)',
+        instruction:
+          'Adjust Force Q to 4.0 N and angle θ₂ to 125.0°. The included angle between forces is θ = 90.0°.',
+      },
+      {
+        id: 'par-step-3',
+        stepNumber: 3,
+        title: 'Construct the Vector Parallelogram',
+        instruction:
+          'Enable "Show Vector Parallelogram". Vectors P and Q form adjacent sides OA and OB of the parallelogram.',
+      },
+      {
+        id: 'par-step-4',
+        stepNumber: 4,
+        title: 'Measure Resultant Diagonal R and Direction α',
+        instruction:
+          'Read the diagonal OC. For orthogonal forces 3N and 4N, theoretical R = √(3² + 4²) = 5.00 N at angle α ≈ 53.1° from P.',
+      },
+      {
+        id: 'par-step-5',
+        stepNumber: 5,
+        title: 'Counterbalance with Central Equilibrant Weight S',
+        instruction:
+          'Attach balancing weight S = 510g (≈ 5.0 N) in the central pan. Verify static equilibrium (percentage error < 1%).',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-par-setup',
+        description: 'Configure concurrent coplanar forces P and Q on Gravesand’s board.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-par-resultant',
+        description: 'Verify resultant magnitude R using analytical formula R = √(P² + Q² + 2PQ cos θ).',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-par-equilibrium',
+        description: 'Balance central knot with equilibrant force S opposite to R.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Parallelogram Law of Vectors:\n- If two coplanar forces acting simultaneously at a point are represented in magnitude and direction by two adjacent sides of a parallelogram, their resultant is represented in magnitude and direction by the diagonal passing through their common point of action.\n\nFormulas:\n- Resultant Magnitude: R = √(P² + Q² + 2·P·Q·cos θ)\n- Angle with Force P: tan α = (Q·sin θ) / (P + Q·cos θ)\n- Equilibrant Condition: P + Q + S = 0  =>  S = -R\n- Percentage Discrepancy: |R_theoretical - S_observed| / R_theoretical × 100%",
+  },
+  {
+    experimentId: 'limiting-friction',
+    title: 'Laws of Limiting Friction',
+    subjectId: 'physics',
+    allowedEquipmentIds: ['friction-track', 'friction-slider-block'],
+    initialObjects: [
+      {
+        id: 'ft-1',
+        equipmentId: 'friction-track',
+        title: 'Horizontal Friction Bench',
+        x: 60,
+        y: 80,
+        rotation: 0,
+        width: 500,
+        height: 200,
+        properties: {
+          surfacePair: 'wood-on-wood',
+          trackLengthCm: 60.0,
+        },
+        state: { status: 'Horizontal Surface Ready' },
+      },
+      {
+        id: 'fb-slider',
+        equipmentId: 'friction-slider-block',
+        title: 'Wooden Friction Block',
+        x: 140,
+        y: 110,
+        rotation: 0,
+        width: 170,
+        height: 120,
+        properties: {
+          blockMassG: 150.0,
+          addedMassG: 50.0,
+          panMassG: 20.0,
+          addedPanMassG: 50.0,
+          contactOrientation: 'broad-side',
+        },
+        state: {
+          normalReactionN: 1.961,
+          limitingFrictionN: 0.686,
+          appliedPullingForceN: 0.686,
+          isMotionInitiated: false,
+          frictionForceN: 0.686,
+        },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'fric-step-1',
+        stepNumber: 1,
+        title: 'Inspect Surface Material and Slider Block',
+        instruction:
+          'Set surface to "Wood on Polished Wood" (μs = 0.35, μk = 0.28). Block tare mass is 150g.',
+      },
+      {
+        id: 'fric-step-2',
+        stepNumber: 2,
+        title: 'Configure Total Normal Reaction N',
+        instruction:
+          'Add 50g mass to block (total mass 200g). Normal reaction N = M_total × g = 0.200 × 9.8 = 1.961 N.',
+      },
+      {
+        id: 'fric-step-3',
+        stepNumber: 3,
+        title: 'Add Pulling Mass in Pan Stepwise',
+        instruction:
+          'Gradually add masses in pan (20g tare + 40g, 45g, 50g). Observe static friction balancing applied force.',
+      },
+      {
+        id: 'fric-step-4',
+        stepNumber: 4,
+        title: 'Identify Limiting Friction Threshold (f_s,max)',
+        instruction:
+          'At total pan mass = 70g (applied force ≈ 0.686 N), motion initiates. Limiting friction f_s,max = μs × N.',
+      },
+      {
+        id: 'fric-step-5',
+        stepNumber: 5,
+        title: 'Test Area Independence (Broad Face vs Narrow Edge)',
+        instruction:
+          'Switch contact face to "Narrow Edge" (Area = 20 cm²). Verify that limiting friction remains identical at 0.686 N.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-fric-normal',
+        description: 'Vary normal reaction N by adding slotted masses to slider block.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-fric-limit',
+        description: 'Determine the threshold pulling mass where sliding motion begins.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-fric-coeff',
+        description: 'Verify constant coefficient of static friction μs = f_s,max / N.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Laws of Limiting Friction:\n1. Limiting static friction (f_s,max) is directly proportional to normal reaction (N): f_s,max = μs × N.\n2. The coefficient of static friction depends only on the nature of materials in contact.\n3. Friction is independent of the apparent contact area within normal pressures.\n\nRegimes:\n- Static Regime (F_pull < f_s,max): f = F_pull, a = 0 (equilibrium).\n- Kinetic Regime (F_pull ≥ f_s,max): f_k = μk × N (μk < μs), accelerating motion.",
+  },
+  {
+    experimentId: 'inclined-plane-friction',
+    title: 'Friction on an Inclined Plane',
+    subjectId: 'physics',
+    allowedEquipmentIds: ['inclined-plane-ramp', 'incline-slider-box'],
+    initialObjects: [
+      {
+        id: 'ip-ramp',
+        equipmentId: 'inclined-plane-ramp',
+        title: 'Adjustable Incline Track',
+        x: 60,
+        y: 60,
+        rotation: 0,
+        width: 480,
+        height: 320,
+        properties: {
+          inclineAngleDeg: 15.0,
+          surfacePair: 'wood-on-wood',
+          pullingEffortGrams: 0.0,
+          showResolutions: true,
+        },
+        state: {
+          normalForceN: 1.894,
+          parallelGravityN: 0.508,
+          angleReposeDeg: 19.29,
+          isSlidingDown: false,
+        },
+      },
+      {
+        id: 'ip-slider',
+        equipmentId: 'incline-slider-box',
+        title: 'Slider Block (200g)',
+        x: 220,
+        y: 160,
+        rotation: 0,
+        width: 130,
+        height: 80,
+        properties: {
+          blockMassG: 200.0,
+          sliderType: 'Wooden Slider Block',
+        },
+        state: { status: 'Stationary on Incline' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'inc-step-1',
+        stepNumber: 1,
+        title: 'Configure Slider Block Mass (200g)',
+        instruction:
+          'Set slider block mass to 200g on a wooden inclined plane (μs = 0.35).',
+      },
+      {
+        id: 'inc-step-2',
+        stepNumber: 2,
+        title: 'Slowly Elevate Incline Angle θ',
+        instruction:
+          'Increase slope angle θ in 1° steps from 10° to 18°. Notice how normal reaction mg cos θ decreases while parallel force mg sin θ increases.',
+      },
+      {
+        id: 'inc-step-3',
+        stepNumber: 3,
+        title: 'Capture the Angle of Repose (θ_r)',
+        instruction:
+          'At θ = 19.3°, parallel gravity balances limiting friction: mg sin θ = μs mg cos θ. Tan(19.3°) = 0.35 = μs. Block begins sliding.',
+      },
+      {
+        id: 'inc-step-4',
+        stepNumber: 4,
+        title: 'Inspect Force Vector Resolution Overlay',
+        instruction:
+          'Observe the vector breakdown: Normal N = mg cos θ perpendicular to ramp, Tangential F_par = mg sin θ down ramp.',
+      },
+      {
+        id: 'inc-step-5',
+        stepNumber: 5,
+        title: 'Measure Pulling Effort Required to Ascend Incline',
+        instruction:
+          'Add counter-mass in pan. Notice effort required to pull block upward: P_up = mg(sin θ + μ cos θ).',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-inc-angle',
+        description: 'Determine the angle of repose θ_r for the slider-ramp pair.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-inc-repose',
+        description: 'Verify the relationship μs = tan θ_r.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-inc-resolution',
+        description: 'Analyze perpendicular and parallel components of weight on an incline.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Friction on an Inclined Plane & Angle of Repose:\n- Gravity Resolution:\n  Normal Component (perpendicular to plane): N = m·g·cos θ\n  Tangential Component (down the plane): F_parallel = m·g·sin θ\n\nAngle of Repose (θ_r):\n- The angle at which the object begins to slide down under its own weight without external assistance:\n  m·g·sin θ_r = f_s,max = μs·m·g·cos θ_r\n  =>  tan θ_r = μs  =>  θ_r = arctan(μs)\n\nAscending Incline:\n- Effort to pull up: P_up = m·g·(sin θ + μ·cos θ)",
+  },
+  {
+    experimentId: 'hookes-law',
+    title: "Hooke's Law and Spring Constant",
+    subjectId: 'physics',
+    allowedEquipmentIds: ['helical-spring-stand', 'slotted-mass-hanger'],
+    initialObjects: [
+      {
+        id: 'spring-stand-1',
+        equipmentId: 'helical-spring-stand',
+        title: 'Helical Spring on Mirror Scale',
+        x: 100,
+        y: 40,
+        rotation: 0,
+        width: 280,
+        height: 480,
+        properties: {
+          springConstantNpm: 25.0,
+          unstretchedLengthMm: 120.0,
+          appliedMassG: 100.0,
+          hangerMassG: 50.0,
+          elasticLimitN: 6.0,
+        },
+        state: {
+          appliedForceN: 1.471,
+          extensionMm: 58.84,
+          totalLengthMm: 178.84,
+          restoringForceN: -1.471,
+          isWithinElasticLimit: true,
+          dynamicPeriodSeconds: 0.51,
+        },
+      },
+      {
+        id: 'hanger-weights-1',
+        equipmentId: 'slotted-mass-hanger',
+        title: 'Slotted Mass Hanger',
+        x: 440,
+        y: 120,
+        rotation: 0,
+        width: 120,
+        height: 180,
+        properties: {
+          hangerTareG: 50.0,
+          discsCount: 2,
+        },
+        state: { totalMassG: 150.0 },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'hook-step-1',
+        stepNumber: 1,
+        title: 'Record Unstretched Baseline Pointer Position (L₀)',
+        instruction:
+          'Observe the red pointer needle on the vertical mirror scale. Initial zero-load position is L₀ = 120.0 mm.',
+      },
+      {
+        id: 'hook-step-2',
+        stepNumber: 2,
+        title: 'Attach Hanger with Initial Mass (50g)',
+        instruction:
+          'Suspend the 50g hanger. Force F = 0.050 × 9.8 = 0.49 N. Extension x = F / k = 0.49 / 25 = 19.6 mm.',
+      },
+      {
+        id: 'hook-step-3',
+        stepNumber: 3,
+        title: 'Add Slotted Masses Stepwise (100g to 250g)',
+        instruction:
+          'Add 50g slotted discs one by one. Record Total Mass (m), Stretching Force (F = mg), and Pointer Position (L).',
+      },
+      {
+        id: 'hook-step-4',
+        stepNumber: 4,
+        title: 'Calculate Spring Constant (k = ΔF / Δx)',
+        instruction:
+          'From slope of Load vs Extension curve, determine spring constant k = 25.0 N/m. Verify linearity.',
+      },
+      {
+        id: 'hook-step-5',
+        stepNumber: 5,
+        title: 'Observe Dynamic Oscillation Period T = 2π√(m/k)',
+        instruction:
+          'Displace mass slightly and observe harmonic oscillation period (T ≈ 0.51 s). Verify dynamic spring constant.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-hook-linearity',
+        description: 'Verify linear relationship between stretching force F and extension x.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-hook-k',
+        description: 'Calculate spring stiffness k = ΔF / Δx from experimental data pairs.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-hook-limit',
+        description: 'Confirm operation within elastic proportionality limits.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Hooke's Law and Spring Constant:\n- Principle: Within elastic limits, extension x is directly proportional to stretching force F:\n  F = k · x\n  where k is the spring constant (stiffness in N/m).\n\nFormulas:\n- Stretching Force: F = m_total × g = (m_hanger + m_slotted) × 9.8 m/s²\n- Extension: x = L - L₀\n- Spring Constant: k = ΔF / Δx\n- Elastic Potential Energy: U = ½ k · x²\n- Dynamic Oscillation: T = 2π √((m + m_eff) / k)\n\nAssumptions:\n- Ideal linear elasticity within proportional limit.\n- Spring mass correction m_eff ≈ ⅓ m_spring.\n- No permanent plastic set under permissible laboratory loads.",
+  },
+  {
+    experimentId: 'boyles-law',
+    title: "Boyle's Law Verification",
+    subjectId: 'physics',
+    allowedEquipmentIds: ['boyles-law-cylinder'],
+    initialObjects: [
+      {
+        id: 'boyle-cyl-1',
+        equipmentId: 'boyles-law-cylinder',
+        title: "Boyle's Law Piston Cylinder & Gauge",
+        x: 100,
+        y: 60,
+        rotation: 0,
+        width: 440,
+        height: 340,
+        properties: {
+          volumeMl: 60.0,
+          atmosphericPressureKpa: 101.325,
+          temperatureC: 25.0,
+          gasType: 'Dry Atmospheric Air',
+        },
+        state: {
+          pressureKpa: 101.33,
+          pressureAtm: 1.0,
+          pressureMmHg: 760.0,
+          pvProductKpaMl: 6079.5,
+          reciprocalVolumePerMl: 0.01667,
+          manometerDeltaHeightMmHg: 0.0,
+        },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'boyle-step-1',
+        stepNumber: 1,
+        title: 'Establish Reference State at Atmospheric Pressure',
+        instruction:
+          'Set volume V₀ = 60.0 mL. Ambient pressure is P₀ = 101.325 kPa (1.0 atm = 760 mmHg). Initial P × V = 6079.5 kPa·mL.',
+      },
+      {
+        id: 'boyle-step-2',
+        stepNumber: 2,
+        title: 'Compress Piston to 45.0 mL and Observe Pressure',
+        instruction:
+          'Move the piston inward to 45.0 mL. Watch the dial pressure gauge rise to ~135.1 kPa (~1.33 atm).',
+      },
+      {
+        id: 'boyle-step-3',
+        stepNumber: 3,
+        title: 'Compress to Half Volume (30.0 mL)',
+        instruction:
+          'Compress volume to 30.0 mL. Observe that pressure doubles to 202.7 kPa (2.0 atm = 1520 mmHg). P × V remains constant.',
+      },
+      {
+        id: 'boyle-step-4',
+        stepNumber: 4,
+        title: 'Expand Piston to 90.0 mL and 120.0 mL',
+        instruction:
+          'Draw piston outward to 90 mL and 120 mL. Pressure drops to 67.5 kPa (0.67 atm) and 50.7 kPa (0.50 atm).',
+      },
+      {
+        id: 'boyle-step-5',
+        stepNumber: 5,
+        title: 'Verify P × V Constant and 1/V Linear Relation',
+        instruction:
+          'Verify that P × V product remains constant across all volumes, and that P versus 1/V is a straight line.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-boyle-pv',
+        description: 'Verify that P × V product is constant for isothermal gas compression/expansion.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-boyle-halving',
+        description: 'Demonstrate that halving volume doubles absolute gas pressure.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-boyle-linear',
+        description: 'Confirm linear relation between pressure P and reciprocal volume 1/V.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Boyle's Law for an Ideal Gas:\n- Statement: For a fixed mass of enclosed gas at constant temperature, absolute pressure is inversely proportional to volume:\n  P ∝ 1/V   =>   P · V = Constant (C)\n\nFormulas:\n- P₁ · V₁ = P₂ · V₂\n- Absolute Pressure: P_total = P_atmospheric + P_gauge = 760 mmHg + Δh_Hg\n- Reciprocal Volume: 1/V (mL⁻¹)\n- Work Done in Isothermal Compression: W = nRT · ln(V₂ / V₁)\n\nGraphical Signatures:\n- P vs V curve: Rectangular hyperbola (isotherm at T = 298 K).\n- P vs 1/V curve: Straight line passing through the origin with slope C = P·V.",
+  },
 ];
 
 export const physicsExtension: SubjectLabExtension = {
@@ -3113,6 +4131,243 @@ export const physicsExtension: SubjectLabExtension = {
 
       messages.push(
         `Beam Balance: Left = ${leftPanMass.toFixed(2)} g, Right = ${rightPanMass.toFixed(2)} g => Δm = ${bbState.massDifferenceGrams.toFixed(2)} g [${bbState.status}]`
+      );
+    }
+
+    // 10. Parallelogram Law of Vectors Simulation
+    const forceBoards = objects.filter((o) => o.equipmentId === 'gravesand-force-board');
+    for (const fb of forceBoards) {
+      const p = Number(fb.properties.forceP ?? 3.0);
+      const angleP = Number(fb.properties.anglePDeg ?? 35.0);
+      const q = Number(fb.properties.forceQ ?? 4.0);
+      const angleQ = Number(fb.properties.angleQDeg ?? 125.0);
+      const balMassG = Number(fb.properties.balancingMassGrams ?? 509.8);
+
+      const vecRes = calculateVectorAddition({
+        forceP: p,
+        anglePDeg: angleP,
+        forceQ: q,
+        angleQDeg: angleQ,
+        balancingMassGrams: balMassG,
+      });
+
+      updates[fb.id] = {
+        forceP: vecRes.forceP,
+        anglePDeg: vecRes.anglePDeg,
+        forceQ: vecRes.forceQ,
+        angleQDeg: vecRes.angleQDeg,
+        includedAngleDeg: vecRes.includedAngleDeg,
+        resultantMagnitudeN: vecRes.resultantMagnitude,
+        resultantAngleDeg: vecRes.resultantAngleDeg,
+        angleAlphaDeg: vecRes.angleAlphaDeg,
+        resultantComponentX: vecRes.resultantComponentX,
+        resultantComponentY: vecRes.resultantComponentY,
+        equilibrantN: vecRes.equilibrantMagnitude,
+        equilibrantAngleDeg: vecRes.equilibrantAngleDeg,
+        percentageError: vecRes.percentageError,
+        isBalanced: vecRes.isEquilibriumValid,
+        status: vecRes.isEquilibriumValid
+          ? `EQUILIBRIUM VERIFIED: R = ${vecRes.resultantMagnitude} N at ${vecRes.resultantAngleDeg}° (Error: ${vecRes.percentageError}%)`
+          : `Imbalanced Knot: R = ${vecRes.resultantMagnitude} N, Equilibrant = ${vecRes.experimentalBalancingForceN} N (Error: ${vecRes.percentageError}%)`,
+      };
+
+      messages.push(
+        `Vector Board: P = ${p} N (${angleP}°), Q = ${q} N (${angleQ}°), θ = ${vecRes.includedAngleDeg}° => Resultant R = ${vecRes.resultantMagnitude} N at ${vecRes.resultantAngleDeg}°`
+      );
+    }
+
+    // 11. Laws of Limiting Friction Simulation
+    const frictionTracks = objects.filter((o) => o.equipmentId === 'friction-track');
+    const frictionBlocks = objects.filter((o) => o.equipmentId === 'friction-slider-block');
+
+    for (const fb of frictionBlocks) {
+      const parentTrack = frictionTracks[0];
+      const surfacePair = (parentTrack ? String(parentTrack.properties.surfacePair ?? 'wood-on-wood') : 'wood-on-wood') as SurfacePair;
+      const blockMassG = Number(fb.properties.blockMassG ?? 150.0);
+      const addedMassG = Number(fb.properties.addedMassG ?? 50.0);
+      const panMassG = Number(fb.properties.panMassG ?? 20.0);
+      const addedPanMassG = Number(fb.properties.addedPanMassG ?? 50.0);
+      const orientation = String(fb.properties.contactOrientation ?? 'broad-side') as 'broad-side' | 'narrow-edge';
+
+      const fricRes = calculateLimitingFriction({
+        blockMassGrams: blockMassG,
+        addedMassGrams: addedMassG,
+        panMassGrams: panMassG,
+        addedPanMassGrams: addedPanMassG,
+        surfacePair,
+        contactOrientation: orientation,
+      });
+
+      updates[fb.id] = {
+        totalBlockMassKg: fricRes.totalBlockMassKg,
+        normalReactionN: fricRes.normalReactionN,
+        staticCoeff: fricRes.staticCoeff,
+        kineticCoeff: fricRes.kineticCoeff,
+        limitingFrictionN: fricRes.limitingFrictionN,
+        appliedPullingForceN: fricRes.appliedPullingForceN,
+        isMotionInitiated: fricRes.isMotionInitiated,
+        frictionForceN: fricRes.frictionForceN,
+        netForceN: fricRes.netForceN,
+        accelerationMs2: fricRes.accelerationMs2,
+        contactAreaCm2: fricRes.contactAreaCm2,
+        status: fricRes.isMotionInitiated
+          ? `SLIDING ACCELERATION: a = ${fricRes.accelerationMs2.toFixed(2)} m/s² (f_k = ${fricRes.frictionForceN.toFixed(2)} N)`
+          : `STATIC EQUILIBRIUM: f_s = ${fricRes.frictionForceN.toFixed(2)} N (Limiting f_s,max = ${fricRes.limitingFrictionN.toFixed(2)} N)`,
+      };
+
+      if (parentTrack) {
+        updates[parentTrack.id] = {
+          activeSurface: surfacePair,
+          muStatic: fricRes.staticCoeff,
+          muKinetic: fricRes.kineticCoeff,
+          status: `Active Track: ${surfacePair} (μs = ${fricRes.staticCoeff}, μk = ${fricRes.kineticCoeff})`,
+        };
+      }
+
+      messages.push(
+        `Friction: N = ${fricRes.normalReactionN.toFixed(2)} N, Applied = ${fricRes.appliedPullingForceN.toFixed(2)} N, Limit = ${fricRes.limitingFrictionN.toFixed(2)} N => ${fricRes.isMotionInitiated ? 'Moving' : 'Static'}`
+      );
+    }
+
+    // 12. Friction on an Inclined Plane Simulation
+    const inclinedRamps = objects.filter((o) => o.equipmentId === 'inclined-plane-ramp');
+    const inclineSliders = objects.filter((o) => o.equipmentId === 'incline-slider-box');
+
+    for (const ramp of inclinedRamps) {
+      const slider = inclineSliders[0];
+      const blockMassG = slider ? Number(slider.properties.blockMassG ?? 200.0) : 200.0;
+      const angleDeg = Number(ramp.properties.inclineAngleDeg ?? 20.0);
+      const surfacePair = String(ramp.properties.surfacePair ?? 'wood-on-wood') as SurfacePair;
+      const effortG = Number(ramp.properties.pullingEffortGrams ?? 0.0);
+
+      const incRes = calculateInclinedPlanePhysics({
+        blockMassGrams: blockMassG,
+        inclineAngleDeg: angleDeg,
+        surfacePair,
+        pullingEffortGrams: effortG,
+      });
+
+      updates[ramp.id] = {
+        inclineAngleDeg: incRes.inclineAngleDeg,
+        normalForceN: incRes.normalForceN,
+        parallelGravityN: incRes.parallelGravityN,
+        staticCoeff: incRes.staticCoeff,
+        kineticCoeff: incRes.kineticCoeff,
+        limitingFrictionN: incRes.limitingFrictionN,
+        angleReposeDeg: incRes.angleReposeDeg,
+        isSlidingDownSpontaneously: incRes.isSlidingDownSpontaneously,
+        downwardFrictionN: incRes.downwardFrictionN,
+        netDownwardForceN: incRes.netDownwardForceN,
+        downwardAccelerationMs2: incRes.downwardAccelerationMs2,
+        minimumEffortToPullUpN: incRes.minimumEffortToPullUpN,
+        appliedEffortN: incRes.appliedEffortN,
+        isMovingUpwards: incRes.isMovingUpwards,
+        status: incRes.isSlidingDownSpontaneously
+          ? `SLIDING DOWNWARD (θ = ${incRes.inclineAngleDeg}° > θ_repose = ${incRes.angleReposeDeg}°, a = ${incRes.downwardAccelerationMs2.toFixed(2)} m/s²)`
+          : incRes.isMovingUpwards
+          ? `MOVING UPWARD (Effort = ${incRes.appliedEffortN.toFixed(2)} N ≥ ${incRes.minimumEffortToPullUpN.toFixed(2)} N)`
+          : `STATIONARY ON INCLINE (θ = ${incRes.inclineAngleDeg}° < θ_repose = ${incRes.angleReposeDeg}°)`,
+      };
+
+      if (slider) {
+        updates[slider.id] = {
+          normalForceN: incRes.normalForceN,
+          parallelForceN: incRes.parallelGravityN,
+          status: incRes.isSlidingDownSpontaneously
+            ? 'Sliding Downward'
+            : incRes.isMovingUpwards
+            ? 'Ascending Incline'
+            : 'Static on Slope',
+        };
+      }
+
+      messages.push(
+        `Inclined Plane: θ = ${angleDeg}°, θ_repose = ${incRes.angleReposeDeg}°, N = ${incRes.normalForceN.toFixed(2)} N, F_par = ${incRes.parallelGravityN.toFixed(2)} N`
+      );
+    }
+
+    // 13. Hooke's Law and Spring Constant Simulation
+    const springStands = objects.filter((o) => o.equipmentId === 'helical-spring-stand');
+    const springHangers = objects.filter((o) => o.equipmentId === 'slotted-mass-hanger');
+
+    for (const ss of springStands) {
+      const k = Number(ss.properties.springConstantNpm ?? 25.0);
+      const appliedMassG = Number(ss.properties.appliedMassG ?? 100.0);
+      const hangerMassG = Number(ss.properties.hangerMassG ?? 50.0);
+      const unstretchedMm = Number(ss.properties.unstretchedLengthMm ?? 120.0);
+      const elasticLimitN = Number(ss.properties.elasticLimitN ?? 6.0);
+
+      const hookeRes = calculateHookesLaw({
+        springConstantNpm: k,
+        appliedMassGrams: appliedMassG,
+        hangerMassGrams: hangerMassG,
+        unstretchedLengthMm: unstretchedMm,
+        elasticLimitNewtons: elasticLimitN,
+      });
+
+      updates[ss.id] = {
+        springConstantNpm: hookeRes.springConstantNpm,
+        totalSuspendedMassGrams: hookeRes.totalSuspendedMassGrams,
+        appliedForceN: hookeRes.appliedForceN,
+        extensionMm: hookeRes.extensionMm,
+        totalLengthMm: hookeRes.totalLengthMm,
+        restoringForceN: hookeRes.restoringForceN,
+        elasticPotentialEnergyJoules: hookeRes.elasticPotentialEnergyJoules,
+        isWithinElasticLimit: hookeRes.isWithinElasticLimit,
+        isPlasticDeformation: hookeRes.isPlasticDeformation,
+        dynamicPeriodSeconds: hookeRes.dynamicPeriodSeconds,
+        dynamicFrequencyHz: hookeRes.dynamicFrequencyHz,
+        status: hookeRes.isPlasticDeformation
+          ? `PLASTIC DEFORMATION! Load exceeds yield limit (${hookeRes.appliedForceN.toFixed(2)} N > ${elasticLimitN} N)`
+          : `ELASTIC EQUILIBRIUM: F = ${hookeRes.appliedForceN.toFixed(2)} N, Extension x = ${hookeRes.extensionMm.toFixed(1)} mm (k = ${k} N/m)`,
+      };
+
+      for (const sh of springHangers) {
+        updates[sh.id] = {
+          totalMassG: hookeRes.totalSuspendedMassGrams,
+          totalForceN: hookeRes.appliedForceN,
+          status: `Hanger Load: ${hookeRes.totalSuspendedMassGrams} g (${hookeRes.appliedForceN.toFixed(2)} N)`,
+        };
+      }
+
+      messages.push(
+        `Hooke's Law: Load = ${hookeRes.totalSuspendedMassGrams} g (F = ${hookeRes.appliedForceN.toFixed(2)} N) => Extension x = ${hookeRes.extensionMm.toFixed(1)} mm (L = ${hookeRes.totalLengthMm.toFixed(1)} mm)`
+      );
+    }
+
+    // 14. Boyle's Law Simulation
+    const boyleCylinders = objects.filter((o) => o.equipmentId === 'boyles-law-cylinder');
+
+    for (const bc of boyleCylinders) {
+      const vol = Number(bc.properties.volumeMl ?? 60.0);
+      const pAtm = Number(bc.properties.atmosphericPressureKpa ?? 101.325);
+      const tempC = Number(bc.properties.temperatureC ?? 25.0);
+      const tempK = tempC + 273.15;
+
+      const boyleRes = calculateBoylesLaw({
+        volumeMl: vol,
+        atmosphericPressureKpa: pAtm,
+        temperatureKelvin: tempK,
+        referenceVolumeMl: 60.0,
+      });
+
+      updates[bc.id] = {
+        volumeMl: boyleRes.volumeMl,
+        volumeLiters: boyleRes.volumeLiters,
+        reciprocalVolumePerMl: boyleRes.reciprocalVolumePerMl,
+        reciprocalVolumePerLiter: boyleRes.reciprocalVolumePerLiter,
+        pressureKpa: boyleRes.pressureKpa,
+        pressureAtm: boyleRes.pressureAtm,
+        pressureMmHg: boyleRes.pressureMmHg,
+        manometerDeltaHeightMmHg: boyleRes.manometerDeltaHeightMmHg,
+        pvProductKpaMl: boyleRes.pvProductKpaMl,
+        pvProductJoules: boyleRes.pvProductJoules,
+        temperatureKelvin: boyleRes.temperatureKelvin,
+        status: `V = ${boyleRes.volumeMl} mL => P = ${boyleRes.pressureKpa.toFixed(1)} kPa (${boyleRes.pressureAtm.toFixed(2)} atm) | P·V = ${boyleRes.pvProductKpaMl.toFixed(0)} kPa·mL`,
+      };
+
+      messages.push(
+        `Boyle's Law: V = ${boyleRes.volumeMl} mL => P = ${boyleRes.pressureKpa.toFixed(1)} kPa (${boyleRes.pressureAtm.toFixed(2)} atm), P·V = ${boyleRes.pvProductKpaMl.toFixed(0)} kPa·mL`
       );
     }
 

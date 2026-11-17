@@ -3176,6 +3176,905 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
         );
       }
 
+      case 'force-board': {
+        const forceP = Number(object.properties.forceP ?? 3.0);
+        const angleP = Number(object.properties.anglePDeg ?? 35.0);
+        const forceQ = Number(object.properties.forceQ ?? 4.0);
+        const angleQ = Number(object.properties.angleQDeg ?? 125.0);
+        const showParallelogram = object.properties.showParallelogram !== false;
+        const showComponents = object.properties.showComponents !== false;
+
+        const resultantN = Number(object.state.resultantMagnitudeN ?? 5.0);
+        const resultantAngle = Number(object.state.resultantAngleDeg ?? 80.0);
+        const isBalanced = object.state.isBalanced !== false;
+
+        const cx = width / 2;
+        const cy = height / 2 + 30;
+        const scale = 22; // px per Newton
+
+        // Vector P endpoints
+        const radP = (angleP * Math.PI) / 180;
+        const px = cx + forceP * scale * Math.cos(radP);
+        const py = cy - forceP * scale * Math.sin(radP);
+
+        // Vector Q endpoints
+        const radQ = (angleQ * Math.PI) / 180;
+        const qx = cx + forceQ * scale * Math.cos(radQ);
+        const qy = cy - forceQ * scale * Math.sin(radQ);
+
+        // Resultant vector endpoint
+        const rx = px + (qx - cx);
+        const ry = py + (qy - cy);
+
+        // Equilibrant (straight down balancing force)
+        const eqLen = resultantN * scale;
+
+        return (
+          <Group>
+            {/* Wooden Drawing Board Frame */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#fef3c7"
+              stroke={isSelected ? '#38bdf8' : '#78350f'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={8}
+              shadowColor="#0f172a"
+              shadowBlur={8}
+              shadowOpacity={0.12}
+            />
+            {/* White Drawing Paper */}
+            <Rect
+              x={16}
+              y={16}
+              width={width - 32}
+              height={height - 32}
+              fill="#ffffff"
+              stroke="#cbd5e1"
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+
+            {/* Protractor Semicircle Degree Arc */}
+            <Circle
+              x={cx}
+              y={cy}
+              radius={scale * 5.5}
+              stroke="#e2e8f0"
+              strokeWidth={1}
+              dash={[4, 4]}
+            />
+            {[0, 30, 60, 90, 120, 150, 180].map((deg) => {
+              const rad = (deg * Math.PI) / 180;
+              const x1 = cx + (scale * 5.2) * Math.cos(rad);
+              const y1 = cy - (scale * 5.2) * Math.sin(rad);
+              const x2 = cx + (scale * 5.6) * Math.cos(rad);
+              const y2 = cy - (scale * 5.6) * Math.sin(rad);
+              return (
+                <Group key={`deg-${deg}`}>
+                  <Line points={[x1, y1, x2, y2]} stroke="#94a3b8" strokeWidth={1} />
+                  <KonvaText
+                    text={`${deg}°`}
+                    x={cx + (scale * 6.0) * Math.cos(rad) - 8}
+                    y={cy - (scale * 6.0) * Math.sin(rad) - 5}
+                    fontSize={8}
+                    fontFamily="sans-serif"
+                    fill="#64748b"
+                  />
+                </Group>
+              );
+            })}
+
+            {/* Low-Friction Pulley Wheels at Board Corners */}
+            <Circle x={36} y={36} radius={14} fill="#94a3b8" stroke="#475569" strokeWidth={2} />
+            <Circle x={36} y={36} radius={4} fill="#334155" />
+            <Circle x={width - 36} y={36} radius={14} fill="#94a3b8" stroke="#475569" strokeWidth={2} />
+            <Circle x={width - 36} y={36} radius={4} fill="#334155" />
+
+            {/* String Lines extending to pulleys */}
+            <Line points={[cx, cy, 36, 36]} stroke="#cbd5e1" strokeWidth={1} dash={[3, 3]} />
+            <Line points={[cx, cy, width - 36, 36]} stroke="#cbd5e1" strokeWidth={1} dash={[3, 3]} />
+
+            {/* Parallelogram Construction Dashed Lines */}
+            {showParallelogram && (
+              <Group>
+                <Line points={[px, py, rx, ry]} stroke="#94a3b8" strokeWidth={1.5} dash={[4, 3]} />
+                <Line points={[qx, qy, rx, ry]} stroke="#94a3b8" strokeWidth={1.5} dash={[4, 3]} />
+              </Group>
+            )}
+
+            {/* Vector Component Projections */}
+            {showComponents && (
+              <Group>
+                <Line points={[cx, cy, px, cy]} stroke="#93c5fd" strokeWidth={1} dash={[2, 2]} />
+                <Line points={[px, cy, px, py]} stroke="#93c5fd" strokeWidth={1} dash={[2, 2]} />
+                <Line points={[cx, cy, qx, cy]} stroke="#fcd34d" strokeWidth={1} dash={[2, 2]} />
+                <Line points={[qx, cy, qx, qy]} stroke="#fcd34d" strokeWidth={1} dash={[2, 2]} />
+              </Group>
+            )}
+
+            {/* Vector P Arrow (Blue) */}
+            <Line
+              points={[cx, cy, px, py]}
+              stroke="#2563eb"
+              strokeWidth={3}
+              lineCap="round"
+            />
+            <Circle x={px} y={py} radius={4} fill="#2563eb" />
+            <KonvaText
+              text={`P = ${forceP.toFixed(1)} N (${angleP}°)`}
+              x={px - 20}
+              y={py - 16}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#1d4ed8"
+            />
+
+            {/* Vector Q Arrow (Amber) */}
+            <Line
+              points={[cx, cy, qx, qy]}
+              stroke="#d97706"
+              strokeWidth={3}
+              lineCap="round"
+            />
+            <Circle x={qx} y={qy} radius={4} fill="#d97706" />
+            <KonvaText
+              text={`Q = ${forceQ.toFixed(1)} N (${angleQ}°)`}
+              x={qx - 20}
+              y={qy - 16}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#b45309"
+            />
+
+            {/* Resultant Vector R (Green Diagonal) */}
+            {showParallelogram && (
+              <Group>
+                <Line
+                  points={[cx, cy, rx, ry]}
+                  stroke="#059669"
+                  strokeWidth={3.5}
+                  lineCap="round"
+                />
+                <Circle x={rx} y={ry} radius={5} fill="#059669" />
+                <KonvaText
+                  text={`R = ${resultantN.toFixed(2)} N (${resultantAngle}°)`}
+                  x={rx - 30}
+                  y={ry - 18}
+                  fontSize={11}
+                  fontFamily="sans-serif"
+                  fontStyle="bold"
+                  fill="#047857"
+                />
+              </Group>
+            )}
+
+            {/* Central Equilibrant Weight String (Purple Downward) */}
+            <Line
+              points={[cx, cy, cx, cy + eqLen]}
+              stroke="#7c3aed"
+              strokeWidth={2.5}
+              dash={[3, 2]}
+            />
+            <Circle x={cx} y={cy + eqLen} radius={6} fill="#7c3aed" />
+            <KonvaText
+              text={`S (Equilibrant) = ${resultantN.toFixed(2)} N`}
+              x={cx - 60}
+              y={cy + eqLen + 8}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#6d28d9"
+            />
+
+            {/* Central Brass Knot Ring */}
+            <Circle x={cx} y={cy} radius={7} fill="#fbbf24" stroke="#78350f" strokeWidth={2} />
+            <Circle x={cx} y={cy} radius={3} fill="#ffffff" />
+
+            {/* Header Telemetry Badge */}
+            <Rect
+              x={24}
+              y={22}
+              width={260}
+              height={26}
+              fill="#f8fafc"
+              stroke="#e2e8f0"
+              strokeWidth={1}
+              cornerRadius={6}
+            />
+            <KonvaText
+              text={`GRAVESAND'S VECTOR BOARD | ${isBalanced ? '✓ IN EQUILIBRIUM' : '⚠ IMBALANCED'}`}
+              x={32}
+              y={29}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isBalanced ? '#059669' : '#dc2626'}
+            />
+          </Group>
+        );
+      }
+
+      case 'pulley-weight': {
+        const discs = Number(object.properties.slottedDiscsCount ?? 4);
+        const massG = 50 + discs * 50;
+        const forceN = (massG * 9.8) / 1000;
+
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            {/* Top suspension loop */}
+            <Circle x={width / 2} y={15} radius={5} fill="#ffffff" stroke="#475569" strokeWidth={2} />
+            {/* Vertical rod */}
+            <Line points={[width / 2, 20, width / 2, height - 35]} stroke="#94a3b8" strokeWidth={3} />
+            {/* Hanger base disc */}
+            <Rect
+              x={width / 2 - 25}
+              y={height - 40}
+              width={50}
+              height={8}
+              fill="#d97706"
+              stroke="#78350f"
+              strokeWidth={1}
+              cornerRadius={2}
+            />
+            {/* Slotted 50g discs */}
+            {Array.from({ length: Math.min(discs, 8) }).map((_, dIdx) => (
+              <Rect
+                key={`disc-${dIdx}`}
+                x={width / 2 - 22}
+                y={height - 48 - dIdx * 9}
+                width={44}
+                height={8}
+                fill="#fbbf24"
+                stroke="#b45309"
+                strokeWidth={1}
+                cornerRadius={1}
+              />
+            ))}
+            {/* Mass and Force Label */}
+            <KonvaText
+              text={`${massG} g (${forceN.toFixed(2)} N)`}
+              x={width / 2 - 32}
+              y={height - 20}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#1e293b"
+            />
+          </Group>
+        );
+      }
+
+      case 'friction-board': {
+        const surfacePair = String(object.properties.surfacePair ?? 'wood-on-wood');
+        let surfaceColor = '#d97706';
+        let surfaceLabel = 'Wood Track';
+        if (surfacePair === 'wood-on-glass') {
+          surfaceColor = '#bae6fd';
+          surfaceLabel = 'Glass Plate';
+        } else if (surfacePair === 'wood-on-sandpaper') {
+          surfaceColor = '#78716c';
+          surfaceLabel = 'Sandpaper Surface';
+        } else if (surfacePair === 'metal-on-metal') {
+          surfaceColor = '#cbd5e1';
+          surfaceLabel = 'Steel Track';
+        }
+
+        return (
+          <Group>
+            {/* Base Table Bench */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#f1f5f9"
+              stroke={isSelected ? '#38bdf8' : '#94a3b8'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={8}
+              shadowColor="#0f172a"
+              shadowBlur={6}
+              shadowOpacity={0.08}
+            />
+            {/* Active Friction Track Bed */}
+            <Rect
+              x={20}
+              y={45}
+              width={width - 70}
+              height={65}
+              fill={surfaceColor}
+              stroke="#475569"
+              strokeWidth={1.5}
+              cornerRadius={4}
+            />
+            {/* Track Metric Graduation Ruler along bottom */}
+            <Rect
+              x={20}
+              y={110}
+              width={width - 70}
+              height={18}
+              fill="#ffffff"
+              stroke="#cbd5e1"
+              strokeWidth={1}
+            />
+            {Array.from({ length: 7 }).map((_, idx) => (
+              <Group key={`ruler-${idx}`}>
+                <Line
+                  points={[20 + idx * ((width - 70) / 6), 110, 20 + idx * ((width - 70) / 6), 120]}
+                  stroke="#475569"
+                  strokeWidth={1}
+                />
+                <KonvaText
+                  text={`${idx * 10} cm`}
+                  x={20 + idx * ((width - 70) / 6) - 10}
+                  y={122}
+                  fontSize={8}
+                  fontFamily="sans-serif"
+                  fill="#64748b"
+                />
+              </Group>
+            ))}
+
+            {/* Smooth Pulley Wheel at Track Right End */}
+            <Circle x={width - 32} y={65} radius={18} fill="#94a3b8" stroke="#334155" strokeWidth={2} />
+            <Circle x={width - 32} y={65} radius={5} fill="#1e293b" />
+            <Line points={[width - 32, 65, width - 32, 130]} stroke="#38bdf8" strokeWidth={1.5} />
+            {/* Suspended Pan */}
+            <Rect x={width - 44} y={130} width={24} height={6} fill="#d97706" stroke="#78350f" strokeWidth={1} />
+
+            {/* Surface Specification Badge */}
+            <KonvaText
+              text={`FRICTION TRACK: ${surfaceLabel.toUpperCase()}`}
+              x={24}
+              y={20}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#334155"
+            />
+          </Group>
+        );
+      }
+
+      case 'friction-block': {
+        const addedMass = Number(object.properties.addedMassG ?? 50.0);
+        const blockMass = Number(object.properties.blockMassG ?? 150.0);
+        const normalN = Number(object.state.normalReactionN ?? 1.96);
+        const limitN = Number(object.state.limitingFrictionN ?? 0.69);
+        const isMoving = object.state.isMotionInitiated === true;
+        const orientation = String(object.properties.contactOrientation ?? 'broad-side');
+
+        return (
+          <Group>
+            {/* Slider Wooden Block */}
+            <Rect
+              x={10}
+              y={orientation === 'broad-side' ? 35 : 20}
+              width={orientation === 'broad-side' ? width - 30 : width - 60}
+              height={orientation === 'broad-side' ? 45 : 65}
+              fill="#b45309"
+              stroke={isSelected ? '#38bdf8' : '#78350f'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={4}
+            />
+            {/* Added Masses on top peg */}
+            {addedMass > 0 && (
+              <Rect
+                x={30}
+                y={orientation === 'broad-side' ? 20 : 5}
+                width={50}
+                height={15}
+                fill="#d97706"
+                stroke="#78350f"
+                strokeWidth={1}
+                cornerRadius={2}
+              />
+            )}
+            {/* Brass Towing Hook on right edge */}
+            <Circle
+              x={orientation === 'broad-side' ? width - 20 : width - 50}
+              y={orientation === 'broad-side' ? 57 : 52}
+              radius={6}
+              fill="#fbbf24"
+              stroke="#78350f"
+              strokeWidth={1.5}
+            />
+
+            {/* Force Vector Arrows */}
+            {/* Normal Force N (Upward) */}
+            <Line points={[55, 35, 55, 10]} stroke="#2563eb" strokeWidth={2} />
+            <Circle x={55} y={10} radius={3} fill="#2563eb" />
+            <KonvaText text={`N=${normalN.toFixed(2)}N`} x={62} y={10} fontSize={8} fontFamily="sans-serif" fill="#1d4ed8" />
+
+            {/* Friction Force f (Leftward) */}
+            <Line points={[10, 57, -15, 57]} stroke="#dc2626" strokeWidth={2} />
+            <Circle x={-15} y={57} radius={3} fill="#dc2626" />
+            <KonvaText text={`f=${limitN.toFixed(2)}N`} x={-45} y={45} fontSize={8} fontFamily="sans-serif" fill="#b91c1c" />
+
+            {/* Status Telemetry */}
+            <KonvaText
+              text={`${blockMass + addedMass} g | ${isMoving ? 'SLIDING' : 'STATIC'}`}
+              x={16}
+              y={height - 18}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isMoving ? '#059669' : '#475569'}
+            />
+          </Group>
+        );
+      }
+
+      case 'inclined-plane': {
+        const angleDeg = Number(object.properties.inclineAngleDeg ?? 20.0);
+        const rad = (angleDeg * Math.PI) / 180;
+        const normalN = Number(object.state.normalForceN ?? 1.84);
+        const parN = Number(object.state.parallelGravityN ?? 0.67);
+        const isSliding = object.state.isSlidingDownSpontaneously === true;
+
+        const pivotX = 40;
+        const pivotY = height - 40;
+        const rampLength = width - 80;
+
+        const topX = pivotX + rampLength * Math.cos(rad);
+        const topY = pivotY - rampLength * Math.sin(rad);
+
+        return (
+          <Group>
+            {/* Cast Iron Base Plate */}
+            <Rect
+              x={15}
+              y={height - 35}
+              width={width - 30}
+              height={25}
+              fill="#334155"
+              stroke={isSelected ? '#38bdf8' : '#1e293b'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={4}
+            />
+            {/* Protractor Angle Arc at Pivot */}
+            <Circle x={pivotX} y={pivotY} radius={50} stroke="#94a3b8" strokeWidth={1} dash={[3, 3]} />
+            <KonvaText text={`${angleDeg.toFixed(1)}°`} x={pivotX + 55} y={pivotY - 20} fontSize={10} fontFamily="sans-serif" fontStyle="bold" fill="#0284c7" />
+
+            {/* Inclined Ramp Beam */}
+            <Line
+              points={[pivotX, pivotY, topX, topY]}
+              stroke="#b45309"
+              strokeWidth={14}
+              lineCap="round"
+            />
+            {/* Hinge Pin */}
+            <Circle x={pivotX} y={pivotY} radius={7} fill="#fbbf24" stroke="#78350f" strokeWidth={2} />
+
+            {/* Pulley at Ramp Top End */}
+            <Circle x={topX} y={topY} radius={14} fill="#94a3b8" stroke="#334155" strokeWidth={2} />
+            <Circle x={topX} y={topY} radius={4} fill="#1e293b" />
+
+            {/* Vertical Elevation Arc Stand */}
+            <Line points={[topX, topY, topX, height - 35]} stroke="#cbd5e1" strokeWidth={2} dash={[4, 2]} />
+
+            {/* Status Telemetry Badge */}
+            <Rect
+              x={20}
+              y={15}
+              width={260}
+              height={26}
+              fill="#ffffff"
+              stroke="#cbd5e1"
+              strokeWidth={1}
+              cornerRadius={6}
+            />
+            <KonvaText
+              text={`INCLINE: θ=${angleDeg}° | N=${normalN.toFixed(2)}N | F∥=${parN.toFixed(2)}N | ${isSliding ? 'SLIDING DOWN' : 'REST'}`}
+              x={26}
+              y={22}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isSliding ? '#dc2626' : '#047857'}
+            />
+          </Group>
+        );
+      }
+
+      case 'incline-slider': {
+        const massG = Number(object.properties.blockMassG ?? 200.0);
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#b45309"
+              stroke={isSelected ? '#38bdf8' : '#78350f'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={6}
+            />
+            <Circle x={width - 15} y={height / 2} radius={5} fill="#fbbf24" stroke="#78350f" strokeWidth={1.5} />
+            <KonvaText
+              text={`${massG} g`}
+              x={width / 2 - 16}
+              y={height / 2 - 6}
+              fontSize={11}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#ffffff"
+            />
+          </Group>
+        );
+      }
+
+      case 'helical-spring-stand': {
+        const k = Number(object.properties.springConstantNpm ?? 25.0);
+        const extMm = Number(object.state.extensionMm ?? 58.8);
+        const forceN = Number(object.state.appliedForceN ?? 1.47);
+        const isPlastic = object.state.isPlasticDeformation === true;
+
+        // Dynamic coil extension scaling
+        const baseSpringY = 70;
+        const stretchedLen = 110 + extMm * 1.2;
+        const numCoils = 14;
+        const coilStep = stretchedLen / numCoils;
+
+        // Build zig-zag spring line points
+        const springPoints: number[] = [width / 2 - 20, baseSpringY];
+        for (let i = 0; i < numCoils; i++) {
+          const side = i % 2 === 0 ? 1 : -1;
+          springPoints.push(width / 2 - 20 + side * 14, baseSpringY + (i + 0.5) * coilStep);
+        }
+        springPoints.push(width / 2 - 20, baseSpringY + stretchedLen);
+
+        const pointerY = baseSpringY + stretchedLen;
+
+        return (
+          <Group>
+            {/* Cast Iron Stand Base & Rod */}
+            <Rect
+              x={width / 2 - 70}
+              y={height - 25}
+              width={140}
+              height={20}
+              fill="#334155"
+              stroke={isSelected ? '#38bdf8' : '#1e293b'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={4}
+            />
+            <Line points={[width / 2 - 50, 40, width / 2 - 50, height - 25]} stroke="#64748b" strokeWidth={8} />
+            {/* Top Suspension Arm */}
+            <Line points={[width / 2 - 50, 50, width / 2 - 20, 50]} stroke="#64748b" strokeWidth={6} />
+            <Circle x={width / 2 - 20} y={55} radius={4} fill="#0284c7" />
+
+            {/* Vertical Anti-Parallax Mirror Millimeter Scale */}
+            <Rect
+              x={width / 2 + 10}
+              y={60}
+              width={45}
+              height={height - 100}
+              fill="#f8fafc"
+              stroke="#cbd5e1"
+              strokeWidth={1.5}
+            />
+            {/* Mirror reflective stripe in middle */}
+            <Rect
+              x={width / 2 + 15}
+              y={65}
+              width={8}
+              height={height - 110}
+              fill="#e2e8f0"
+            />
+            {/* Graduation lines */}
+            {Array.from({ length: 9 }).map((_, idx) => (
+              <Group key={`spring-scale-${idx}`}>
+                <Line
+                  points={[width / 2 + 25, 75 + idx * 35, width / 2 + 45, 75 + idx * 35]}
+                  stroke="#475569"
+                  strokeWidth={1}
+                />
+                <KonvaText
+                  text={`${idx * 2}cm`}
+                  x={width / 2 + 26}
+                  y={75 + idx * 35 - 10}
+                  fontSize={8}
+                  fontFamily="sans-serif"
+                  fill="#64748b"
+                />
+              </Group>
+            ))}
+
+            {/* Dynamic Coiled Steel Spring */}
+            <Line
+              points={springPoints}
+              stroke={isPlastic ? '#dc2626' : '#0284c7'}
+              strokeWidth={3}
+              lineCap="round"
+              lineJoin="round"
+            />
+
+            {/* Bright Red Index Pointer Needle */}
+            <Line
+              points={[width / 2 - 20, pointerY, width / 2 + 35, pointerY]}
+              stroke="#ef4444"
+              strokeWidth={2.5}
+            />
+            <Circle x={width / 2 + 35} y={pointerY} radius={3.5} fill="#ef4444" />
+
+            {/* Suspended Hook and Load */}
+            <Circle x={width / 2 - 20} y={pointerY + 8} radius={5} fill="#ffffff" stroke="#0284c7" strokeWidth={2} />
+            <Rect
+              x={width / 2 - 38}
+              y={pointerY + 14}
+              width={36}
+              height={24}
+              fill="#ca8a04"
+              stroke="#713f12"
+              strokeWidth={1.5}
+              cornerRadius={3}
+            />
+            <KonvaText
+              text={`${forceN.toFixed(2)}N`}
+              x={width / 2 - 34}
+              y={pointerY + 20}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#ffffff"
+            />
+
+            {/* Header Telemetry Badge */}
+            <Rect
+              x={10}
+              y={10}
+              width={240}
+              height={26}
+              fill="#ffffff"
+              stroke="#cbd5e1"
+              strokeWidth={1}
+              cornerRadius={6}
+            />
+            <KonvaText
+              text={`HOOKE'S LAW | x = ${extMm.toFixed(1)} mm | k = ${k} N/m`}
+              x={18}
+              y={17}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#0369a1"
+            />
+          </Group>
+        );
+      }
+
+      case 'slotted-weight-hanger': {
+        const discs = Number(object.properties.discsCount ?? 2);
+        const massG = 50 + discs * 50;
+
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            <Circle x={width / 2} y={16} radius={5} fill="#ffffff" stroke="#475569" strokeWidth={2} />
+            <Line points={[width / 2, 21, width / 2, height - 25]} stroke="#94a3b8" strokeWidth={3} />
+            <Rect x={width / 2 - 22} y={height - 30} width={44} height={6} fill="#d97706" stroke="#78350f" strokeWidth={1} />
+            {Array.from({ length: Math.min(discs, 6) }).map((_, idx) => (
+              <Rect
+                key={`disc-${idx}`}
+                x={width / 2 - 20}
+                y={height - 38 - idx * 8}
+                width={40}
+                height={7}
+                fill="#fbbf24"
+                stroke="#b45309"
+                strokeWidth={1}
+                cornerRadius={1}
+              />
+            ))}
+            <KonvaText
+              text={`${massG} g`}
+              x={width / 2 - 14}
+              y={height - 16}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#475569"
+            />
+          </Group>
+        );
+      }
+
+      case 'boyle-cylinder': {
+        const volumeMl = Number(object.properties.volumeMl ?? 60.0);
+        const pressureKpa = Number(object.state.pressureKpa ?? 101.3);
+        const pressureAtm = Number(object.state.pressureAtm ?? 1.0);
+        const pvProduct = Number(object.state.pvProductKpaMl ?? 6079.5);
+
+        // Map volume (15 to 120 mL) to piston X position (inside 220px chamber)
+        const chamberX = 35;
+        const chamberY = 70;
+        const chamberW = 240;
+        const chamberH = 160;
+
+        const minVol = 15;
+        const maxVol = 120;
+        const pistonTravelFraction = (volumeMl - minVol) / (maxVol - minVol);
+        const pistonX = chamberX + 30 + pistonTravelFraction * (chamberW - 60);
+
+        // Dial gauge needle angle (-135 deg to +135 deg for 0 to 300 kPa)
+        const dialGaugeX = width - 85;
+        const dialGaugeY = 120;
+        const dialRadius = 50;
+        const gaugeFraction = Math.min(1.0, Math.max(0.0, pressureKpa / 300.0));
+        const needleAngleRad = ((-135 + gaugeFraction * 270) * Math.PI) / 180;
+        const needleTipX = dialGaugeX + (dialRadius - 12) * Math.cos(needleAngleRad);
+        const needleTipY = dialGaugeY + (dialRadius - 12) * Math.sin(needleAngleRad);
+
+        return (
+          <Group>
+            {/* Outer Apparatus Bench Panel */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#f8fafc"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={12}
+              shadowColor="#0f172a"
+              shadowBlur={8}
+              shadowOpacity={0.08}
+            />
+
+            {/* Heavy Borosilicate Glass Cylinder Body */}
+            <Rect
+              x={chamberX}
+              y={chamberY}
+              width={chamberW}
+              height={chamberH}
+              fill="#ffffff"
+              stroke="#334155"
+              strokeWidth={3}
+              cornerRadius={4}
+            />
+
+            {/* Enclosed Compressed Gas Volume (Cyan soft tint) */}
+            <Rect
+              x={chamberX + 2}
+              y={chamberY + 2}
+              width={Math.max(4, pistonX - chamberX - 2)}
+              height={chamberH - 4}
+              fill="#e0f2fe"
+            />
+
+            {/* Volumetric Graduations on Glass Cylinder */}
+            {[20, 40, 60, 80, 100, 120].map((v) => {
+              const vX = chamberX + 30 + ((v - minVol) / (maxVol - minVol)) * (chamberW - 60);
+              return (
+                <Group key={`vol-tick-${v}`}>
+                  <Line points={[vX, chamberY + chamberH - 15, vX, chamberY + chamberH]} stroke="#64748b" strokeWidth={1.5} />
+                  <KonvaText
+                    text={`${v}`}
+                    x={vX - 8}
+                    y={chamberY + chamberH - 28}
+                    fontSize={8.5}
+                    fontFamily="sans-serif"
+                    fill="#475569"
+                  />
+                </Group>
+              );
+            })}
+            <KonvaText text="mL" x={chamberX + chamberW - 25} y={chamberY + chamberH - 28} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#0369a1" />
+
+            {/* Moveable Airtight Piston Head */}
+            <Rect
+              x={pistonX}
+              y={chamberY + 4}
+              width={16}
+              height={chamberH - 8}
+              fill="#475569"
+              stroke="#1e293b"
+              strokeWidth={2}
+              cornerRadius={2}
+            />
+            {/* Rubber O-Ring Seals */}
+            <Rect x={pistonX + 3} y={chamberY + 6} width={3} height={chamberH - 12} fill="#0f172a" />
+            <Rect x={pistonX + 10} y={chamberY + 6} width={3} height={chamberH - 12} fill="#0f172a" />
+
+            {/* Piston Connecting Shaft & Handle */}
+            <Line points={[pistonX + 16, chamberY + chamberH / 2, chamberX + chamberW + 35, chamberY + chamberH / 2]} stroke="#94a3b8" strokeWidth={8} />
+            <Rect
+              x={chamberX + chamberW + 35}
+              y={chamberY + chamberH / 2 - 25}
+              width={12}
+              height={50}
+              fill="#334155"
+              stroke="#0f172a"
+              strokeWidth={2}
+              cornerRadius={3}
+            />
+
+            {/* Connecting Pressure Tube to Gauge */}
+            <Line
+              points={[chamberX + 20, chamberY, chamberX + 20, chamberY - 25, dialGaugeX, chamberY - 25, dialGaugeX, dialGaugeY - dialRadius]}
+              stroke="#0284c7"
+              strokeWidth={3}
+            />
+
+            {/* Dial Pressure Gauge */}
+            <Circle
+              x={dialGaugeX}
+              y={dialGaugeY}
+              radius={dialRadius}
+              fill="#ffffff"
+              stroke="#334155"
+              strokeWidth={3}
+              shadowColor="#0f172a"
+              shadowBlur={6}
+              shadowOpacity={0.15}
+            />
+            <Circle x={dialGaugeX} y={dialGaugeY} radius={dialRadius - 6} stroke="#e2e8f0" strokeWidth={1} />
+            <Circle x={dialGaugeX} y={dialGaugeY} radius={5} fill="#0f172a" />
+
+            {/* Dial Scale Tick Labels (0, 100, 200, 300 kPa) */}
+            <KonvaText text="0" x={dialGaugeX - 32} y={dialGaugeY + 15} fontSize={7.5} fontFamily="sans-serif" fill="#64748b" />
+            <KonvaText text="100" x={dialGaugeX - 35} y={dialGaugeY - 25} fontSize={7.5} fontFamily="sans-serif" fill="#64748b" />
+            <KonvaText text="200" x={dialGaugeX + 12} y={dialGaugeY - 25} fontSize={7.5} fontFamily="sans-serif" fill="#64748b" />
+            <KonvaText text="300" x={dialGaugeX + 18} y={dialGaugeY + 15} fontSize={7.5} fontFamily="sans-serif" fill="#64748b" />
+            <KonvaText text="kPa" x={dialGaugeX - 9} y={dialGaugeY + 22} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#0284c7" />
+
+            {/* Rotating Gauge Needle */}
+            <Line
+              points={[dialGaugeX, dialGaugeY, needleTipX, needleTipY]}
+              stroke="#ef4444"
+              strokeWidth={2.5}
+              lineCap="round"
+            />
+
+            {/* Digital Readout Pill */}
+            <Rect
+              x={chamberX}
+              y={height - 55}
+              width={width - 70}
+              height={36}
+              fill="#ffffff"
+              stroke="#cbd5e1"
+              strokeWidth={1}
+              cornerRadius={8}
+            />
+            <KonvaText
+              text={`V = ${volumeMl.toFixed(1)} mL   |   P = ${pressureKpa.toFixed(1)} kPa (${pressureAtm.toFixed(2)} atm)   |   P · V = ${pvProduct.toFixed(0)} kPa·mL`}
+              x={chamberX + 12}
+              y={height - 43}
+              fontSize={10.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#047857"
+            />
+
+            {/* Title Badge */}
+            <KonvaText
+              text="BOYLE'S LAW ISOTHERMAL GAS CHAMBER"
+              x={chamberX}
+              y={25}
+              fontSize={10.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#1e293b"
+            />
+          </Group>
+        );
+      }
+
       case 'generic-box':
       default: {
         const displayVal =
