@@ -10,11 +10,11 @@
 
 | Category | Total Experiments | Implemented (Active) | Under Development | Status |
 |----------|-------------------|----------------------|-------------------|--------|
-| **Physics** | **25** | **15** (5 Foundation + 10 Class 11) | **10** (Class 12: 10) | Active Hybrid |
+| **Physics** | **25** | **20** (5 Foundation + 10 Class 11 + 5 Class 12) | **5** (Class 12 Optics & Semiconductor: 5) | Active Operational |
 | **Chemistry** | **27** | **5** (Foundation) | **22** (Class 11: 11, Class 12: 11) | Active Hybrid |
 | **Biology** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
 | **Mathematics** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
-| **Total** | **52** | **20** (38.5%) | **32** (61.5%) | **Verified Operational Baseline** |
+| **Total** | **52** | **25** (48.1%) | **27** (51.9%) | **Verified Operational Baseline** |
 
 ---
 
@@ -43,14 +43,14 @@
 | 14 | `hookes-law` | Hooke's Law and Spring Constant | Class 11 | **Implemented** | Coiled helical spring with real-time elastic extension, vertical mirror scale (anti-parallax), linear $F = k \cdot x$ slope determination, elastic potential energy $U = \frac{1}{2}kx^2$, dynamic harmonic oscillation $T = 2\pi\sqrt{m/k}$, and plastic yield limit. |
 | 15 | `boyles-law` | Boyle's Law | Class 11 | **Implemented** | Airtight graduated gas cylinder (15–120 mL), movable piston, connected dial pressure gauge (0–300 kPa), isothermal $P \cdot V = \text{Constant}$ verification, manometer mercury head $\Delta h$, and linear $P$ vs $1/V$ plotting. |
 
-### Class 12 Experiments — 10 of 10 Registered (Under Development)
-| # | ID | Title | Class Level | Status | Target Capabilities |
-|---|----|-------|-------------|--------|---------------------|
-| 16 | `resistivity-vi-method` | Resistivity of a Wire Using the V-I Method | Class 12 | **Under Development** | Wire circuit workbench, screw gauge diameter measurement, specific resistivity calculation $\rho = \frac{R \pi d^2}{4L}$. |
-| 17 | `metre-bridge` | Metre Bridge – Unknown Resistance | Class 12 | **Under Development** | 100 cm bridge wire, sliding contact jockey, Wheatstone bridge null balance $X = \frac{R(100-l)}{l}$. |
-| 18 | `galvanometer-figure-of-merit` | Galvanometer Resistance and Figure of Merit | Class 12 | **Under Development** | Half-deflection circuit, resistance box $R$, low shunt $S$, resistance $G = \frac{RS}{R-S}$, figure of merit $k$. |
-| 19 | `galvanometer-voltmeter` | Conversion of Galvanometer into a Voltmeter | Class 12 | **Under Development** | Series multiplier resistor $R_s = \frac{V}{I_g} - G$, breadboard assembly, voltmeter calibration. |
-| 20 | `galvanometer-ammeter` | Conversion of Galvanometer into an Ammeter | Class 12 | **Under Development** | Shunt resistance $S = \frac{I_g G}{I - I_g}$, low-resistance connection, ammeter verification. |
+### Class 12 Experiments — 5 of 10 Operational (First 5 Complete, 5 Remaining)
+| # | ID | Title | Class Level | Status | Scientific Engine & Capabilities |
+|---|----|-------|-------------|--------|----------------------------------|
+| 16 | `resistivity-vi-method` | Resistivity of a Wire Using the V-I Method | Class 12 | **Implemented** | Calibrated wire board (Constantan, Nichrome, Copper, Manganin), screw gauge diameter measurement ($d = 0.50\text{ mm}$), millimeter ruler active length ($L = 100\text{ cm}$), regulated DC source, digital ammeter & voltmeter, Ohm's law slope resistance $R = V/I$, and specific resistivity $\rho = \frac{R \cdot A}{L} = \frac{R \pi d^2}{4L}$. |
+| 17 | `metre-bridge` | Metre Bridge – Unknown Resistance | Class 12 | **Implemented** | 100 cm uniform Manganin wire, polished teak base with heavy brass strip gaps, known resistance box $R$, sliding knife-edge jockey, center-zero sensitive galvanometer, opposite deflection verification at ends, and Wheatstone bridge null balance determination $X = \frac{R(100-l)}{l}$. |
+| 18 | `galvanometer-figure-of-merit` | Galvanometer Resistance and Figure of Merit | Class 12 | **Implemented** | Deadbeat Weston moving-coil galvanometer (30-0-30 scale), high resistance box $R = 4900\ \Omega$ (key $K_1$), low shunt resistance box $S = 100\ \Omega$ (key $K_2$), half-deflection model ($\theta \to \theta/2$), coil resistance $G = \frac{RS}{R-S} \approx S$, and Figure of Merit $k = \frac{E}{(R+G)\theta}$. |
+| 19 | `galvanometer-voltmeter` | Conversion of Galvanometer into a Voltmeter | Class 12 | **Implemented** | Calibration test bench, target range selector (0.5–10V), theoretical series multiplier calculation $R_s = \frac{V}{I_g} - G$, effective voltmeter resistance $R_v = R_s + G$, multi-point test signal calibration against reference digital voltmeter, and overload alert detection ($V_{\text{test}} > V_{\max}$). |
+| 20 | `galvanometer-ammeter` | Conversion of Galvanometer into an Ammeter | Class 12 | **Implemented** | Calibration test bench, target current range selector (0.1–10A), theoretical parallel shunt calculation $S = \frac{I_g \cdot G}{I - I_g}$, effective ammeter resistance $R_a = \frac{GS}{G+S}$, multi-point current calibration against reference digital ammeter, and current overload alert detection ($I_{\text{test}} > I_{\max}$). |
 | 21 | `concave-mirror-focal-length` | Focal Length of a Concave Mirror | Class 12 | **Under Development** | Optical bench, two-pin parallax removal method, $u$-$v$ observation and focal length $f = \frac{uv}{u+v}$. |
 | 22 | `convex-mirror-focal-length` | Focal Length of a Convex Mirror | Class 12 | **Under Development** | Auxiliary convex lens combination, virtual image reflection back-tracing method. |
 | 23 | `concave-lens-focal-length` | Focal Length of a Concave Lens | Class 12 | **Under Development** | Concave lens paired with auxiliary convex lens, composite focal length determination. |

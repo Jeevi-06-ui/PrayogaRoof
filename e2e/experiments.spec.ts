@@ -123,6 +123,36 @@ test.describe('PrayogaProof E2E Test Suite', () => {
     await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
   });
 
+  test('Loads Resistivity V-I Method workspace and verifies resistance wire board', async ({ page }) => {
+    await page.goto('/workspace/resistivity-vi-method');
+    await expect(page.getByText(/Resistivity of a Wire Using the V-I Method/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Metre Bridge workspace and verifies Wheatstone metre bridge', async ({ page }) => {
+    await page.goto('/workspace/metre-bridge');
+    await expect(page.getByText(/Metre Bridge – Determination of Unknown Resistance/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Galvanometer Figure of Merit workspace and verifies half-deflection setup', async ({ page }) => {
+    await page.goto('/workspace/galvanometer-figure-of-merit');
+    await expect(page.getByText(/Galvanometer Resistance and Figure of Merit/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Galvanometer to Voltmeter workspace and verifies multiplier calibration rig', async ({ page }) => {
+    await page.goto('/workspace/galvanometer-voltmeter');
+    await expect(page.getByText(/Conversion of Galvanometer into a Voltmeter/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Galvanometer to Ammeter workspace and verifies shunt calibration rig', async ({ page }) => {
+    await page.goto('/workspace/galvanometer-ammeter');
+    await expect(page.getByText(/Conversion of Galvanometer into an Ammeter/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
   test('Loads Paper Chromatography workspace and inspects paper strip properties', async ({ page }) => {
     await page.goto('/workspace/paper-chromatography');
 

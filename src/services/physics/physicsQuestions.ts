@@ -14,6 +14,13 @@ import {
   HOOKES_LAW_QUESTIONS,
   BOYLES_LAW_QUESTIONS,
 } from './class11QuestionsPart2';
+import {
+  RESISTIVITY_VI_QUESTIONS,
+  METRE_BRIDGE_QUESTIONS,
+  GALVANOMETER_FOM_QUESTIONS,
+  GALVANOMETER_VOLTMETER_QUESTIONS,
+  GALVANOMETER_AMMETER_QUESTIONS,
+} from './class12QuestionsPart1';
 
 export {
   VERNIER_CALLIPERS_QUESTIONS,
@@ -26,6 +33,11 @@ export {
   INCLINED_PLANE_FRICTION_QUESTIONS,
   HOOKES_LAW_QUESTIONS,
   BOYLES_LAW_QUESTIONS,
+  RESISTIVITY_VI_QUESTIONS,
+  METRE_BRIDGE_QUESTIONS,
+  GALVANOMETER_FOM_QUESTIONS,
+  GALVANOMETER_VOLTMETER_QUESTIONS,
+  GALVANOMETER_AMMETER_QUESTIONS,
 };
 
 export const CONVEX_LENS_QUESTIONS: ConceptualQuestion[] = [
@@ -204,6 +216,16 @@ export function getPhysicsQuestions(experimentId: string): ConceptualQuestion[] 
       return HOOKES_LAW_QUESTIONS;
     case 'boyles-law':
       return BOYLES_LAW_QUESTIONS;
+    case 'resistivity-vi-method':
+      return RESISTIVITY_VI_QUESTIONS;
+    case 'metre-bridge':
+      return METRE_BRIDGE_QUESTIONS;
+    case 'galvanometer-figure-of-merit':
+      return GALVANOMETER_FOM_QUESTIONS;
+    case 'galvanometer-voltmeter':
+      return GALVANOMETER_VOLTMETER_QUESTIONS;
+    case 'galvanometer-ammeter':
+      return GALVANOMETER_AMMETER_QUESTIONS;
     default:
       return [];
   }

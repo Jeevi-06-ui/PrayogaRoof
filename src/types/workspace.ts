@@ -115,6 +115,11 @@ export interface EquipmentDefinition {
     | 'helical-spring-stand'
     | 'slotted-weight-hanger'
     | 'boyle-cylinder'
+    | 'resistance-wire-board'
+    | 'metre-bridge-board'
+    | 'moving-coil-galvanometer'
+    | 'decade-resistance-box'
+    | 'ammeter-voltmeter-calibrator'
     | 'generic-box'
     | 'sensor-probe';
   colorTheme?: string;

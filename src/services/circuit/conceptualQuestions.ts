@@ -13,6 +13,11 @@ import {
   INCLINED_PLANE_FRICTION_QUESTIONS,
   HOOKES_LAW_QUESTIONS,
   BOYLES_LAW_QUESTIONS,
+  RESISTIVITY_VI_QUESTIONS,
+  METRE_BRIDGE_QUESTIONS,
+  GALVANOMETER_FOM_QUESTIONS,
+  GALVANOMETER_VOLTMETER_QUESTIONS,
+  GALVANOMETER_AMMETER_QUESTIONS,
 } from '../physics/physicsQuestions';
 import {
   PH_TESTING_QUESTIONS,
@@ -127,5 +132,10 @@ export function getConceptualQuestions(experimentId: string): ConceptualQuestion
   if (experimentId === 'inclined-plane-friction') return INCLINED_PLANE_FRICTION_QUESTIONS;
   if (experimentId === 'hookes-law') return HOOKES_LAW_QUESTIONS;
   if (experimentId === 'boyles-law') return BOYLES_LAW_QUESTIONS;
+  if (experimentId === 'resistivity-vi-method') return RESISTIVITY_VI_QUESTIONS;
+  if (experimentId === 'metre-bridge') return METRE_BRIDGE_QUESTIONS;
+  if (experimentId === 'galvanometer-figure-of-merit') return GALVANOMETER_FOM_QUESTIONS;
+  if (experimentId === 'galvanometer-voltmeter') return GALVANOMETER_VOLTMETER_QUESTIONS;
+  if (experimentId === 'galvanometer-ammeter') return GALVANOMETER_AMMETER_QUESTIONS;
   return [...OHMS_LAW_QUESTIONS, ...SERIES_PARALLEL_QUESTIONS];
 }

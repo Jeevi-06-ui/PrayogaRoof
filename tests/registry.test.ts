@@ -33,7 +33,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(math?.status).toBe('coming-soon');
 
     expect(physics?.totalExperiments).toBe(25);
-    expect(physics?.availableExperiments).toBe(15);
+    expect(physics?.availableExperiments).toBe(20);
 
     expect(chemistry?.totalExperiments).toBe(27);
     expect(chemistry?.availableExperiments).toBe(5);
@@ -55,9 +55,9 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(class12).toHaveLength(10);
     });
 
-    it('should have 15 Physics experiments marked as implemented (5 Foundation + 10 Class 11)', () => {
+    it('should have 20 Physics experiments marked as implemented (5 Foundation + 10 Class 11 + 5 Class 12)', () => {
       const implemented = getImplementedExperimentsBySubject('physics');
-      expect(implemented).toHaveLength(15);
+      expect(implemented).toHaveLength(20);
 
       const titles = implemented.map((e) => e.title);
       expect(titles).toContain("Ohm's Law");
@@ -75,36 +75,43 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
       expect(titles).toContain('Friction on an Inclined Plane');
       expect(titles).toContain("Hooke's Law and Spring Constant");
       expect(titles).toContain("Boyle's Law");
+      expect(titles).toContain('Resistivity of a Wire Using the V-I Method');
+      expect(titles).toContain('Metre Bridge – Unknown Resistance');
+      expect(titles).toContain('Galvanometer Resistance and Figure of Merit');
+      expect(titles).toContain('Conversion of Galvanometer into a Voltmeter');
+      expect(titles).toContain('Conversion of Galvanometer into an Ammeter');
 
       for (const exp of implemented) {
-        expect(['foundation', 'class-11']).toContain(exp.classLevel);
+        expect(['foundation', 'class-11', 'class-12']).toContain(exp.classLevel);
         expect(exp.implementationStatus).toBe('implemented');
       }
     });
 
-    it('should have 10 Class 12 Physics experiments marked as under-development (Class 11 is 100% complete)', () => {
+    it('should have first 5 Class 12 Physics experiments implemented and 5 remaining under-development', () => {
       const class11 = getExperimentsByClassLevel('physics', 'class-11');
       const class12 = getExperimentsByClassLevel('physics', 'class-12');
 
       const class11UnderDev = class11.filter((e) => e.implementationStatus === 'under-development');
       expect(class11UnderDev).toHaveLength(0);
 
-      const class12Titles = class12.map((e) => e.title);
-      expect(class12Titles).toHaveLength(10);
-      expect(class12Titles).toContain('Resistivity of a Wire Using the V-I Method');
-      expect(class12Titles).toContain('Metre Bridge – Unknown Resistance');
-      expect(class12Titles).toContain('Galvanometer Resistance and Figure of Merit');
-      expect(class12Titles).toContain('Conversion of Galvanometer into a Voltmeter');
-      expect(class12Titles).toContain('Conversion of Galvanometer into an Ammeter');
-      expect(class12Titles).toContain('Focal Length of a Concave Mirror');
-      expect(class12Titles).toContain('Focal Length of a Convex Mirror');
-      expect(class12Titles).toContain('Focal Length of a Concave Lens');
-      expect(class12Titles).toContain('Refractive Index of a Prism – Minimum Deviation');
-      expect(class12Titles).toContain('P-N Junction Diode – I-V Characteristics');
+      const class12Implemented = class12.filter((e) => e.implementationStatus === 'implemented');
+      const class12UnderDev = class12.filter((e) => e.implementationStatus === 'under-development');
+      expect(class12Implemented).toHaveLength(5);
+      expect(class12UnderDev).toHaveLength(5);
 
-      for (const exp of [...class11UnderDev, ...class12]) {
-        expect(exp.implementationStatus).toBe('under-development');
-      }
+      const implementedTitles = class12Implemented.map((e) => e.title);
+      expect(implementedTitles).toContain('Resistivity of a Wire Using the V-I Method');
+      expect(implementedTitles).toContain('Metre Bridge – Unknown Resistance');
+      expect(implementedTitles).toContain('Galvanometer Resistance and Figure of Merit');
+      expect(implementedTitles).toContain('Conversion of Galvanometer into a Voltmeter');
+      expect(implementedTitles).toContain('Conversion of Galvanometer into an Ammeter');
+
+      const underDevTitles = class12UnderDev.map((e) => e.title);
+      expect(underDevTitles).toContain('Focal Length of a Concave Mirror');
+      expect(underDevTitles).toContain('Focal Length of a Convex Mirror');
+      expect(underDevTitles).toContain('Focal Length of a Concave Lens');
+      expect(underDevTitles).toContain('Refractive Index of a Prism – Minimum Deviation');
+      expect(underDevTitles).toContain('P-N Junction Diode – I-V Characteristics');
     });
   });
 
@@ -170,8 +177,8 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     const implemented = all.filter((e) => e.implementationStatus === 'implemented');
     const underDev = all.filter((e) => e.implementationStatus === 'under-development');
 
-    expect(implemented).toHaveLength(20);
-    expect(underDev).toHaveLength(32);
+    expect(implemented).toHaveLength(25);
+    expect(underDev).toHaveLength(27);
 
     for (const exp of all) {
       expect(exp.id).toBeTruthy();

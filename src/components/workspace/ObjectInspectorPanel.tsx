@@ -615,6 +615,73 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
         value: `P=${p}kPa, P·V=${pv}kPa·mL (1/V=${(1 / Number(vol)).toFixed(4)}mL⁻¹)`,
         unit: '',
       };
+    } else if (experimentId === 'resistivity-vi-method') {
+      const wUpdate = Object.entries(updates).find(([id]) => id.includes('wire') || id.includes('board'))?.[1];
+      const l = wUpdate?.lengthCm ?? 100.0;
+      const d = wUpdate?.diameterMm ?? 0.5;
+      const v = wUpdate?.voltage ?? 2.0;
+      const i = wUpdate?.currentAmps ?? 0.8;
+      const r = wUpdate?.resistanceOhms ?? 2.5;
+      const rho = wUpdate?.resistivityOhmMetre ?? 4.9e-7;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Wire Resistivity (L=${l}cm, d=${d}mm)`,
+        value: `V=${v}V, I=${Number(i).toFixed(3)}A => R=${Number(r).toFixed(2)}Ω, ρ=${Number(rho).toExponential(3)}Ω·m`,
+        unit: '',
+      };
+    } else if (experimentId === 'metre-bridge') {
+      const mbUpdate = Object.entries(updates).find(([id]) => id.includes('bridge') || id.includes('metre'))?.[1];
+      const r = mbUpdate?.knownResistanceR ?? 5.0;
+      const l = mbUpdate?.jockeyPositionCm ?? 50.0;
+      const x = mbUpdate?.calculatedResistanceX ?? 5.0;
+      const isBal = mbUpdate?.isBalanced ?? true;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Metre Bridge (l=${l}cm)`,
+        value: `R=${r}Ω, l=${l}cm, (100-l)=${(100 - Number(l)).toFixed(1)}cm => X=${Number(x).toFixed(2)}Ω (${isBal ? 'Balanced' : 'Deflected'})`,
+        unit: '',
+      };
+    } else if (experimentId === 'galvanometer-figure-of-merit') {
+      const gUpdate = Object.entries(updates).find(([id]) => id.includes('galv'))?.[1];
+      const theta = gUpdate?.deflectionDivisions ?? 30.0;
+      const gVal = gUpdate?.calculatedCoilResistanceG ?? 100.0;
+      const kVal = gUpdate?.figureOfMeritK ?? 2.0e-5;
+      const igVal = gUpdate?.fullScaleCurrentMicroAmps ?? 600.0;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Galvanometer FOM (θ=${theta}div)`,
+        value: `G=${Number(gVal).toFixed(1)}Ω, k=${(Number(kVal) * 1e6).toFixed(1)}µA/div, Ig=${Number(igVal).toFixed(1)}µA`,
+        unit: '',
+      };
+    } else if (experimentId === 'galvanometer-voltmeter') {
+      const vUpdate = Object.entries(updates).find(([id]) => id.includes('calibrat'))?.[1];
+      const rs = vUpdate?.requiredSeriesResistanceRs ?? 4900.0;
+      const theta = vUpdate?.scaleDeflectionDivisions ?? 15.0;
+      const vMeas = vUpdate?.measuredVoltage ?? 1.5;
+      const ov = vUpdate?.isOverload ?? false;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Voltmeter Conversion (Rs=${rs}Ω)`,
+        value: `Signal V=${vMeas}V, θ=${Number(theta).toFixed(1)}/30div${ov ? ' (OVERLOAD)' : ''}`,
+        unit: '',
+      };
+    } else if (experimentId === 'galvanometer-ammeter') {
+      const aUpdate = Object.entries(updates).find(([id]) => id.includes('calibrat'))?.[1];
+      const sVal = aUpdate?.requiredShuntResistanceS ?? 0.020004;
+      const theta = aUpdate?.scaleDeflectionDivisions ?? 15.0;
+      const iMeas = aUpdate?.measuredCurrent ?? 1.5;
+      const ov = aUpdate?.isOverload ?? false;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Ammeter Conversion (S=${Number(sVal).toFixed(5)}Ω)`,
+        value: `Signal I=${iMeas}A, θ=${Number(theta).toFixed(1)}/30div${ov ? ' (OVERLOAD)' : ''}`,
+        unit: '',
+      };
     } else {
       let volt = 0;
       let curr = 0;
@@ -1688,7 +1755,17 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                                               ? "Hooke's Law Quick Log"
                                               : experimentId === 'boyles-law'
                                                 ? "Boyle's Law Quick Log"
-                                                : 'Active Bench Quick Log'}
+                                                : experimentId === 'resistivity-vi-method'
+                                                  ? 'Wire Resistivity Quick Log'
+                                                  : experimentId === 'metre-bridge'
+                                                    ? 'Metre Bridge Quick Log'
+                                                    : experimentId === 'galvanometer-figure-of-merit'
+                                                      ? 'Galvanometer FOM Quick Log'
+                                                      : experimentId === 'galvanometer-voltmeter'
+                                                        ? 'Voltmeter Conversion Quick Log'
+                                                        : experimentId === 'galvanometer-ammeter'
+                                                          ? 'Ammeter Conversion Quick Log'
+                                                          : 'Active Bench Quick Log'}
               </span>
               <p className="text-[10px] text-blue-700/80 dark:text-blue-400 leading-snug">
                 {experimentId === 'convex-lens'
@@ -1723,7 +1800,17 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                                               ? 'Instantly log suspended load mass, stretching force F, pointer position, and extension x.'
                                               : experimentId === 'boyles-law'
                                                 ? 'Instantly log cylinder volume V, pressure P, and P·V isothermal product.'
-                                                : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
+                                                : experimentId === 'resistivity-vi-method'
+                                                  ? 'Instantly log wire length L, diameter d, voltage V, current I, resistance R, and resistivity ρ.'
+                                                  : experimentId === 'metre-bridge'
+                                                    ? 'Instantly log known resistance R, balance length l, 100-l, and calculated unknown resistance X.'
+                                                    : experimentId === 'galvanometer-figure-of-merit'
+                                                      ? 'Instantly log deflections θ and θ/2, coil resistance G, and Figure of Merit k.'
+                                                      : experimentId === 'galvanometer-voltmeter'
+                                                        ? 'Instantly log multiplier Rs, test voltage, pointer deflection, and measured voltage.'
+                                                        : experimentId === 'galvanometer-ammeter'
+                                                          ? 'Instantly log shunt S, test current, pointer deflection, and measured current.'
+                                                          : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
               </p>
               <Button
                 type="button"

@@ -4075,6 +4075,601 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
         );
       }
 
+      case 'resistance-wire-board': {
+        const material = String(object.properties.material ?? 'Constantan');
+        const lengthCm = Number(object.properties.wireLengthCm ?? object.properties.lengthCm ?? 100.0);
+        const diameterMm = Number(object.properties.wireDiameterMm ?? object.properties.diameterMm ?? 0.5);
+        const appliedV = Number(object.properties.appliedVoltage ?? 2.0);
+        const rVal = Number(object.state.resistanceOhms ?? 2.5);
+        const iVal = Number(object.state.currentAmps ?? 0.8);
+        const rhoVal = Number(object.state.resistivityOhmMetre ?? 4.9e-7);
+
+        const wireColor =
+          material.toLowerCase().includes('copper')
+            ? '#ea580c'
+            : material.toLowerCase().includes('nichrome')
+              ? '#94a3b8'
+              : '#b45309';
+
+        return (
+          <Group>
+            {/* Wooden Base Board */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#fef3c7"
+              stroke={isSelected ? '#38bdf8' : '#b45309'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={10}
+              shadowColor="#78350f"
+              shadowBlur={6}
+              shadowOpacity={0.12}
+            />
+
+            {/* Header / Title */}
+            <KonvaText
+              text="SPECIMEN RESISTANCE WIRE BOARD & SCALE"
+              x={16}
+              y={14}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#78350f"
+            />
+            <KonvaText
+              text={`Material: ${material.toUpperCase()}`}
+              x={width - 150}
+              y={14}
+              fontSize={9.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#b45309"
+            />
+
+            {/* Calibrated Millimetre Metre Ruler */}
+            <Rect
+              x={35}
+              y={75}
+              width={width - 70}
+              height={30}
+              fill="#fef08a"
+              stroke="#ca8a04"
+              strokeWidth={1.5}
+              cornerRadius={3}
+            />
+            {[0, 20, 40, 60, 80, 100].map((cmVal) => {
+              const xPos = 35 + (cmVal / 100.0) * (width - 70);
+              return (
+                <Group key={`ruler-mark-${cmVal}`}>
+                  <Line points={[xPos, 75, xPos, 88]} stroke="#713f12" strokeWidth={1.5} />
+                  <KonvaText
+                    text={`${cmVal}`}
+                    x={xPos - 6}
+                    y={92}
+                    fontSize={8.5}
+                    fontFamily="sans-serif"
+                    fill="#713f12"
+                  />
+                </Group>
+              );
+            })}
+            <KonvaText text="cm" x={width - 30} y={92} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#713f12" />
+
+            {/* Brass Binding Terminals */}
+            <Rect x={18} y={55} width={16} height={40} fill="#d97706" stroke="#92400e" strokeWidth={1.5} cornerRadius={3} />
+            <Circle x={26} y={75} radius={4} fill="#451a03" />
+            <KonvaText text="A (+)" x={14} y={100} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#ef4444" />
+
+            <Rect x={width - 34} y={55} width={16} height={40} fill="#d97706" stroke="#92400e" strokeWidth={1.5} cornerRadius={3} />
+            <Circle x={width - 26} y={75} radius={4} fill="#451a03" />
+            <KonvaText text="B (-)" x={width - 38} y={100} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#1e293b" />
+
+            {/* Specimen Wire Stretched Between Terminals */}
+            <Line
+              points={[26, 75, width - 26, 75]}
+              stroke={wireColor}
+              strokeWidth={Math.max(2, diameterMm * 4)}
+              lineCap="round"
+            />
+
+            {/* Screw Gauge Dimension Badge */}
+            <Rect
+              x={35}
+              y={38}
+              width={width - 70}
+              height={26}
+              fill="#ffffff"
+              stroke="#e2e8f0"
+              strokeWidth={1}
+              cornerRadius={6}
+            />
+            <KonvaText
+              text={`Screw Gauge: d = ${diameterMm.toFixed(2)} mm  |  A = πd²/4 = ${(Math.PI * Math.pow(diameterMm * 1e-3, 2) / 4).toExponential(3)} m²  |  Active L = ${lengthCm.toFixed(1)} cm`}
+              x={45}
+              y={45}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fill="#334155"
+            />
+
+            {/* Live Readout Telemetry Strip */}
+            <Rect
+              x={20}
+              y={height - 50}
+              width={width - 40}
+              height={36}
+              fill="#ffffff"
+              stroke="#f59e0b"
+              strokeWidth={1}
+              cornerRadius={6}
+            />
+            <KonvaText
+              text={`V = ${appliedV.toFixed(1)} V   |   I = ${iVal.toFixed(3)} A   |   R = V/I = ${rVal.toFixed(2)} Ω   |   ρ = R·A/L = ${rhoVal.toExponential(3)} Ω·m`}
+              x={30}
+              y={height - 38}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#b45309"
+            />
+          </Group>
+        );
+      }
+
+      case 'metre-bridge-board': {
+        const rKnown = Number(object.properties.knownResistanceR ?? 5.0);
+        const xUnknown = Number(object.properties.unknownResistanceX ?? 5.0);
+        const jockeyPos = Number(object.properties.jockeyPositionCm ?? 50.0);
+        const calcX = Number(object.state.calculatedResistanceX ?? 5.0);
+        const isBalanced = Boolean(object.state.isBalanced);
+        const defl = Number(object.state.galvanometerDeflectionDivisions ?? 0.0);
+
+        const wireStartX = 55;
+        const wireEndX = width - 55;
+        const wireLengthPx = wireEndX - wireStartX;
+        const jockeyX = wireStartX + (jockeyPos / 100.0) * wireLengthPx;
+        const wireY = 145;
+
+        return (
+          <Group>
+            {/* Wooden Base Board (Polished Teak) */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#78350f"
+              stroke={isSelected ? '#38bdf8' : '#451a03'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={10}
+              shadowColor="#0f172a"
+              shadowBlur={8}
+              shadowOpacity={0.2}
+            />
+            {/* Inner Inlay */}
+            <Rect
+              x={10}
+              y={10}
+              width={width - 20}
+              height={height - 20}
+              fill="#fef3c7"
+              cornerRadius={6}
+            />
+
+            {/* Header */}
+            <KonvaText
+              text="METRE BRIDGE APPARATUS (100 cm WIRE)"
+              x={22}
+              y={18}
+              fontSize={10.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#78350f"
+            />
+
+            {/* Heavy Brass Strips (L-shape left, inverted L right, central I strip) */}
+            {/* Left Brass Strip */}
+            <Rect x={30} y={40} width={25} height={120} fill="#f59e0b" stroke="#b45309" strokeWidth={1.5} cornerRadius={2} />
+            <Rect x={30} y={40} width={90} height={20} fill="#f59e0b" stroke="#b45309" strokeWidth={1.5} cornerRadius={2} />
+
+            {/* Central Brass Strip */}
+            <Rect x={155} y={40} width={width - 310} height={20} fill="#f59e0b" stroke="#b45309" strokeWidth={1.5} cornerRadius={2} />
+            {/* Central Terminal D for Galvanometer */}
+            <Circle x={width / 2} y={50} radius={6} fill="#1e293b" stroke="#f59e0b" strokeWidth={2} />
+            <KonvaText text="Terminal D (To Galvanometer)" x={width / 2 - 65} y={24} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#0369a1" />
+
+            {/* Right Brass Strip */}
+            <Rect x={width - 55} y={40} width={25} height={120} fill="#f59e0b" stroke="#b45309" strokeWidth={1.5} cornerRadius={2} />
+            <Rect x={width - 120} y={40} width={90} height={20} fill="#f59e0b" stroke="#b45309" strokeWidth={1.5} cornerRadius={2} />
+
+            {/* Left Gap (Known Resistance Box R) */}
+            <Rect x={122} y={36} width={30} height={28} fill="#ffffff" stroke="#b45309" strokeWidth={1} cornerRadius={4} />
+            <KonvaText text="GAP 1" x={124} y={39} fontSize={7} fontFamily="sans-serif" fill="#64748b" />
+            <KonvaText text={`R=${rKnown.toFixed(1)}Ω`} x={123} y={49} fontSize={7.5} fontFamily="sans-serif" fontStyle="bold" fill="#b45309" />
+
+            {/* Right Gap (Unknown Resistance X) */}
+            <Rect x={width - 152} y={36} width={30} height={28} fill="#ffffff" stroke="#b45309" strokeWidth={1} cornerRadius={4} />
+            <KonvaText text="GAP 2" x={width - 150} y={39} fontSize={7} fontFamily="sans-serif" fill="#64748b" />
+            <KonvaText text={`X=${xUnknown.toFixed(1)}Ω`} x={width - 151} y={49} fontSize={7.5} fontFamily="sans-serif" fontStyle="bold" fill="#0369a1" />
+
+            {/* Metre Wire Scale */}
+            <Rect x={wireStartX - 5} y={wireY - 8} width={wireLengthPx + 10} height={24} fill="#fef08a" stroke="#ca8a04" strokeWidth={1} cornerRadius={2} />
+            {[0, 25, 50, 75, 100].map((tick) => {
+              const xPos = wireStartX + (tick / 100.0) * wireLengthPx;
+              return (
+                <Group key={`mb-tick-${tick}`}>
+                  <Line points={[xPos, wireY - 8, xPos, wireY]} stroke="#713f12" strokeWidth={1} />
+                  <KonvaText text={`${tick}`} x={xPos - 5} y={wireY + 4} fontSize={8} fontFamily="sans-serif" fill="#713f12" />
+                </Group>
+              );
+            })}
+
+            {/* Manganin Wire (100 cm) */}
+            <Line points={[wireStartX, wireY - 4, wireEndX, wireY - 4]} stroke="#b45309" strokeWidth={2.5} lineCap="round" />
+
+            {/* Sliding Jockey Cursor */}
+            <Group x={jockeyX} y={wireY - 4}>
+              <Line points={[0, -22, 0, 0]} stroke="#0f172a" strokeWidth={2.5} />
+              <Rect x={-10} y={-35} width={20} height={14} fill="#f59e0b" stroke="#78350f" strokeWidth={1} cornerRadius={2} />
+              <KonvaText text="J" x={-4} y={-34} fontSize={9} fontFamily="sans-serif" fontStyle="bold" fill="#78350f" />
+              <Circle x={0} y={0} radius={3.5} fill="#ef4444" />
+            </Group>
+
+            {/* Battery End Binding Posts */}
+            <Circle x={42} y={145} radius={6} fill="#ef4444" />
+            <KonvaText text="A (+)" x={34} y={155} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#ef4444" />
+            <Circle x={width - 42} y={145} radius={6} fill="#1e293b" />
+            <KonvaText text="B (-)" x={width - 50} y={155} fontSize={8} fontFamily="sans-serif" fontStyle="bold" fill="#1e293b" />
+
+            {/* Status Telemetry Pill */}
+            <Rect
+              x={25}
+              y={height - 48}
+              width={width - 50}
+              height={32}
+              fill="#ffffff"
+              stroke={isBalanced ? '#10b981' : '#f59e0b'}
+              strokeWidth={1.5}
+              cornerRadius={6}
+            />
+            <KonvaText
+              text={
+                isBalanced
+                  ? `BALANCED NULL POINT! l = ${jockeyPos.toFixed(1)} cm  |  100 - l = ${(100 - jockeyPos).toFixed(1)} cm  |  X = R·(100-l)/l = ${calcX.toFixed(2)} Ω`
+                  : `Jockey l = ${jockeyPos.toFixed(1)} cm  |  Deflection = ${defl.toFixed(1)} div  |  Estimated X = ${calcX.toFixed(2)} Ω (Slide to 0 deflection)`
+              }
+              x={35}
+              y={height - 38}
+              fontSize={9.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isBalanced ? '#047857' : '#b45309'}
+            />
+          </Group>
+        );
+      }
+
+      case 'moving-coil-galvanometer': {
+        const coilG = Number(object.properties.coilResistanceG ?? 100.0);
+        const deflDiv = Number(object.state.deflectionDivisions ?? 0.0); // -30 to +30
+
+        const centerX = width / 2;
+        const centerY = height / 2 - 12;
+        const meterRadius = Math.min(width, height) / 2 - 16;
+
+        // Pointer rotation: -30 div = -135 deg, 0 div = -90 deg (straight up), +30 div = -45 deg
+        const needleAngleDeg = -90 + (deflDiv / 30.0) * 45;
+        const needleAngleRad = (needleAngleDeg * Math.PI) / 180;
+        const needleLen = meterRadius - 16;
+        const needleTipX = centerX + needleLen * Math.cos(needleAngleRad);
+        const needleTipY = centerY + needleLen * Math.sin(needleAngleRad);
+
+        return (
+          <Group>
+            {/* Outer Instrument Case (Classic Round Metal Housing) */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#334155'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={12}
+              shadowColor="#000000"
+              shadowBlur={8}
+              shadowOpacity={0.25}
+            />
+
+            {/* Circular Dial Bezel */}
+            <Circle x={centerX} y={centerY} radius={meterRadius + 4} fill="#1e293b" stroke="#475569" strokeWidth={2} />
+            <Circle x={centerX} y={centerY} radius={meterRadius} fill="#f8fafc" stroke="#94a3b8" strokeWidth={1.5} />
+
+            {/* Mirrored Arc to Avoid Parallax */}
+            <Circle x={centerX} y={centerY} radius={meterRadius - 22} stroke="#cbd5e1" strokeWidth={4} />
+
+            {/* Scale Ticks: 30 - 20 - 10 - 0 - 10 - 20 - 30 */}
+            {[-30, -20, -10, 0, 10, 20, 30].map((divVal) => {
+              const aDeg = -90 + (divVal / 30.0) * 45;
+              const aRad = (aDeg * Math.PI) / 180;
+              const rInner = meterRadius - 18;
+              const rOuter = meterRadius - 8;
+              const x1 = centerX + rInner * Math.cos(aRad);
+              const y1 = centerY + rInner * Math.sin(aRad);
+              const x2 = centerX + rOuter * Math.cos(aRad);
+              const y2 = centerY + rOuter * Math.sin(aRad);
+              const labelX = centerX + (meterRadius - 28) * Math.cos(aRad) - 5;
+              const labelY = centerY + (meterRadius - 28) * Math.sin(aRad) - 4;
+
+              return (
+                <Group key={`galv-tick-${divVal}`}>
+                  <Line points={[x1, y1, x2, y2]} stroke={divVal === 0 ? '#ef4444' : '#1e293b'} strokeWidth={divVal === 0 ? 2 : 1.2} />
+                  <KonvaText
+                    text={`${Math.abs(divVal)}`}
+                    x={labelX}
+                    y={labelY}
+                    fontSize={7.5}
+                    fontFamily="sans-serif"
+                    fontStyle={divVal === 0 ? 'bold' : 'normal'}
+                    fill={divVal === 0 ? '#ef4444' : '#334155'}
+                  />
+                </Group>
+              );
+            })}
+
+            {/* Galvanometer 'G' Symbol */}
+            <Circle x={centerX} y={centerY + 20} radius={11} fill="#e2e8f0" stroke="#64748b" strokeWidth={1} />
+            <KonvaText text="G" x={centerX - 5} y={centerY + 13} fontSize={12} fontFamily="sans-serif" fontStyle="bold" fill="#0369a1" />
+
+            {/* Rotating Aluminum Pointer Needle */}
+            <Line
+              points={[centerX, centerY + 8, needleTipX, needleTipY]}
+              stroke="#ef4444"
+              strokeWidth={2}
+              lineCap="round"
+            />
+            {/* Pivot Center Hub */}
+            <Circle x={centerX} y={centerY + 8} radius={5} fill="#0f172a" stroke="#cbd5e1" strokeWidth={1.5} />
+
+            {/* Binding Terminals */}
+            <Circle x={centerX - 45} y={height - 24} radius={6} fill="#ef4444" />
+            <KonvaText text="(+) " x={centerX - 65} y={height - 28} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#ef4444" />
+
+            <Circle x={centerX + 45} y={height - 24} radius={6} fill="#1e293b" stroke="#64748b" strokeWidth={1} />
+            <KonvaText text="(-)" x={centerX + 55} y={height - 28} fontSize={8.5} fontFamily="sans-serif" fontStyle="bold" fill="#94a3b8" />
+
+            {/* Telemetry Readout */}
+            <KonvaText
+              text={`θ = ${deflDiv.toFixed(1)} div  |  G = ${coilG.toFixed(0)} Ω`}
+              x={centerX - 50}
+              y={height - 14}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+          </Group>
+        );
+      }
+
+      case 'decade-resistance-box': {
+        const resistance = Number(object.properties.resistance ?? 15.0);
+
+        return (
+          <Group>
+            {/* Teak Wooden Box Base */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#451a03"
+              stroke={isSelected ? '#38bdf8' : '#290e02'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={8}
+              shadowColor="#000000"
+              shadowBlur={6}
+              shadowOpacity={0.2}
+            />
+
+            {/* Top Insulating Brass Panel */}
+            <Rect
+              x={8}
+              y={8}
+              width={width - 16}
+              height={height - 16}
+              fill="#fef08a"
+              stroke="#ca8a04"
+              strokeWidth={1.5}
+              cornerRadius={4}
+            />
+
+            {/* Header */}
+            <KonvaText
+              text="PRECISION RESISTANCE BOX"
+              x={16}
+              y={14}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#78350f"
+            />
+
+            {/* Brass Blocks & Plugs Simulation Grid */}
+            {[1, 2, 5, 10, 20, 50, 100, 200, 500, 1000].slice(0, 8).map((val, idx) => {
+              const col = idx % 4;
+              const row = Math.floor(idx / 4);
+              const bX = 20 + col * ((width - 50) / 4);
+              const bY = 32 + row * 34;
+              return (
+                <Group key={`rbox-plug-${idx}`}>
+                  <Rect x={bX} y={bY} width={28} height={18} fill="#d97706" stroke="#92400e" strokeWidth={1} cornerRadius={2} />
+                  <Circle x={bX + 14} y={bY + 9} radius={4} fill="#451a03" />
+                  <KonvaText text={`${val}`} x={bX + 8} y={bY + 20} fontSize={7.5} fontFamily="sans-serif" fill="#78350f" />
+                </Group>
+              );
+            })}
+
+            {/* Terminals */}
+            <Circle x={25} y={height - 20} radius={5} fill="#ef4444" />
+            <Circle x={width - 25} y={height - 20} radius={5} fill="#1e293b" />
+
+            {/* Total Resistance Digital Badge */}
+            <Rect
+              x={width / 2 - 45}
+              y={height - 28}
+              width={90}
+              height={18}
+              fill="#ffffff"
+              stroke="#b45309"
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+            <KonvaText
+              text={`R = ${resistance.toFixed(1)} Ω`}
+              x={width / 2 - 38}
+              y={height - 24}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#b45309"
+            />
+          </Group>
+        );
+      }
+
+      case 'ammeter-voltmeter-calibrator': {
+        const mode = String(object.properties.conversionMode ?? 'voltmeter');
+        const range = Number(object.properties.targetFullScaleRange ?? 3.0);
+        const installedR = Number(
+          object.properties.installedResistorValue ?? (mode === 'voltmeter' ? 4900 : 0.02)
+        );
+        const testSignal = Number(object.properties.appliedTestSignal ?? 1.5);
+        const isOverload = Boolean(object.state.isOverload);
+        const defl = Number(object.state.scaleDeflectionDivisions ?? 15.0);
+
+        return (
+          <Group>
+            {/* Benchtop Chassis */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#0f172a"
+              stroke={isSelected ? '#38bdf8' : '#334155'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={12}
+              shadowColor="#000000"
+              shadowBlur={8}
+              shadowOpacity={0.25}
+            />
+
+            {/* Header Banner */}
+            <KonvaText
+              text={mode === 'voltmeter' ? 'GALVANOMETER → VOLTMETER CALIBRATION BENCH' : 'GALVANOMETER → AMMETER CALIBRATION BENCH'}
+              x={16}
+              y={14}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+
+            {/* Digital Backlit LCD Panel */}
+            <Rect
+              x={20}
+              y={38}
+              width={width - 40}
+              height={85}
+              fill="#022c22"
+              stroke="#059669"
+              strokeWidth={1.5}
+              cornerRadius={8}
+            />
+            <KonvaText
+              text={mode === 'voltmeter' ? 'REFERENCE DC VOLTAGE' : 'REFERENCE DC CURRENT'}
+              x={32}
+              y={46}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fill="#34d399"
+            />
+            <KonvaText
+              text={`${testSignal.toFixed(3)} ${mode === 'voltmeter' ? 'V' : 'A'}`}
+              x={32}
+              y={62}
+              fontSize={26}
+              fontFamily="monospace"
+              fontStyle="bold"
+              fill="#10b981"
+            />
+            <KonvaText
+              text={`Target Range: 0 to ${range.toFixed(1)} ${mode === 'voltmeter' ? 'V' : 'A'}  |  Pointer: ${defl.toFixed(1)} / 30 div`}
+              x={32}
+              y={102}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fill="#6ee7b7"
+            />
+
+            {/* Resistor Multiplier / Shunt Bay */}
+            <Rect
+              x={20}
+              y={135}
+              width={width - 40}
+              height={55}
+              fill="#1e293b"
+              stroke="#475569"
+              strokeWidth={1}
+              cornerRadius={6}
+            />
+            <KonvaText
+              text={
+                mode === 'voltmeter'
+                  ? `Series Multiplier Resistor (Rs):  ${installedR.toFixed(1)} Ω`
+                  : `Parallel Shunt Resistor (S):  ${installedR.toFixed(5)} Ω`
+              }
+              x={32}
+              y={145}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#f8fafc"
+            />
+            <KonvaText
+              text={
+                mode === 'voltmeter'
+                  ? `Formula: Rs = (V / Ig) - G  =  (${range.toFixed(1)}V / 600µA) - 100Ω`
+                  : `Formula: S = (Ig·G) / (I - Ig)  =  (600µA × 100Ω) / (${range.toFixed(1)}A - 600µA)`
+              }
+              x={32}
+              y={165}
+              fontSize={8.5}
+              fontFamily="sans-serif"
+              fill="#94a3b8"
+            />
+
+            {/* Status / Warning Pill */}
+            <Rect
+              x={20}
+              y={height - 55}
+              width={width - 40}
+              height={36}
+              fill={isOverload ? '#450a0a' : '#042f2e'}
+              stroke={isOverload ? '#ef4444' : '#14b8a6'}
+              strokeWidth={1.5}
+              cornerRadius={6}
+            />
+            <KonvaText
+              text={
+                isOverload
+                  ? `⚠️ OVERLOAD! Test signal (${testSignal.toFixed(2)}) exceeds maximum range (${range.toFixed(1)})`
+                  : `✓ METER CONVERTED & CALIBRATED OK  (Deflection: ${defl.toFixed(1)} div = ${testSignal.toFixed(2)} ${mode === 'voltmeter' ? 'V' : 'A'})`
+              }
+              x={32}
+              y={height - 43}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isOverload ? '#f87171' : '#2dd4bf'}
+            />
+          </Group>
+        );
+      }
+
       case 'generic-box':
       default: {
         const displayVal =

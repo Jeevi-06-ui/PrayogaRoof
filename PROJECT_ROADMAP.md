@@ -112,19 +112,20 @@ flowchart TD
 
 ### Phase 10: Physics Class 12 — Electromagnetism, Advanced Optics & Semiconductors (10 Experiments)
 **Focus:** Bridge circuits, galvanometer conversion, ray optics in mirrors/prisms, and semiconductor physics.
+**Current Status:** First 5 Electromagnetism & Metrology Experiments Implemented & Operational (50% Complete).
 
-| # | Experiment ID | Title | Core Scientific Model to Implement |
-|---|---------------|-------|------------------------------------|
-| 1 | `resistivity-vi-method` | Resistivity of a Wire Using the V-I Method | Extended circuit workbench with resistance wire, screw gauge diameter measurement, and specific resistance calculation $\rho = \frac{R \cdot \pi d^2}{4L}$. |
-| 2 | `metre-bridge` | Metre Bridge – Unknown Resistance | 1-meter manganin wire bridge, sliding jockey contact, Wheatstone null balance detection ($X = \frac{R \cdot (100 - l)}{l}$), end-resistance correction. |
-| 3 | `galvanometer-figure-of-merit` | Galvanometer Resistance and Figure of Merit | Half-deflection circuit setup, high-resistance box ($R$), low-resistance shunt ($S$), calculation of galvanometer resistance $G = \frac{R \cdot S}{R - S}$ and figure of merit $k = \frac{E}{(R + G)\theta}$. |
-| 4 | `galvanometer-voltmeter` | Conversion of Galvanometer into a Voltmeter | High series multiplier resistance calculation $R_s = \frac{V}{I_g} - G$, breadboard assembly, voltmeter calibration against standard meter. |
-| 5 | `galvanometer-ammeter` | Conversion of Galvanometer into an Ammeter | Low shunt resistance calculation $S = \frac{I_g \cdot G}{I - I_g}$, shunt soldering/connection, verification against laboratory ammeter. |
-| 6 | `concave-mirror-focal-length` | Focal Length of a Concave Mirror | Optical bench with two upright pins, parallax removal method, $u$-$v$ observation table, and focal length formula $f = \frac{uv}{u+v}$. |
-| 7 | `convex-mirror-focal-length` | Focal Length of a Convex Mirror | Auxiliary convex lens combination setup to project a real image behind the mirror, reflection back-tracing method. |
-| 8 | `concave-lens-focal-length` | Focal Length of a Concave Lens | Concave lens paired with a convex lens of higher optical power, composite focal length determination. |
-| 9 | `prism-refractive-index` | Refractive Index of a Prism – Minimum Deviation | Optical pin ray tracing on virtual drawing board, angle of incidence ($i$) vs angle of deviation ($D$) curve, calculation $\mu = \frac{\sin(\frac{A + D_m}{2})}{\sin(\frac{A}{2})}$. |
-| 10 | `pn-junction-diode` | P-N Junction Diode – I-V Characteristics | Dual variable DC supply, forward bias knee voltage ($\sim 0.7\text{ V}$ Si, $\sim 0.3\text{ V}$ Ge), reverse bias microammeter breakdown characteristics. |
+| # | Experiment ID | Title | Status | Core Scientific Model Implemented / Operational |
+|---|---------------|-------|--------|-------------------------------------------------|
+| 1 | `resistivity-vi-method` | Resistivity of a Wire Using the V-I Method | **Implemented** | Specimen wire board (Constantan, Nichrome, Copper, Manganin), screw gauge diameter measurement ($d = 0.50\text{ mm}$), millimeter ruler active length ($L = 100\text{ cm}$), regulated DC source, digital ammeter & voltmeter, Ohm's law slope resistance $R = V/I$, and specific resistivity $\rho = \frac{R \cdot A}{L} = \frac{R \pi d^2}{4L}$. |
+| 2 | `metre-bridge` | Metre Bridge – Unknown Resistance | **Implemented** | 100 cm uniform Manganin wire, polished teak base with heavy brass strip gaps, known resistance box $R$, sliding knife-edge jockey, center-zero sensitive galvanometer, opposite deflection verification at ends, and Wheatstone bridge null balance determination $X = \frac{R(100-l)}{l}$. |
+| 3 | `galvanometer-figure-of-merit` | Galvanometer Resistance and Figure of Merit | **Implemented** | Deadbeat Weston moving-coil galvanometer (30-0-30 scale), high resistance box $R = 4900\ \Omega$ (key $K_1$), low shunt resistance box $S = 100\ \Omega$ (key $K_2$), half-deflection model ($\theta \to \theta/2$), coil resistance $G = \frac{RS}{R-S} \approx S$, and Figure of Merit $k = \frac{E}{(R+G)\theta}$. |
+| 4 | `galvanometer-voltmeter` | Conversion of Galvanometer into a Voltmeter | **Implemented** | Calibration test bench, target range selector (0.5–10V), theoretical series multiplier calculation $R_s = \frac{V}{I_g} - G$, effective voltmeter resistance $R_v = R_s + G$, multi-point test signal calibration against reference digital voltmeter, and overload alert detection ($V_{\text{test}} > V_{\max}$). |
+| 5 | `galvanometer-ammeter` | Conversion of Galvanometer into an Ammeter | **Implemented** | Calibration test bench, target current range selector (0.1–10A), theoretical parallel shunt calculation $S = \frac{I_g \cdot G}{I - I_g}$, effective ammeter resistance $R_a = \frac{GS}{G+S}$, multi-point current calibration against reference digital ammeter, and current overload alert detection ($I_{\text{test}} > I_{\max}$). |
+| 6 | `concave-mirror-focal-length` | Focal Length of a Concave Mirror | Under Development | Optical bench with two upright pins, parallax removal method, $u$-$v$ observation table, and focal length formula $f = \frac{uv}{u+v}$. |
+| 7 | `convex-mirror-focal-length` | Focal Length of a Convex Mirror | Under Development | Auxiliary convex lens combination setup to project a real image behind the mirror, reflection back-tracing method. |
+| 8 | `concave-lens-focal-length` | Focal Length of a Concave Lens | Under Development | Concave lens paired with a convex lens of higher optical power, composite focal length determination. |
+| 9 | `prism-refractive-index` | Refractive Index of a Prism – Minimum Deviation | Under Development | Optical pin ray tracing on virtual drawing board, angle of incidence ($i$) vs angle of deviation ($D$) curve, calculation $\mu = \frac{\sin(\frac{A + D_m}{2})}{\sin(\frac{A}{2})}$. |
+| 10 | `pn-junction-diode` | P-N Junction Diode – I-V Characteristics | Under Development | Dual variable DC supply, forward bias knee voltage ($\sim 0.7\text{ V}$ Si, $\sim 0.3\text{ V}$ Ge), reverse bias microammeter breakdown characteristics. |
 
 ---
 

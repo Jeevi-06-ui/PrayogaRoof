@@ -30,6 +30,14 @@ import {
   calculateBoylesLaw,
   SurfacePair,
 } from '../physics/vectorMechanicsModel';
+import {
+  calculateWireResistivity,
+  calculateMetreBridge,
+  calculateGalvanometerFom,
+  calculateGalvanometerToVoltmeter,
+  calculateGalvanometerToAmmeter,
+  WireMaterial,
+} from '../physics/advancedElectromagnetismModel';
 
 export const PHYSICS_EQUIPMENT: EquipmentDefinition[] = [
   {
@@ -1882,6 +1890,405 @@ export const PHYSICS_EQUIPMENT: EquipmentDefinition[] = [
     renderType: 'boyle-cylinder',
     colorTheme: '#059669',
   },
+  {
+    id: 'resistance-wire-board',
+    name: 'Resistance Wire Specimen Board',
+    subjectId: 'physics',
+    category: 'component',
+    description: 'Calibrated specimen resistance wire mounted over millimeter scale with brass binding posts and screw gauge diameter tool.',
+    iconName: 'Zap',
+    defaultWidth: 440,
+    defaultHeight: 180,
+    rotatable: false,
+    ports: [
+      {
+        id: 'p1',
+        name: 'Terminal A (+)',
+        type: 'electrical-positive',
+        xOffset: 20,
+        yOffset: 90,
+        direction: 'west',
+        color: '#ef4444',
+      },
+      {
+        id: 'p2',
+        name: 'Terminal B (-)',
+        type: 'electrical-negative',
+        xOffset: 420,
+        yOffset: 90,
+        direction: 'east',
+        color: '#1e293b',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'material',
+        label: 'Wire Material',
+        type: 'select',
+        defaultValue: 'constantan',
+        options: [
+          { label: 'Constantan (ρ = 4.9 × 10⁻⁷ Ω·m)', value: 'constantan' },
+          { label: 'Nichrome (ρ = 1.1 × 10⁻⁶ Ω·m)', value: 'nichrome' },
+          { label: 'Manganin (ρ = 4.4 × 10⁻⁷ Ω·m)', value: 'manganin' },
+          { label: 'Commercial Copper (ρ = 1.7 × 10⁻⁸ Ω·m)', value: 'copper' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'wireLengthCm',
+        label: 'Wire Length (L)',
+        type: 'number',
+        defaultValue: 100.0,
+        min: 20.0,
+        max: 150.0,
+        step: 5.0,
+        unit: 'cm',
+        editable: true,
+      },
+      {
+        id: 'wireDiameterMm',
+        label: 'Wire Diameter (d measured by screw gauge)',
+        type: 'number',
+        defaultValue: 0.50,
+        min: 0.15,
+        max: 1.00,
+        step: 0.01,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'appliedVoltage',
+        label: 'Applied Voltage Across Wire',
+        type: 'number',
+        defaultValue: 2.0,
+        min: 0.0,
+        max: 6.0,
+        step: 0.2,
+        unit: 'V',
+        editable: true,
+      },
+    ],
+    renderType: 'resistance-wire-board',
+    colorTheme: '#d97706',
+  },
+  {
+    id: 'metre-bridge-board',
+    name: 'Standard Metre Bridge Apparatus',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: '1-meter uniform manganin wire on wooden base with Left/Right gaps, sliding knife-edge jockey, and central galvanometer terminal.',
+    iconName: 'Maximize2',
+    defaultWidth: 520,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [
+      {
+        id: 'termA',
+        name: 'Battery Terminal A',
+        type: 'electrical-positive',
+        xOffset: 25,
+        yOffset: 200,
+        direction: 'west',
+        color: '#ef4444',
+      },
+      {
+        id: 'termB',
+        name: 'Battery Terminal B',
+        type: 'electrical-negative',
+        xOffset: 495,
+        yOffset: 200,
+        direction: 'east',
+        color: '#1e293b',
+      },
+      {
+        id: 'termD',
+        name: 'Galvanometer Terminal D',
+        type: 'electrical-positive',
+        xOffset: 260,
+        yOffset: 50,
+        direction: 'north',
+        color: '#3b82f6',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'knownResistanceR',
+        label: 'Left Gap Known Resistance Box (R)',
+        type: 'number',
+        defaultValue: 15.0,
+        min: 1.0,
+        max: 100.0,
+        step: 1.0,
+        unit: 'Ω',
+        editable: true,
+      },
+      {
+        id: 'unknownResistanceX',
+        label: 'Right Gap Unknown Resistance Coil (X)',
+        type: 'number',
+        defaultValue: 10.0,
+        min: 1.0,
+        max: 100.0,
+        step: 0.5,
+        unit: 'Ω',
+        editable: true,
+      },
+      {
+        id: 'jockeyPositionCm',
+        label: 'Sliding Jockey Contact Position (l)',
+        type: 'number',
+        defaultValue: 60.0,
+        min: 1.0,
+        max: 99.0,
+        step: 0.5,
+        unit: 'cm',
+        editable: true,
+      },
+      {
+        id: 'supplyVoltage',
+        label: 'Battery DC Supply',
+        type: 'number',
+        defaultValue: 2.0,
+        min: 1.0,
+        max: 4.0,
+        step: 0.5,
+        unit: 'V',
+        editable: false,
+      },
+    ],
+    renderType: 'metre-bridge-board',
+    colorTheme: '#78350f',
+  },
+  {
+    id: 'moving-coil-galvanometer',
+    name: 'Moving Coil Galvanometer (30-0-30)',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'High-sensitivity center-zero Weston galvanometer with mirror scale, knife-edge pointer, and shunt terminals.',
+    iconName: 'Compass',
+    defaultWidth: 260,
+    defaultHeight: 280,
+    rotatable: false,
+    ports: [
+      {
+        id: 'pos',
+        name: 'Positive Terminal (+)',
+        type: 'electrical-positive',
+        xOffset: 65,
+        yOffset: 245,
+        direction: 'south',
+        color: '#ef4444',
+      },
+      {
+        id: 'neg',
+        name: 'Negative Terminal (-)',
+        type: 'electrical-negative',
+        xOffset: 195,
+        yOffset: 245,
+        direction: 'south',
+        color: '#1e293b',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'coilResistanceG',
+        label: 'Galvanometer Coil Resistance (G)',
+        type: 'number',
+        defaultValue: 60.0,
+        min: 20.0,
+        max: 200.0,
+        step: 1.0,
+        unit: 'Ω',
+        editable: true,
+      },
+      {
+        id: 'figureOfMeritK',
+        label: 'Figure of Merit (k)',
+        type: 'number',
+        defaultValue: 2.0e-5,
+        unit: 'A/div',
+        editable: false,
+      },
+      {
+        id: 'highResistanceBoxR',
+        label: 'Series High Resistance (R in Half-Deflection)',
+        type: 'number',
+        defaultValue: 3273.0,
+        min: 500.0,
+        max: 10000.0,
+        step: 50.0,
+        unit: 'Ω',
+        editable: true,
+      },
+      {
+        id: 'lowShuntResistanceS',
+        label: 'Shunt Resistance (S in Half-Deflection)',
+        type: 'number',
+        defaultValue: 60.0,
+        min: 10.0,
+        max: 200.0,
+        step: 1.0,
+        unit: 'Ω',
+        editable: true,
+      },
+      {
+        id: 'isShuntKeyClosed',
+        label: 'Shunt Key K2 (Closed for Half-Deflection)',
+        type: 'boolean',
+        defaultValue: false,
+        editable: true,
+      },
+    ],
+    renderType: 'moving-coil-galvanometer',
+    colorTheme: '#2563eb',
+  },
+  {
+    id: 'decade-resistance-box',
+    name: 'Precision Decade Resistance Box',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Laboratory resistance box with non-inductive brass blocks and non-inductive bifilar wound coils.',
+    iconName: 'Cpu',
+    defaultWidth: 240,
+    defaultHeight: 160,
+    rotatable: false,
+    ports: [
+      {
+        id: 'p1',
+        name: 'Terminal 1',
+        type: 'electrical-positive',
+        xOffset: 35,
+        yOffset: 135,
+        direction: 'south',
+        color: '#ef4444',
+      },
+      {
+        id: 'p2',
+        name: 'Terminal 2',
+        type: 'electrical-negative',
+        xOffset: 205,
+        yOffset: 135,
+        direction: 'south',
+        color: '#1e293b',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'resistance',
+        label: 'Introduced Resistance',
+        type: 'number',
+        defaultValue: 15.0,
+        min: 1.0,
+        max: 10000.0,
+        step: 1.0,
+        unit: 'Ω',
+        editable: true,
+      },
+      {
+        id: 'boxType',
+        label: 'Resistance Box Range',
+        type: 'select',
+        defaultValue: 'Fractional & Standard (1 - 100 Ω)',
+        options: [
+          { label: 'Fractional & Standard (1 - 100 Ω)', value: 'Fractional & Standard (1 - 100 Ω)' },
+          { label: 'High Resistance (100 - 10,000 Ω)', value: 'High Resistance (100 - 10,000 Ω)' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'decade-resistance-box',
+    colorTheme: '#78350f',
+  },
+  {
+    id: 'ammeter-voltmeter-calibrator',
+    name: 'Meter Conversion & Calibration Test Bench',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Calibration potential divider circuit board with reference digital LCD meter and variable voltage/current driver.',
+    iconName: 'Sliders',
+    defaultWidth: 440,
+    defaultHeight: 280,
+    rotatable: false,
+    ports: [
+      {
+        id: 'pos',
+        name: 'Input Signal (+)',
+        type: 'electrical-positive',
+        xOffset: 40,
+        yOffset: 140,
+        direction: 'west',
+        color: '#ef4444',
+      },
+      {
+        id: 'neg',
+        name: 'Input Signal (-)',
+        type: 'electrical-negative',
+        xOffset: 400,
+        yOffset: 140,
+        direction: 'east',
+        color: '#1e293b',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'conversionMode',
+        label: 'Conversion Target Instrument',
+        type: 'select',
+        defaultValue: 'voltmeter',
+        options: [
+          { label: 'Voltmeter Conversion (Series Multiplier Rs)', value: 'voltmeter' },
+          { label: 'Ammeter Conversion (Parallel Shunt S)', value: 'ammeter' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'galvanometerResistanceG',
+        label: 'Galvanometer Coil Resistance (G)',
+        type: 'number',
+        defaultValue: 100.0,
+        min: 20.0,
+        max: 200.0,
+        step: 5.0,
+        unit: 'Ω',
+        editable: true,
+      },
+      {
+        id: 'targetFullScaleRange',
+        label: 'Desired Full-Scale Range (V in Volts or I in Amps)',
+        type: 'number',
+        defaultValue: 3.0,
+        min: 0.5,
+        max: 10.0,
+        step: 0.5,
+        unit: 'V or A',
+        editable: true,
+      },
+      {
+        id: 'installedResistorValue',
+        label: 'Installed Resistor Value (Rs in Ω or Shunt S in Ω)',
+        type: 'number',
+        defaultValue: 4900.0,
+        min: 0.001,
+        max: 20000.0,
+        step: 1.0,
+        unit: 'Ω',
+        editable: true,
+      },
+      {
+        id: 'appliedTestSignal',
+        label: 'Applied Calibration Test Signal (V or I)',
+        type: 'number',
+        defaultValue: 1.5,
+        min: 0.0,
+        max: 10.0,
+        step: 0.1,
+        unit: 'V or A',
+        editable: true,
+      },
+    ],
+    renderType: 'ammeter-voltmeter-calibrator',
+    colorTheme: '#0284c7',
+  },
 ];
 
 export const PHYSICS_LAB_DEFINITIONS: LabDefinition[] = [
@@ -3592,6 +3999,609 @@ export const PHYSICS_LAB_DEFINITIONS: LabDefinition[] = [
     defaultNotebookNotes:
       "Boyle's Law for an Ideal Gas:\n- Statement: For a fixed mass of enclosed gas at constant temperature, absolute pressure is inversely proportional to volume:\n  P ∝ 1/V   =>   P · V = Constant (C)\n\nFormulas:\n- P₁ · V₁ = P₂ · V₂\n- Absolute Pressure: P_total = P_atmospheric + P_gauge = 760 mmHg + Δh_Hg\n- Reciprocal Volume: 1/V (mL⁻¹)\n- Work Done in Isothermal Compression: W = nRT · ln(V₂ / V₁)\n\nGraphical Signatures:\n- P vs V curve: Rectangular hyperbola (isotherm at T = 298 K).\n- P vs 1/V curve: Straight line passing through the origin with slope C = P·V.",
   },
+  {
+    experimentId: 'resistivity-vi-method',
+    title: 'Resistivity of a Wire Using the V-I Method',
+    subjectId: 'physics',
+    allowedEquipmentIds: [
+      'resistance-wire-board',
+      'dc-power-supply',
+      'dc-battery',
+      'dc-ammeter',
+      'dc-voltmeter',
+      'knife-switch',
+      'wire-junction',
+    ],
+    initialObjects: [
+      {
+        id: 'wire-board-1',
+        equipmentId: 'resistance-wire-board',
+        title: 'Resistance Wire & Metre Scale Board',
+        x: 80,
+        y: 60,
+        rotation: 0,
+        width: 440,
+        height: 260,
+        properties: {
+          material: 'Constantan',
+          lengthCm: 100.0,
+          diameterMm: 0.5,
+          appliedVoltage: 2.0,
+          wireTemperatureC: 25.0,
+        },
+        state: {
+          resistanceOhms: 2.5,
+          currentAmps: 0.8,
+          resistivityOhmMetre: 4.9e-7,
+          crossSectionalAreaM2: 1.9635e-7,
+          status: 'Constantan wire: L = 100.0 cm, d = 0.50 mm => R = 2.50 Ω, I = 0.800 A',
+        },
+      },
+      {
+        id: 'dc-ps-1',
+        equipmentId: 'dc-power-supply',
+        title: 'Regulated DC Power Supply',
+        x: 550,
+        y: 60,
+        rotation: 0,
+        width: 160,
+        height: 140,
+        properties: { voltage: 2.0, maxCurrent: 3.0 },
+        state: { outputVoltage: 2.0 },
+      },
+      {
+        id: 'ammeter-1',
+        equipmentId: 'dc-ammeter',
+        title: 'DC Milliammeter / Ammeter',
+        x: 550,
+        y: 220,
+        rotation: 0,
+        width: 140,
+        height: 140,
+        properties: { internalResistance: 0.05, currentRange: '0-3A' },
+        state: { current: 0.8 },
+      },
+      {
+        id: 'voltmeter-1',
+        equipmentId: 'dc-voltmeter',
+        title: 'DC Voltmeter',
+        x: 550,
+        y: 380,
+        rotation: 0,
+        width: 140,
+        height: 140,
+        properties: { internalResistance: 100000, voltageRange: '0-5V' },
+        state: { voltage: 2.0 },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'res-step-1',
+        stepNumber: 1,
+        title: 'Measure Wire Diameter with Screw Gauge',
+        instruction:
+          'Inspect the specimen wire diameter d = 0.50 mm. The cross-sectional area is A = π(d/2)² = 1.963 × 10⁻⁷ m².',
+      },
+      {
+        id: 'res-step-2',
+        stepNumber: 2,
+        title: 'Set Active Wire Length on Graduated Scale',
+        instruction:
+          'Tighten sliding contact posts to set active wire length L = 100.0 cm (1.0 m) along the calibrated metre scale.',
+      },
+      {
+        id: 'res-step-3',
+        stepNumber: 3,
+        title: 'Apply DC Voltage (V) and Record Current (I)',
+        instruction:
+          'Set DC supply to 2.0 V. Observe that circuit current reads 0.800 A on the series ammeter.',
+      },
+      {
+        id: 'res-step-4',
+        stepNumber: 4,
+        title: 'Calculate Resistance from V-I Ratio (Ohm’s Law)',
+        instruction:
+          'Calculate wire resistance R = V / I = 2.0 V / 0.800 A = 2.50 Ω. Note that resistance scales directly with length L.',
+      },
+      {
+        id: 'res-step-5',
+        stepNumber: 5,
+        title: 'Calculate Specific Resistance (Resistivity ρ)',
+        instruction:
+          'Compute resistivity ρ = (R × A) / L = (2.50 × 1.9635×10⁻⁷) / 1.0 = 4.91 × 10⁻⁷ Ω·m, confirming Constantan (Eureka) alloy.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-res-geometry',
+        description: 'Accurately measure wire geometry (length L and diameter d) and determine cross-sectional area A.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-res-vi-slope',
+        description: 'Verify linear V-I Ohm’s Law relationship and determine wire resistance R = V/I.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-res-resistivity',
+        description: 'Compute specific resistance (resistivity ρ = R·A / L) and compare with standard reference tables.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Resistivity of a Wire Using the V-I Method:\n- Principle: By Ohm's Law, current I is proportional to potential difference V across a conductor at constant temperature:\n  R = V / I\n\nSpecific Resistance (Resistivity):\n- Resistance depends on length L, cross-sectional area A, and material resistivity ρ:\n  R = ρ · L / A   =>   ρ = (R · A) / L\n\nFormulas:\n- Cross-sectional Area: A = π · (d / 2)² = π · d² / 4 (m²)\n- Resistance: R = V / I (Ω)\n- Specific Resistance: ρ = (R · A) / L (Ω·m)\n- Temperature Correction: R_T = R₀ · [1 + α · (T - T₀)]\n\nStandard Resistivity Values:\n- Constantan (Eureka): ~4.9 × 10⁻⁷ Ω·m\n- Nichrome: ~1.1 × 10⁻⁶ Ω·m\n- Manganin: ~4.8 × 10⁻⁷ Ω·m\n- Copper: ~1.68 × 10⁻⁸ Ω·m",
+  },
+  {
+    experimentId: 'metre-bridge',
+    title: 'Metre Bridge – Determination of Unknown Resistance',
+    subjectId: 'physics',
+    allowedEquipmentIds: [
+      'metre-bridge-board',
+      'decade-resistance-box',
+      'moving-coil-galvanometer',
+      'dc-battery',
+      'knife-switch',
+    ],
+    initialObjects: [
+      {
+        id: 'metre-bridge-1',
+        equipmentId: 'metre-bridge-board',
+        title: 'Metre Bridge with Jockey & Scale',
+        x: 60,
+        y: 60,
+        rotation: 0,
+        width: 480,
+        height: 260,
+        properties: {
+          knownResistanceR: 5.0,
+          unknownResistanceX: 5.0,
+          jockeyPositionCm: 50.0,
+          bridgeSupplyVoltage: 2.0,
+        },
+        state: {
+          unknownResistanceX: 5.0,
+          isBalanced: true,
+          galvanometerDeflectionDivisions: 0.0,
+          galvanometerDirection: 'center',
+          nullPointCm: 50.0,
+          calculatedResistanceX: 5.0,
+          status: 'BALANCED: Jockey at null point l = 50.0 cm => X = 5.00 Ω',
+        },
+      },
+      {
+        id: 'galv-1',
+        equipmentId: 'moving-coil-galvanometer',
+        title: 'Moving-Coil Galvanometer (30-0-30)',
+        x: 560,
+        y: 60,
+        rotation: 0,
+        width: 200,
+        height: 200,
+        properties: { coilResistanceG: 100.0, totalDivisions: 30, fullScaleCurrentMicroAmps: 600.0 },
+        state: { deflectionDivisions: 0.0, status: 'Null Balance: 0 div' },
+      },
+      {
+        id: 'res-box-1',
+        equipmentId: 'decade-resistance-box',
+        title: 'Standard Resistance Box (R)',
+        x: 560,
+        y: 280,
+        rotation: 0,
+        width: 200,
+        height: 130,
+        properties: { resistance: 5.0, boxType: 'Fractional & Standard (1 - 100 Ω)' },
+        state: { resistance: 5.0 },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'mb-step-1',
+        stepNumber: 1,
+        title: 'Introduce Known Standard Resistance R in Left Gap',
+        instruction:
+          'Set resistance box R = 5.0 Ω in the left bridge gap. Make sure plugs are tight to eliminate contact resistance.',
+      },
+      {
+        id: 'mb-step-2',
+        stepNumber: 2,
+        title: 'Connect Unknown Resistor Coil X in Right Gap',
+        instruction:
+          'Connect the specimen wire coil X across the right gap terminals between central brass strip and right strip.',
+      },
+      {
+        id: 'mb-step-3',
+        stepNumber: 3,
+        title: 'Verify Opposite Galvanometer Deflections',
+        instruction:
+          'Tap jockey lightly near l = 5 cm (needle kicks left) and l = 95 cm (needle kicks right) to confirm circuit continuity.',
+      },
+      {
+        id: 'mb-step-4',
+        stepNumber: 4,
+        title: 'Slide Jockey to Locate Null Balance Point (l)',
+        instruction:
+          'Slide the knife-edge jockey gently along the 100 cm wire until galvanometer deflection becomes exactly 0 divisions at l = 50.0 cm.',
+      },
+      {
+        id: 'mb-step-5',
+        stepNumber: 5,
+        title: 'Calculate Unknown Resistance X',
+        instruction:
+          'Calculate unknown resistance using Wheatstone bridge formula: X = R × (100 - l) / l = 5.0 × (50 / 50) = 5.00 Ω.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-mb-wheatstone',
+        description: 'Verify Wheatstone bridge null deflection condition P / Q = R / S at balance.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-mb-null-point',
+        description: 'Accurately determine balancing wire length l where galvanometer current Ig = 0.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-mb-calc-x',
+        description: 'Calculate unknown resistance X = R·(100 - l) / l with maximum bridge sensitivity near 50 cm.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Metre Bridge (Wheatstone Bridge Principle):\n- Principle: Four resistances P, Q, R, and S form a closed loop. Bridge is balanced when galvanometer current Ig = 0:\n  P / Q = R / S\n\nMetre Bridge Setup:\n- Wire length: L_total = 100 cm\n- Left segment: P = σ · l\n- Right segment: Q = σ · (100 - l)\n- Therefore: (σ · l) / [σ · (100 - l)] = R / X\n  => X = R · (100 - l) / l\n\nPrecautions & End Corrections:\n- Jockey must be pressed gently, never dragged along the wire.\n- Value of R should be chosen so balance point lies between 40 cm and 60 cm for maximum Wheatstone sensitivity.\n- End resistance corrections α and β can be accounted for: X = R · (100 - l + β) / (l + α).",
+  },
+  {
+    experimentId: 'galvanometer-figure-of-merit',
+    title: 'Galvanometer Resistance and Figure of Merit',
+    subjectId: 'physics',
+    allowedEquipmentIds: [
+      'moving-coil-galvanometer',
+      'decade-resistance-box',
+      'dc-battery',
+      'knife-switch',
+      'standard-resistor',
+    ],
+    initialObjects: [
+      {
+        id: 'galv-fom-1',
+        equipmentId: 'moving-coil-galvanometer',
+        title: 'Deadbeat Moving-Coil Galvanometer',
+        x: 70,
+        y: 70,
+        rotation: 0,
+        width: 220,
+        height: 220,
+        properties: { coilResistanceG: 100.0, totalDivisions: 30, fullScaleCurrentMicroAmps: 600.0 },
+        state: {
+          deflectionDivisions: 30.0,
+          figureOfMeritK: 0.00002,
+          calculatedCoilResistanceG: 100.0,
+          status: 'Initial deflection θ = 30.0 div (R = 4900 Ω, Key K2 Open)',
+        },
+      },
+      {
+        id: 'res-box-high',
+        equipmentId: 'decade-resistance-box',
+        title: 'High Resistance Box (R)',
+        x: 320,
+        y: 70,
+        rotation: 0,
+        width: 210,
+        height: 130,
+        properties: { resistance: 4900.0, boxType: 'High Resistance (100 - 10,000 Ω)' },
+        state: { resistance: 4900.0 },
+      },
+      {
+        id: 'res-box-shunt',
+        equipmentId: 'decade-resistance-box',
+        title: 'Shunt Resistance Box (S)',
+        x: 320,
+        y: 230,
+        rotation: 0,
+        width: 210,
+        height: 130,
+        properties: { resistance: 100.0, boxType: 'Fractional & Standard (1 - 100 Ω)' },
+        state: { resistance: 100.0 },
+      },
+      {
+        id: 'dc-cell-1',
+        equipmentId: 'dc-battery',
+        title: 'Standard Leclanché Cell (1.5V)',
+        x: 560,
+        y: 150,
+        rotation: 0,
+        width: 140,
+        height: 140,
+        properties: { voltage: 1.5, internalResistance: 0.1 },
+        state: { voltage: 1.5 },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'fom-step-1',
+        stepNumber: 1,
+        title: 'Set High Resistance R with Shunt Key Open',
+        instruction:
+          'With key K2 open, set high series resistance R = 4900 Ω so that the needle deflects to an even full scale θ = 30 divisions.',
+      },
+      {
+        id: 'fom-step-2',
+        stepNumber: 2,
+        title: 'Close Shunt Key K2 Across Galvanometer',
+        instruction:
+          'Close key K2 to introduce parallel shunt resistance S = 100 Ω across the galvanometer coil terminals.',
+      },
+      {
+        id: 'fom-step-3',
+        stepNumber: 3,
+        title: 'Adjust Shunt S for Half-Deflection (θ / 2)',
+        instruction:
+          'Adjust S until pointer deflection drops to exactly half of initial deflection: θ / 2 = 15 divisions.',
+      },
+      {
+        id: 'fom-step-4',
+        stepNumber: 4,
+        title: 'Calculate Galvanometer Coil Resistance G',
+        instruction:
+          'Compute coil resistance using half-deflection formula: G = (R × S) / (R - S) = (4900 × 100) / (4900 - 100) = 102.1 Ω ≈ 100 Ω.',
+      },
+      {
+        id: 'fom-step-5',
+        stepNumber: 5,
+        title: 'Determine Figure of Merit (k) and Full-Scale Current (Ig)',
+        instruction:
+          'Calculate Figure of Merit k = E / [(R + G) × θ] = 1.5 / [(4900 + 100) × 30] = 20.0 µA/div, and Ig = n × k = 30 × 20 µA = 600 µA.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-fom-initial-theta',
+        description: 'Obtain steady initial galvanometer deflection θ using high resistance box R.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-fom-half-deflection',
+        description: 'Apply shunt resistance S to achieve exact half-deflection θ / 2 and compute coil resistance G.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-fom-figure-of-merit',
+        description: 'Calculate Figure of Merit k = E / [(R + G)·θ] and full-scale deflection current Ig = n·k.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Galvanometer Resistance & Figure of Merit (Half-Deflection Method):\n- Principle: In a pivoted moving coil galvanometer, restoring torque balances magnetic torque: C · θ = N · I · A · B\n  => I = (C / NAB) · θ = k · θ\n  where k is the Figure of Merit (current required for unit deflection).\n\nHalf-Deflection Method:\n- When shunt S is open: I₁ = E / (R + G) = k · θ\n- When shunt S is closed: Total current I₂ = E / [R + (GS)/(G+S)]\n  Current through galvanometer: Ig = I₂ · [S / (G + S)] = k · (θ / 2)\n- Setting Ig = ½ I₁ leads to:\n  G = (R · S) / (R - S)\n  Since R ≫ S, G ≈ S\n\nFigure of Merit:\n- k = E / [(R + G) · θ]  (Amperes/division or µA/div)\n- Full-Scale Deflection Current: Ig = n · k  (where n is total scale divisions, typically 30).",
+  },
+  {
+    experimentId: 'galvanometer-voltmeter',
+    title: 'Conversion of Galvanometer into a Voltmeter',
+    subjectId: 'physics',
+    allowedEquipmentIds: [
+      'ammeter-voltmeter-calibrator',
+      'moving-coil-galvanometer',
+      'decade-resistance-box',
+      'dc-power-supply',
+      'dc-voltmeter',
+    ],
+    initialObjects: [
+      {
+        id: 'calibrator-v-1',
+        equipmentId: 'ammeter-voltmeter-calibrator',
+        title: 'Voltmeter Conversion Calibration Rig',
+        x: 60,
+        y: 70,
+        rotation: 0,
+        width: 440,
+        height: 280,
+        properties: {
+          conversionMode: 'voltmeter',
+          galvanometerResistanceG: 100.0,
+          targetFullScaleRange: 3.0,
+          installedResistorValue: 4900.0,
+          appliedTestSignal: 1.5,
+        },
+        state: {
+          requiredSeriesResistanceRs: 4900.0,
+          effectiveVoltmeterResistance: 5000.0,
+          scaleDeflectionDivisions: 15.0,
+          measuredVoltage: 1.5,
+          isOverload: false,
+          status: 'Voltmeter Conversion: Rs = 4900.0 Ω, θ = 15.0 / 30 div (V = 1.50 V)',
+        },
+      },
+      {
+        id: 'galv-v-1',
+        equipmentId: 'moving-coil-galvanometer',
+        title: 'Converted Galvanometer Unit',
+        x: 530,
+        y: 70,
+        rotation: 0,
+        width: 220,
+        height: 220,
+        properties: { coilResistanceG: 100.0, totalDivisions: 30, fullScaleCurrentMicroAmps: 600.0 },
+        state: { deflectionDivisions: 15.0, status: 'Reading: 15.0 div (1.50 V)' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'gv-step-1',
+        stepNumber: 1,
+        title: 'Identify Galvanometer Parameters',
+        instruction:
+          'Galvanometer has coil resistance G = 100 Ω, total scale divisions n = 30, and full-scale current Ig = 600 µA (0.0006 A).',
+      },
+      {
+        id: 'gv-step-2',
+        stepNumber: 2,
+        title: 'Select Desired Voltage Range (V)',
+        instruction:
+          'Set target maximum voltmeter range V = 3.0 V for measuring DC potential differences.',
+      },
+      {
+        id: 'gv-step-3',
+        stepNumber: 3,
+        title: 'Calculate Required Series Multiplier Resistance (Rs)',
+        instruction:
+          'Calculate multiplier resistance: Rs = (V / Ig) - G = (3.0 / 0.0006) - 100 = 5000 - 100 = 4900 Ω.',
+      },
+      {
+        id: 'gv-step-4',
+        stepNumber: 4,
+        title: 'Connect Multiplier Rs in Series with Galvanometer Coil',
+        instruction:
+          'Install high multiplier resistance Rs = 4900 Ω in series. Total voltmeter resistance becomes Rv = Rs + G = 5000 Ω.',
+      },
+      {
+        id: 'gv-step-5',
+        stepNumber: 5,
+        title: 'Calibrate and Verify Against Reference Voltmeter',
+        instruction:
+          'Apply calibration test voltage 1.5 V. Confirm meter pointer deflects to 15 divisions (half scale), matching 1.50 V exactly.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-gv-calculate-rs',
+        description: 'Calculate series multiplier resistance Rs = (V / Ig) - G for the desired voltage range.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-gv-assemble',
+        description: 'Assemble converted voltmeter with series multiplier and determine effective resistance Rv = Rs + G.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-gv-calibration',
+        description: 'Calibrate readings against standard reference voltmeter and verify overload detection when V > V_max.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Conversion of Galvanometer into a Voltmeter:\n- Principle: A galvanometer is converted into a voltmeter by connecting a high resistance (Rs) in series with its coil.\n\nFormulas:\n- Full Scale Voltage: V = Ig · (G + Rs)\n- Required Multiplier: Rs = (V / Ig) - G\n- Total Voltmeter Resistance: Rv = Rs + G\n- Voltage Sensitivity: Sv = θ / V = 1 / (Rv · k)\n\nCharacteristics of an Ideal Voltmeter:\n- An ideal voltmeter has infinite electrical resistance (Rv → ∞) so that it draws negligible current from the circuit under test.",
+  },
+  {
+    experimentId: 'galvanometer-ammeter',
+    title: 'Conversion of Galvanometer into an Ammeter',
+    subjectId: 'physics',
+    allowedEquipmentIds: [
+      'ammeter-voltmeter-calibrator',
+      'moving-coil-galvanometer',
+      'decade-resistance-box',
+      'dc-power-supply',
+      'dc-ammeter',
+    ],
+    initialObjects: [
+      {
+        id: 'calibrator-a-1',
+        equipmentId: 'ammeter-voltmeter-calibrator',
+        title: 'Ammeter Conversion Calibration Rig',
+        x: 60,
+        y: 70,
+        rotation: 0,
+        width: 440,
+        height: 280,
+        properties: {
+          conversionMode: 'ammeter',
+          galvanometerResistanceG: 100.0,
+          targetFullScaleRange: 3.0,
+          installedResistorValue: 0.020004,
+          appliedTestSignal: 1.5,
+        },
+        state: {
+          requiredShuntResistanceS: 0.020004,
+          effectiveAmmeterResistance: 0.02,
+          scaleDeflectionDivisions: 15.0,
+          measuredCurrent: 1.5,
+          isOverload: false,
+          status: 'Ammeter Conversion: Shunt S = 0.02000 Ω, θ = 15.0 / 30 div (I = 1.50 A)',
+        },
+      },
+      {
+        id: 'galv-a-1',
+        equipmentId: 'moving-coil-galvanometer',
+        title: 'Converted Galvanometer Unit',
+        x: 530,
+        y: 70,
+        rotation: 0,
+        width: 220,
+        height: 220,
+        properties: { coilResistanceG: 100.0, totalDivisions: 30, fullScaleCurrentMicroAmps: 600.0 },
+        state: { deflectionDivisions: 15.0, status: 'Reading: 15.0 div (1.50 A)' },
+      },
+    ],
+    guidedSteps: [
+      {
+        id: 'ga-step-1',
+        stepNumber: 1,
+        title: 'Identify Galvanometer Parameters',
+        instruction:
+          'Galvanometer has coil resistance G = 100 Ω, total scale divisions n = 30, and full-scale current Ig = 600 µA (0.0006 A).',
+      },
+      {
+        id: 'ga-step-2',
+        stepNumber: 2,
+        title: 'Select Desired Current Range (I)',
+        instruction:
+          'Set target ammeter full-scale range I = 3.0 A for measuring branch circuit currents.',
+      },
+      {
+        id: 'ga-step-3',
+        stepNumber: 3,
+        title: 'Calculate Required Parallel Shunt Resistance (S)',
+        instruction:
+          'Calculate shunt resistance: S = (Ig × G) / (I - Ig) = (0.0006 × 100) / (3.0 - 0.0006) = 0.06 / 2.9994 ≈ 0.020004 Ω.',
+      },
+      {
+        id: 'ga-step-4',
+        stepNumber: 4,
+        title: 'Connect Shunt S in Parallel Across Galvanometer Coil',
+        instruction:
+          'Connect the low-resistance shunt strip in parallel. Effective ammeter resistance is RA = (G × S) / (G + S) ≈ 0.0200 Ω.',
+      },
+      {
+        id: 'ga-step-5',
+        stepNumber: 5,
+        title: 'Calibrate and Verify Against Reference Ammeter',
+        instruction:
+          'Apply calibration test current 1.5 A. Confirm meter pointer deflects to 15 divisions (half scale), matching 1.50 A exactly.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-ga-calculate-shunt',
+        description: 'Calculate required shunt resistance S = (Ig·G) / (I - Ig) for the chosen current range.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-ga-assemble',
+        description: 'Assemble converted ammeter with parallel shunt and determine effective resistance RA = (G·S)/(G+S).',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-ga-calibration',
+        description: 'Calibrate readings against standard reference ammeter and verify overload detection when I > I_max.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Conversion of Galvanometer into an Ammeter:\n- Principle: A galvanometer is converted into an ammeter by connecting a low resistance (shunt S) in parallel with its coil.\n\nFormulas:\n- Potential Difference Across Coil and Shunt:\n  Ig · G = (I - Ig) · S\n  => S = (Ig · G) / (I - Ig)\n- Total Ammeter Resistance:\n  RA = (G · S) / (G + S) ≈ S (since S ≪ G)\n- Current Sensitivity: Si = θ / I = n / I\n\nCharacteristics of an Ideal Ammeter:\n- An ideal ammeter has zero electrical resistance (RA → 0) so that connecting it in series does not disturb the circuit current.",
+  },
 ];
 
 export const physicsExtension: SubjectLabExtension = {
@@ -4369,6 +5379,244 @@ export const physicsExtension: SubjectLabExtension = {
       messages.push(
         `Boyle's Law: V = ${boyleRes.volumeMl} mL => P = ${boyleRes.pressureKpa.toFixed(1)} kPa (${boyleRes.pressureAtm.toFixed(2)} atm), P·V = ${boyleRes.pvProductKpaMl.toFixed(0)} kPa·mL`
       );
+    }
+
+    // 15. Resistivity of Wire (V-I Method) Simulation
+    const wireBoards = objects.filter((o) => o.equipmentId === 'resistance-wire-board');
+    for (const wb of wireBoards) {
+      const lengthCm = Number(wb.properties.wireLengthCm ?? wb.properties.lengthCm ?? 100.0);
+      const diameterMm = Number(wb.properties.wireDiameterMm ?? wb.properties.diameterMm ?? 0.5);
+      const material = (wb.properties.material as WireMaterial) ?? 'constantan';
+      const appliedVoltage = Number(wb.properties.appliedVoltage ?? 2.0);
+      const wireTempC = Number(wb.properties.wireTemperatureC ?? 25.0);
+
+      const res = calculateWireResistivity({
+        wireLengthCm: lengthCm,
+        wireDiameterMm: diameterMm,
+        material,
+        appliedVoltageVolts: appliedVoltage,
+        temperatureC: wireTempC,
+      });
+
+      updates[wb.id] = {
+        resistanceOhms: res.calculatedResistanceOhms,
+        currentAmps: res.measuredCurrentAmps,
+        crossSectionalAreaM2: res.crossSectionalAreaM2,
+        resistivityOhmMetre: res.calculatedResistivityOhmMeter,
+        powerDissipatedWatts: res.measuredVoltageVolts * res.measuredCurrentAmps,
+        status: `${res.materialName} Wire: L = ${lengthCm.toFixed(1)} cm, d = ${diameterMm.toFixed(2)} mm => R = ${res.calculatedResistanceOhms.toFixed(2)} Ω, I = ${res.measuredCurrentAmps.toFixed(3)} A (ρ = ${res.calculatedResistivityOhmMeter.toExponential(3)} Ω·m)`,
+      };
+
+      const ammeters = objects.filter((o) => o.equipmentId === 'dc-ammeter');
+      for (const am of ammeters) {
+        updates[am.id] = {
+          current: res.measuredCurrentAmps,
+          status: `Reading: ${res.measuredCurrentAmps.toFixed(3)} A`,
+        };
+      }
+      const voltmeters = objects.filter((o) => o.equipmentId === 'dc-voltmeter');
+      for (const vm of voltmeters) {
+        updates[vm.id] = {
+          voltage: res.measuredVoltageVolts,
+          status: `Reading: ${res.measuredVoltageVolts.toFixed(2)} V`,
+        };
+      }
+
+      messages.push(
+        `Wire Resistivity: ${res.materialName} (L = ${lengthCm.toFixed(1)} cm, d = ${diameterMm.toFixed(2)} mm) => R = ${res.calculatedResistanceOhms.toFixed(2)} Ω, ρ = ${res.calculatedResistivityOhmMeter.toExponential(3)} Ω·m`
+      );
+    }
+
+    // 16. Metre Bridge Simulation
+    const metreBridges = objects.filter((o) => o.equipmentId === 'metre-bridge-board');
+    for (const mb of metreBridges) {
+      const knownR = Number(mb.properties.knownResistanceR ?? 5.0);
+      const unknownX = Number(mb.properties.unknownResistanceX ?? 5.0);
+      const jockeyPos = Number(mb.properties.jockeyPositionCm ?? 50.0);
+      const supplyV = Number(mb.properties.bridgeSupplyVoltage ?? mb.properties.supplyVoltage ?? 2.0);
+
+      const mbRes = calculateMetreBridge({
+        knownResistanceR: knownR,
+        unknownResistanceX: unknownX,
+        jockeyPositionCm: jockeyPos,
+        supplyVoltageVolts: supplyV,
+      });
+
+      const directionStr =
+        mbRes.balanceStatus === 'null-balanced'
+          ? 'center'
+          : mbRes.balanceStatus === 'deflected-left'
+            ? 'left'
+            : 'right';
+
+      updates[mb.id] = {
+        unknownResistanceX: mbRes.unknownResistanceX,
+        isBalanced: mbRes.isBalanced,
+        galvanometerDeflectionDivisions: mbRes.galvanometerDeflectionDivisions,
+        galvanometerDirection: directionStr,
+        nullPointCm: mbRes.nullBalanceLengthCm,
+        calculatedResistanceX: mbRes.calculatedUnknownX,
+        status: mbRes.isBalanced
+          ? `BALANCED NULL POINT: l = ${mbRes.jockeyPositionCm.toFixed(1)} cm => X = ${mbRes.calculatedUnknownX.toFixed(2)} Ω (Ig = 0)`
+          : `Jockey at ${mbRes.jockeyPositionCm.toFixed(1)} cm: Deflection ${directionStr.toUpperCase()} (${Math.abs(mbRes.galvanometerDeflectionDivisions).toFixed(1)} div, null at ${mbRes.nullBalanceLengthCm.toFixed(1)} cm)`,
+      };
+
+      const galvanometers = objects.filter((o) => o.equipmentId === 'moving-coil-galvanometer');
+      for (const g of galvanometers) {
+        updates[g.id] = {
+          deflectionDivisions: mbRes.galvanometerDeflectionDivisions,
+          status: mbRes.isBalanced
+            ? 'Null Balance: 0.0 div'
+            : `Deflection: ${mbRes.galvanometerDeflectionDivisions.toFixed(1)} div (${directionStr})`,
+        };
+      }
+
+      messages.push(
+        `Metre Bridge: Jockey at ${mbRes.jockeyPositionCm.toFixed(1)} cm (Null at ${mbRes.nullBalanceLengthCm.toFixed(1)} cm) => Deflection: ${mbRes.galvanometerDeflectionDivisions.toFixed(1)} div, Calculated X = ${mbRes.calculatedUnknownX.toFixed(2)} Ω`
+      );
+    }
+
+    // 17. Galvanometer Resistance & Figure of Merit (Half Deflection)
+    const calibrators = objects.filter((o) => o.equipmentId === 'ammeter-voltmeter-calibrator');
+    const galvFomObjects = objects.filter(
+      (o) => o.equipmentId === 'moving-coil-galvanometer' && metreBridges.length === 0 && calibrators.length === 0
+    );
+    const highBox = objects.find(
+      (o) => o.equipmentId === 'decade-resistance-box' && String(o.properties.boxType).includes('High')
+    );
+    const shuntBox = objects.find(
+      (o) => o.equipmentId === 'decade-resistance-box' && String(o.properties.boxType).includes('Fractional')
+    );
+    const knifeSwitches = objects.filter((o) => o.equipmentId === 'knife-switch');
+    const shuntKeyClosed = knifeSwitches.some(
+      (k) => k.properties.closed === true || k.state?.isClosed === true
+    );
+
+    for (const g of galvFomObjects) {
+      const gCoil = Number(g.properties.coilResistanceG ?? 100.0);
+      const totalDiv = Number(g.properties.totalDivisions ?? 30);
+      const highR = Number(highBox?.properties.resistance ?? g.properties.highResistanceBoxR ?? 4900.0);
+      const shuntS = Number(shuntBox?.properties.resistance ?? g.properties.lowShuntResistanceS ?? 100.0);
+      const isClosed = Boolean(g.properties.isShuntKeyClosed ?? shuntKeyClosed);
+      const battery = objects.find((o) => o.equipmentId === 'dc-battery');
+      const emf = Number(battery?.properties.voltage ?? 1.5);
+
+      const fomRes = calculateGalvanometerFom({
+        galvanometerTrueResistanceG: gCoil,
+        figureOfMeritK: 2.0e-5,
+        scaleDivisionsN: totalDiv,
+        highResistanceBoxR: highR,
+        lowShuntResistanceS: shuntS,
+        isShuntKeyClosed: isClosed,
+        batteryEmfVolts: emf,
+      });
+
+      const currentDeflection = isClosed
+        ? fomRes.halfDeflectionThetaPrimeDivisions
+        : fomRes.fullDeflectionThetaDivisions;
+
+      updates[g.id] = {
+        deflectionDivisions: currentDeflection,
+        calculatedCoilResistanceG: fomRes.calculatedGalvanometerResistanceG,
+        halfDeflectionResistanceS: shuntS,
+        figureOfMeritK: fomRes.calculatedFigureOfMeritK,
+        fullScaleCurrentMicroAmps: fomRes.fullScaleCurrentMicroAmps,
+        currentMicroAmps: fomRes.galvanometerCurrentMicroAmps,
+        status: `θ = ${currentDeflection.toFixed(1)} div, G = ${fomRes.calculatedGalvanometerResistanceG.toFixed(1)} Ω, k = ${(fomRes.calculatedFigureOfMeritK * 1e6).toFixed(1)} µA/div`,
+      };
+
+      messages.push(
+        `Galvanometer FOM: R = ${highR} Ω, S = ${shuntS} Ω (Key ${isClosed ? 'CLOSED' : 'OPEN'}) => θ = ${currentDeflection.toFixed(1)} div, G = ${fomRes.calculatedGalvanometerResistanceG.toFixed(1)} Ω, k = ${(fomRes.calculatedFigureOfMeritK * 1e6).toFixed(1)} µA/div`
+      );
+    }
+
+    // 18. Meter Conversion & Calibration Simulation
+    for (const cal of calibrators) {
+      const mode = (cal.properties.conversionMode as 'voltmeter' | 'ammeter') ?? 'voltmeter';
+      const gCoil = Number(cal.properties.galvanometerResistanceG ?? 100.0);
+      const range = Number(cal.properties.targetFullScaleRange ?? 3.0);
+      const installedR = Number(
+        cal.properties.installedResistorValue ?? (mode === 'voltmeter' ? 4900.0 : 0.020004)
+      );
+      const testSignal = Number(cal.properties.appliedTestSignal ?? 1.5);
+
+      if (mode === 'voltmeter') {
+        const vRes = calculateGalvanometerToVoltmeter({
+          galvanometerResistanceG: gCoil,
+          figureOfMeritK: 2.0e-5,
+          scaleDivisionsN: 30,
+          targetMaxVoltageRangeVolts: range,
+          installedSeriesResistanceRs: installedR,
+          appliedTestVoltageVolts: testSignal,
+        });
+
+        updates[cal.id] = {
+          requiredSeriesResistanceRs: vRes.requiredSeriesResistanceRs,
+          effectiveVoltmeterResistance: vRes.totalMeterResistanceOhms,
+          scaleDeflectionDivisions: vRes.galvanometerDeflectionDivisions,
+          measuredVoltage: vRes.measuredVoltageVolts,
+          isOverload: vRes.isOverloaded,
+          status: vRes.isOverloaded
+            ? `OVERLOAD! Applied voltage (${testSignal.toFixed(2)} V) exceeds range (${range.toFixed(1)} V)`
+            : `Voltmeter: Rs = ${vRes.requiredSeriesResistanceRs.toFixed(1)} Ω, θ = ${vRes.galvanometerDeflectionDivisions.toFixed(1)} div (V = ${vRes.measuredVoltageVolts.toFixed(2)} V, Rv = ${vRes.totalMeterResistanceOhms.toFixed(0)} Ω)`,
+        };
+
+        if (vRes.isOverloaded) {
+          warnings.push(
+            `Voltmeter Overload: Applied ${testSignal.toFixed(2)} V exceeds full-scale limit ${range.toFixed(1)} V.`
+          );
+        }
+
+        const calGalvs = objects.filter((o) => o.equipmentId === 'moving-coil-galvanometer');
+        for (const g of calGalvs) {
+          updates[g.id] = {
+            deflectionDivisions: vRes.galvanometerDeflectionDivisions,
+            status: `Reading: ${vRes.galvanometerDeflectionDivisions.toFixed(1)} div (${vRes.measuredVoltageVolts.toFixed(2)} V)`,
+          };
+        }
+
+        messages.push(
+          `Voltmeter Calibration: Rs = ${vRes.requiredSeriesResistanceRs.toFixed(1)} Ω => Test ${testSignal.toFixed(2)} V yields ${vRes.galvanometerDeflectionDivisions.toFixed(1)} div`
+        );
+      } else {
+        const aRes = calculateGalvanometerToAmmeter({
+          galvanometerResistanceG: gCoil,
+          figureOfMeritK: 2.0e-5,
+          scaleDivisionsN: 30,
+          targetMaxCurrentRangeAmps: range,
+          installedShuntResistanceS: installedR,
+          appliedCircuitCurrentAmps: testSignal,
+        });
+
+        updates[cal.id] = {
+          requiredShuntResistanceS: aRes.requiredShuntResistanceS,
+          effectiveAmmeterResistance: aRes.totalAmmeterResistanceOhms,
+          scaleDeflectionDivisions: aRes.galvanometerDeflectionDivisions,
+          measuredCurrent: aRes.measuredCurrentAmps,
+          isOverload: aRes.isOverloaded,
+          status: aRes.isOverloaded
+            ? `OVERLOAD! Applied current (${testSignal.toFixed(2)} A) exceeds range (${range.toFixed(1)} A)`
+            : `Ammeter: Shunt S = ${aRes.requiredShuntResistanceS.toFixed(5)} Ω, θ = ${aRes.galvanometerDeflectionDivisions.toFixed(1)} div (I = ${aRes.measuredCurrentAmps.toFixed(2)} A, Ra = ${aRes.totalAmmeterResistanceOhms.toFixed(3)} Ω)`,
+        };
+
+        if (aRes.isOverloaded) {
+          warnings.push(
+            `Ammeter Overload: Applied ${testSignal.toFixed(2)} A exceeds full-scale limit ${range.toFixed(1)} A.`
+          );
+        }
+
+        const calGalvs = objects.filter((o) => o.equipmentId === 'moving-coil-galvanometer');
+        for (const g of calGalvs) {
+          updates[g.id] = {
+            deflectionDivisions: aRes.galvanometerDeflectionDivisions,
+            status: `Reading: ${aRes.galvanometerDeflectionDivisions.toFixed(1)} div (${aRes.measuredCurrentAmps.toFixed(2)} A)`,
+          };
+        }
+
+        messages.push(
+          `Ammeter Calibration: Shunt S = ${aRes.requiredShuntResistanceS.toFixed(5)} Ω => Test ${testSignal.toFixed(2)} A yields ${aRes.galvanometerDeflectionDivisions.toFixed(1)} div`
+        );
+      }
     }
 
     return {
