@@ -1,16 +1,27 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 /**
- * PrayogaProof Capacitor Configuration
- * Pre-configured for seamless Android and iOS compilation in future phases.
+ * PrayogaProof Mobile Capacitor Configuration
+ *
+ * Configured for native Android and iOS application packaging.
+ * Loads the compiled production web bundle from `../dist`.
  */
 const config: CapacitorConfig = {
-  appId: 'org.prayogaproof.stemlab',
+  appId: 'com.prayogaproof.mobile',
   appName: 'PrayogaProof',
-  webDir: 'dist',
+  webDir: '../dist',
   server: {
     androidScheme: 'https',
     cleartext: false,
+  },
+  android: {
+    allowMixedContent: false,
+    captureInput: true,
+    webContentsDebuggingEnabled: false,
+  },
+  ios: {
+    contentInset: 'automatic',
+    scrollEnabled: true,
   },
   plugins: {
     SplashScreen: {

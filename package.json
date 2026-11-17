@@ -12,11 +12,14 @@
     "lint": "eslint src --ext .ts,.tsx",
     "typecheck": "tsc -b",
     "test:e2e": "playwright test",
-    "cap:sync": "cap sync",
-    "cap:build:android": "npm run build && cap sync android",
-    "cap:build:ios": "npm run build && cap sync ios",
-    "cap:open:android": "cap open android",
-    "cap:open:ios": "cap open ios"
+    "app:sync": "node app/scripts/sync.mjs",
+    "app:android": "cd app && npx cap open android",
+    "app:ios": "cd app && npx cap open ios",
+    "app:build:apk": "node app/scripts/build-apk.mjs",
+    "cap:sync": "npm run app:sync",
+    "cap:build:android": "npm run app:build:apk",
+    "cap:open:android": "npm run app:android",
+    "cap:open:ios": "npm run app:ios"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.3",

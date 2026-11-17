@@ -4,7 +4,7 @@ android {
     namespace = "org.prayogaproof.stemlab"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "org.prayogaproof.stemlab"
+        applicationId "com.prayogaproof.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
