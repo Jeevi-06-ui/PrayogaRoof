@@ -2,6 +2,7 @@ import React from 'react';
 import { Group, Rect, Text as KonvaText, Circle, Line } from 'react-konva';
 import { WorkspaceObject, PortDefinition } from '../../../types';
 import { getEquipmentDefinition } from '../../../services/lab/registry';
+import { getSubstanceById } from '../../../services/chemistry/chemicalRegistry';
 
 interface CanvasObjectProps {
   object: WorkspaceObject;
@@ -1010,9 +1011,13 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
 
       case 'beaker': {
         const vol = Number(object.properties.liquidVolume ?? 100);
-        const maxVol = 250;
+        const maxVol = Number(object.properties.capacityMl ?? 250);
         const liquidColor = String(object.state.liquidColor || '#e0f2fe');
-        const fillHeight = Math.max(8, Math.min(height - 35, ((height - 35) * vol) / maxVol));
+        const fillHeight = Math.max(
+          6,
+          Math.min(height - 35, ((height - 35) * vol) / (maxVol || 1))
+        );
+        const phVal = object.state.samplePH;
 
         return (
           <Group>
@@ -1026,38 +1031,770 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
               stroke={isSelected ? '#38bdf8' : '#94a3b8'}
               strokeWidth={isSelected ? 3 : 2}
               cornerRadius={[0, 0, 16, 16]}
-              opacity={0.85}
+              opacity={0.88}
+              shadowColor="#0f172a"
+              shadowBlur={6}
+              shadowOpacity={0.08}
             />
             {/* Liquid Fill */}
-            <Rect
-              x={12}
-              y={height - 10 - fillHeight}
-              width={width - 24}
-              height={fillHeight}
-              fill={liquidColor}
-              opacity={0.65}
-              cornerRadius={[0, 0, 14, 14]}
-            />
+            {vol > 0 && (
+              <Rect
+                x={12}
+                y={height - 10 - fillHeight}
+                width={width - 24}
+                height={fillHeight}
+                fill={liquidColor}
+                opacity={0.75}
+                cornerRadius={[0, 0, 14, 14]}
+              />
+            )}
+            {/* Meniscus Line */}
+            {vol > 0 && (
+              <Line
+                points={[12, height - 10 - fillHeight, width - 12, height - 10 - fillHeight]}
+                stroke="#0284c7"
+                strokeWidth={1.5}
+                opacity={0.8}
+              />
+            )}
             {/* Graduation Markings */}
-            <Line points={[14, 40, 26, 40]} stroke="#64748b" strokeWidth={1} />
-            <Line points={[14, 70, 26, 70]} stroke="#64748b" strokeWidth={1} />
-            <Line points={[14, 100, 26, 100]} stroke="#64748b" strokeWidth={1} />
+            <Line
+              points={[14, height * 0.35, 26, height * 0.35]}
+              stroke="#64748b"
+              strokeWidth={1}
+            />
+            <Line
+              points={[14, height * 0.55, 26, height * 0.55]}
+              stroke="#64748b"
+              strokeWidth={1}
+            />
+            <Line
+              points={[14, height * 0.75, 26, height * 0.75]}
+              stroke="#64748b"
+              strokeWidth={1}
+            />
+            {/* Volume readout */}
             <KonvaText
-              text={`${vol}mL`}
-              x={30}
+              text={`${vol}/${maxVol}mL`}
+              x={width / 2 - 24}
               y={height - 10 - fillHeight / 2 - 6}
-              fontSize={11}
+              fontSize={10}
               fontFamily="sans-serif"
               fontStyle="bold"
               fill="#0f172a"
             />
             <KonvaText
-              text={String(object.properties.reagentSolution || 'Water')}
-              x={14}
-              y={height - 8}
+              text={object.title}
+              x={12}
+              y={height - 20}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#334155"
+            />
+            {phVal !== undefined && (
+              <KonvaText
+                text={`pH: ${Number(phVal).toFixed(1)}`}
+                x={width - 45}
+                y={14}
+                fontSize={9}
+                fontFamily="Courier New, monospace"
+                fontStyle="bold"
+                fill="#0369a1"
+              />
+            )}
+          </Group>
+        );
+      }
+
+      case 'flask': {
+        const vol = Number(object.properties.liquidVolume ?? 80);
+        const maxVol = Number(object.properties.capacityMl ?? 250);
+        const liquidColor = String(object.state.liquidColor || '#e0f2fe');
+        const fillRatio = Math.max(0, Math.min(1, vol / (maxVol || 1)));
+        const phVal = object.state.samplePH;
+
+        const neckW = 30;
+        const neckH = 35;
+        const neckLeft = width / 2 - neckW / 2;
+        const neckRight = width / 2 + neckW / 2;
+        const baseLeft = 10;
+        const baseRight = width - 10;
+        const baseY = height - 10;
+        const neckTopY = 10;
+
+        const flaskPoints = [
+          neckLeft,
+          neckTopY,
+          neckRight,
+          neckTopY,
+          neckRight,
+          neckTopY + neckH,
+          baseRight,
+          baseY,
+          baseLeft,
+          baseY,
+          neckLeft,
+          neckTopY + neckH,
+        ];
+
+        const bodyHeight = baseY - (neckTopY + neckH);
+        const fillHeight = bodyHeight * fillRatio;
+        const liquidTopY = baseY - fillHeight;
+        const span = (baseRight - neckRight) * fillRatio;
+        const liquidPoints = [
+          baseLeft + 2,
+          baseY - 2,
+          baseRight - 2,
+          baseY - 2,
+          baseRight - span,
+          liquidTopY,
+          baseLeft + span,
+          liquidTopY,
+        ];
+
+        return (
+          <Group>
+            {/* Outer Flask Glass Body */}
+            <Line
+              points={flaskPoints}
+              closed
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#94a3b8'}
+              strokeWidth={isSelected ? 3 : 2}
+              opacity={0.88}
+              shadowColor="#0f172a"
+              shadowBlur={6}
+              shadowOpacity={0.08}
+            />
+            {/* Liquid Fill */}
+            {vol > 0 && (
+              <Line points={liquidPoints} closed fill={liquidColor} opacity={0.75} />
+            )}
+            {/* Meniscus Line */}
+            {vol > 0 && (
+              <Line
+                points={[baseLeft + span, liquidTopY, baseRight - span, liquidTopY]}
+                stroke="#0284c7"
+                strokeWidth={1.5}
+              />
+            )}
+            <KonvaText
+              text={`${vol}/${maxVol}mL`}
+              x={width / 2 - 20}
+              y={baseY - 20}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#0f172a"
+            />
+            <KonvaText
+              text={object.title}
+              x={12}
+              y={baseY + 1}
               fontSize={9}
               fontFamily="sans-serif"
               fill="#475569"
+            />
+            {phVal !== undefined && (
+              <KonvaText
+                text={`pH ${Number(phVal).toFixed(1)}`}
+                x={neckRight + 4}
+                y={15}
+                fontSize={9}
+                fontFamily="Courier New, monospace"
+                fontStyle="bold"
+                fill="#0369a1"
+              />
+            )}
+          </Group>
+        );
+      }
+
+      case 'cylinder': {
+        const vol = Number(object.properties.liquidVolume ?? 50);
+        const maxVol = Number(object.properties.capacityMl ?? 100);
+        const liquidColor = String(object.state.liquidColor || '#e0f2fe');
+        const fillRatio = Math.max(0, Math.min(1, vol / (maxVol || 1)));
+        const tubeW = 36;
+        const tubeLeft = width / 2 - tubeW / 2;
+        const tubeTop = 15;
+        const tubeBottom = height - 25;
+        const tubeHeight = tubeBottom - tubeTop;
+        const fillH = tubeHeight * fillRatio;
+
+        return (
+          <Group>
+            {/* Stable Base */}
+            <Rect
+              x={15}
+              y={tubeBottom}
+              width={width - 30}
+              height={15}
+              fill="#cbd5e1"
+              stroke={isSelected ? '#38bdf8' : '#94a3b8'}
+              strokeWidth={1.5}
+              cornerRadius={4}
+            />
+            {/* Vertical Glass Column */}
+            <Rect
+              x={tubeLeft}
+              y={tubeTop}
+              width={tubeW}
+              height={tubeHeight}
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#64748b'}
+              strokeWidth={isSelected ? 2.5 : 1.5}
+              opacity={0.9}
+              cornerRadius={[4, 4, 0, 0]}
+            />
+            {/* Liquid Column */}
+            {vol > 0 && (
+              <Rect
+                x={tubeLeft + 2}
+                y={tubeBottom - fillH}
+                width={tubeW - 4}
+                height={fillH}
+                fill={liquidColor}
+                opacity={0.75}
+              />
+            )}
+            {/* Meniscus Line */}
+            {vol > 0 && (
+              <Line
+                points={[
+                  tubeLeft + 2,
+                  tubeBottom - fillH,
+                  tubeLeft + tubeW - 2,
+                  tubeBottom - fillH,
+                ]}
+                stroke="#0284c7"
+                strokeWidth={1.5}
+              />
+            )}
+            {/* Fine Graduation Ticks */}
+            {[0.2, 0.4, 0.6, 0.8].map((frac, idx) => (
+              <Line
+                key={idx}
+                points={[
+                  tubeLeft + 2,
+                  tubeBottom - tubeHeight * frac,
+                  tubeLeft + 10,
+                  tubeBottom - tubeHeight * frac,
+                ]}
+                stroke="#475569"
+                strokeWidth={1}
+              />
+            ))}
+            <KonvaText
+              text={`${vol}mL`}
+              x={tubeLeft + tubeW + 4}
+              y={tubeBottom - fillH - 6}
+              fontSize={10}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#0f172a"
+            />
+            <KonvaText
+              text={object.title}
+              x={10}
+              y={height - 8}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fill="#475569"
+            />
+          </Group>
+        );
+      }
+
+      case 'test-tube': {
+        const vol = Number(object.properties.liquidVolume ?? 15);
+        const maxVol = Number(object.properties.capacityMl ?? 50);
+        const liquidColor = String(
+          object.state.liquidColor || object.state.solutionColor || '#e0f2fe'
+        );
+        const fillRatio = Math.max(0, Math.min(1, vol / (maxVol || 1)));
+        const tubeW = 34;
+        const tubeLeft = width / 2 - tubeW / 2;
+        const tubeTop = 15;
+        const tubeBottom = height - 20;
+        const tubeHeight = tubeBottom - tubeTop;
+        const fillH = tubeHeight * fillRatio;
+
+        return (
+          <Group>
+            {/* Rim Collar */}
+            <Rect
+              x={tubeLeft - 3}
+              y={tubeTop - 4}
+              width={tubeW + 6}
+              height={6}
+              fill="#e2e8f0"
+              stroke="#94a3b8"
+              strokeWidth={1}
+              cornerRadius={2}
+            />
+            {/* Glass Tube Body */}
+            <Rect
+              x={tubeLeft}
+              y={tubeTop}
+              width={tubeW}
+              height={tubeHeight}
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#94a3b8'}
+              strokeWidth={isSelected ? 2.5 : 1.5}
+              cornerRadius={[0, 0, 16, 16]}
+              opacity={0.88}
+            />
+            {/* Liquid Column */}
+            {vol > 0 && (
+              <Rect
+                x={tubeLeft + 2}
+                y={tubeBottom - fillH}
+                width={tubeW - 4}
+                height={fillH}
+                fill={liquidColor}
+                cornerRadius={[0, 0, 14, 14]}
+                opacity={0.75}
+              />
+            )}
+            <KonvaText
+              text={`${vol}mL`}
+              x={tubeLeft + 4}
+              y={tubeBottom - fillH / 2 - 6}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#0f172a"
+            />
+            <KonvaText
+              text={object.title}
+              x={8}
+              y={height - 8}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fill="#475569"
+            />
+          </Group>
+        );
+      }
+
+      case 'spotting-plate': {
+        return (
+          <Group>
+            {/* Porcelain Tile Body */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#f8fafc"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={12}
+              shadowColor="#0f172a"
+              shadowBlur={6}
+              shadowOpacity={0.1}
+            />
+            <KonvaText
+              text="SPOTTING PLATE (12 CAVITIES)"
+              x={12}
+              y={8}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#64748b"
+            />
+            {/* Render Cavity Depressions (2 rows x 3 cols) */}
+            {[
+              {
+                x: 35,
+                y: 35,
+                id: 'cavity-1',
+                label: 'A1',
+                color: String(object.state.cavity1Color || '#f1f5f9'),
+              },
+              {
+                x: 90,
+                y: 35,
+                id: 'cavity-2',
+                label: 'A2',
+                color: String(object.state.cavity2Color || '#f1f5f9'),
+              },
+              {
+                x: 145,
+                y: 35,
+                id: 'cavity-3',
+                label: 'A3',
+                color: String(object.state.cavity3Color || '#f1f5f9'),
+              },
+              {
+                x: 35,
+                y: 80,
+                id: 'cavity-4',
+                label: 'B1',
+                color: String(object.state.cavity4Color || '#f1f5f9'),
+              },
+              {
+                x: 90,
+                y: 80,
+                id: 'cavity-5',
+                label: 'B2',
+                color: String(object.state.cavity5Color || '#f1f5f9'),
+              },
+              {
+                x: 145,
+                y: 80,
+                id: 'cavity-6',
+                label: 'B3',
+                color: String(object.state.cavity6Color || '#f1f5f9'),
+              },
+            ].map((cav) => (
+              <Group key={cav.id}>
+                <Circle
+                  x={cav.x}
+                  y={cav.y}
+                  radius={18}
+                  fill="#e2e8f0"
+                  stroke="#cbd5e1"
+                  strokeWidth={1}
+                />
+                <Circle
+                  x={cav.x}
+                  y={cav.y}
+                  radius={14}
+                  fill={cav.color}
+                  opacity={0.85}
+                />
+                <KonvaText
+                  text={cav.label}
+                  x={cav.x - 6}
+                  y={cav.y - 4}
+                  fontSize={8}
+                  fontFamily="sans-serif"
+                  fontStyle="bold"
+                  fill="#334155"
+                />
+              </Group>
+            ))}
+            <KonvaText
+              text={String(object.state.cavityStatus || 'Porcelain Glaze')}
+              x={12}
+              y={height - 12}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fill="#64748b"
+            />
+          </Group>
+        );
+      }
+
+      case 'pipette': {
+        const drops = Number(object.properties.dropCount ?? 3);
+        const reagent = String(object.properties.drawnReagent ?? 'universal-indicator');
+        const sub = getSubstanceById(reagent);
+        const liquidColor = sub ? sub.baseColor : '#22c55e';
+
+        return (
+          <Group>
+            {/* Top Rubber Bulb */}
+            <Circle
+              x={width / 2}
+              y={24}
+              radius={18}
+              fill="#dc2626"
+              stroke={isSelected ? '#38bdf8' : '#991b1b'}
+              strokeWidth={isSelected ? 2.5 : 1.5}
+            />
+            {/* Glass Stem */}
+            <Rect
+              x={width / 2 - 5}
+              y={40}
+              width={10}
+              height={height - 65}
+              fill="#ffffff"
+              stroke="#94a3b8"
+              strokeWidth={1}
+              opacity={0.9}
+            />
+            {/* Liquid inside stem */}
+            <Rect
+              x={width / 2 - 4}
+              y={60}
+              width={8}
+              height={height - 90}
+              fill={liquidColor}
+              opacity={0.85}
+            />
+            {/* Dispense Tip */}
+            <Line
+              points={[
+                width / 2 - 5,
+                height - 25,
+                width / 2 + 5,
+                height - 25,
+                width / 2,
+                height - 5,
+              ]}
+              closed
+              fill="#ffffff"
+              stroke="#94a3b8"
+              strokeWidth={1}
+            />
+            <Circle x={width / 2} y={height - 2} radius={3} fill={liquidColor} />
+            <KonvaText
+              text={`${drops} drops`}
+              x={width / 2 + 10}
+              y={45}
+              fontSize={9}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#0f172a"
+            />
+            <KonvaText
+              text={object.title}
+              x={6}
+              y={height + 2}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fill="#475569"
+            />
+          </Group>
+        );
+      }
+
+      case 'stirrer': {
+        return (
+          <Group>
+            {/* Glass Stirring Rod */}
+            <Rect
+              x={width / 2 - 4}
+              y={10}
+              width={8}
+              height={height - 20}
+              fill="#f8fafc"
+              stroke={isSelected ? '#38bdf8' : '#64748b'}
+              strokeWidth={isSelected ? 2.5 : 1.5}
+              cornerRadius={4}
+              opacity={0.9}
+            />
+            <Line
+              points={[width / 2 - 1, 15, width / 2 - 1, height - 15]}
+              stroke="#ffffff"
+              strokeWidth={1.5}
+            />
+            <KonvaText
+              text="STIR ROD"
+              x={width / 2 - 18}
+              y={height / 2 - 6}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#64748b"
+              rotation={-90}
+            />
+          </Group>
+        );
+      }
+
+      case 'funnel': {
+        return (
+          <Group>
+            {/* Funnel Cone */}
+            <Line
+              points={[
+                15,
+                15,
+                width - 15,
+                15,
+                width / 2 + 6,
+                height - 40,
+                width / 2 - 6,
+                height - 40,
+              ]}
+              closed
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#94a3b8'}
+              strokeWidth={isSelected ? 2.5 : 1.5}
+              opacity={0.88}
+            />
+            {/* Funnel Stem */}
+            <Rect
+              x={width / 2 - 4}
+              y={height - 40}
+              width={8}
+              height={35}
+              fill="#ffffff"
+              stroke="#94a3b8"
+              strokeWidth={1}
+            />
+            <KonvaText
+              text="FUNNEL"
+              x={width / 2 - 16}
+              y={22}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#64748b"
+            />
+          </Group>
+        );
+      }
+
+      case 'filter-paper': {
+        return (
+          <Group>
+            <Circle
+              x={width / 2}
+              y={height / 2}
+              radius={Math.min(width, height) / 2 - 10}
+              fill="#f8fafc"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={1.5}
+              dash={[3, 3]}
+            />
+            <Line
+              points={[15, height / 2, width - 15, height / 2]}
+              stroke="#94a3b8"
+              strokeWidth={1}
+            />
+            <KonvaText
+              text="FILTER PAPER"
+              x={width / 2 - 28}
+              y={height / 2 - 14}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#64748b"
+            />
+          </Group>
+        );
+      }
+
+      case 'thermometer': {
+        const temp = Number(object.properties.displayedTemp ?? 25.0);
+        const minT = -10;
+        const maxT = 110;
+        const ratio = Math.max(0, Math.min(1, (temp - minT) / (maxT - minT)));
+        const stemW = 8;
+        const stemX = width / 2 - stemW / 2;
+        const stemH = height - 40;
+        const liquidH = stemH * ratio;
+
+        return (
+          <Group>
+            {/* Thermometer Stem */}
+            <Rect
+              x={stemX}
+              y={10}
+              width={stemW}
+              height={stemH}
+              fill="#f8fafc"
+              stroke={isSelected ? '#38bdf8' : '#94a3b8'}
+              strokeWidth={isSelected ? 2.5 : 1.5}
+              cornerRadius={4}
+            />
+            {/* Liquid Thread */}
+            <Rect
+              x={stemX + 2}
+              y={10 + stemH - liquidH}
+              width={stemW - 4}
+              height={liquidH}
+              fill="#dc2626"
+            />
+            {/* Sensor Bulb */}
+            <Circle
+              x={width / 2}
+              y={height - 18}
+              radius={10}
+              fill="#dc2626"
+              stroke="#991b1b"
+              strokeWidth={1}
+            />
+            {[0.25, 0.5, 0.75].map((frac, idx) => (
+              <Line
+                key={idx}
+                points={[stemX + stemW, 10 + stemH * frac, stemX + stemW + 6, 10 + stemH * frac]}
+                stroke="#475569"
+                strokeWidth={1}
+              />
+            ))}
+            <KonvaText
+              text={`${temp.toFixed(1)}°C`}
+              x={width / 2 + 8}
+              y={10 + stemH - liquidH - 6}
+              fontSize={10}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#dc2626"
+            />
+          </Group>
+        );
+      }
+
+      case 'reagent-bottle': {
+        const vol = Number(object.properties.liquidVolume ?? 120);
+        const maxVol = Number(object.properties.capacityMl ?? 150);
+        const reagentId = String(object.properties.reagentSolution ?? 'hcl');
+        const sub = getSubstanceById(reagentId);
+
+        return (
+          <Group>
+            <Rect
+              x={width / 2 - 14}
+              y={5}
+              width={28}
+              height={14}
+              fill="#451a03"
+              stroke="#78350f"
+              strokeWidth={1}
+              cornerRadius={3}
+            />
+            <Rect
+              x={15}
+              y={20}
+              width={width - 30}
+              height={height - 30}
+              fill="#78350f"
+              stroke={isSelected ? '#38bdf8' : '#451a03'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={10}
+              opacity={0.92}
+            />
+            <Rect
+              x={20}
+              y={40}
+              width={width - 40}
+              height={height - 70}
+              fill="#ffffff"
+              stroke="#cbd5e1"
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+            <KonvaText
+              text={sub ? sub.formula : reagentId.toUpperCase()}
+              x={24}
+              y={48}
+              fontSize={11}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#0f172a"
+            />
+            <KonvaText
+              text={sub ? sub.name : 'Reagent'}
+              x={24}
+              y={64}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fill="#475569"
+              width={width - 48}
+            />
+            <KonvaText
+              text={`${vol}/${maxVol} mL`}
+              x={width / 2 - 20}
+              y={height - 18}
+              fontSize={9}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#fef3c7"
             />
           </Group>
         );

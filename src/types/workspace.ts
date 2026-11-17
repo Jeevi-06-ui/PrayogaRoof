@@ -79,6 +79,13 @@ export interface EquipmentDefinition {
     | 'spotting-plate'
     | 'pipette'
     | 'ph-strip'
+    | 'flask'
+    | 'cylinder'
+    | 'stirrer'
+    | 'funnel'
+    | 'filter-paper'
+    | 'thermometer'
+    | 'reagent-bottle'
     | 'burner'
     | 'generic-box'
     | 'sensor-probe';

@@ -501,6 +501,7 @@ export const UniversalLabWorkspace: React.FC<UniversalLabWorkspaceProps> = ({
 
         {/* Right Panel: Selected-Object Properties & Contextual Notebook */}
         <ObjectInspectorPanel
+          objects={objects}
           selectedObject={selectedObject}
           selectedConnection={selectedConnection}
           connections={connections}

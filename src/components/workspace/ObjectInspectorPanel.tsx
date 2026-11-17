@@ -14,6 +14,11 @@ import {
   AlertTriangle,
   HelpCircle,
   XCircle,
+  Droplet,
+  FlaskConical,
+  Sparkles,
+  ShieldAlert,
+  ArrowRight,
 } from 'lucide-react';
 import {
   WorkspaceObject,
@@ -25,9 +30,22 @@ import {
 } from '../../types';
 import { getEquipmentDefinition } from '../../services/lab/registry';
 import { getConceptualQuestions } from '../../services/circuit/conceptualQuestions';
+import {
+  getSubstanceById,
+  getAllSubstances,
+} from '../../services/chemistry/chemicalRegistry';
+import {
+  transferLiquid,
+  stirContainer,
+  createContainerWithSubstance,
+  recomputeMixtureProperties,
+  STANDARD_ROOM_TEMP,
+} from '../../services/chemistry/chemistryEngine';
+import { ContainerLiquidState, MixtureComponent } from '../../services/chemistry/chemistryTypes';
 import { Button } from '../shared/Button';
 
 interface ObjectInspectorPanelProps {
+  objects?: WorkspaceObject[];
   selectedObject: WorkspaceObject | null;
   selectedConnection: WorkspaceConnection | null;
   connections: WorkspaceConnection[];
@@ -49,10 +67,11 @@ interface ObjectInspectorPanelProps {
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   experimentId?: string;
-  initialTab?: 'inspector' | 'guide' | 'notebook' | 'questions' | 'telemetry';
+  initialTab?: 'inspector' | 'guide' | 'notebook' | 'questions' | 'telemetry' | 'reagents';
 }
 
 export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
+  objects = [],
   selectedObject,
   selectedConnection,
   connections,
@@ -74,8 +93,18 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
   initialTab = 'inspector',
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'inspector' | 'guide' | 'notebook' | 'questions' | 'telemetry'
+    'inspector' | 'guide' | 'notebook' | 'questions' | 'telemetry' | 'reagents'
   >(initialTab);
+
+  // Chemistry transfer and dispense state
+  const [transferDestId, setTransferDestId] = useState<string>('');
+  const [transferVolume, setTransferVolume] = useState<number>(20);
+  const [transferFeedback, setTransferFeedback] = useState<{
+    type: 'success' | 'error' | 'warning';
+    text: string;
+  } | null>(null);
+  const [dispenseSubstanceId, setDispenseSubstanceId] = useState<string>('pure-water');
+  const [dispenseVolume, setDispenseVolume] = useState<number>(25);
 
   // Notebook new measurement input state
   const [newLabel, setNewLabel] = useState('');
@@ -88,12 +117,186 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
 
   const eqDef = selectedObject ? getEquipmentDefinition(selectedObject.equipmentId) : null;
 
+  const isContainer = selectedObject
+    ? ['beaker', 'flask', 'cylinder', 'test-tube', 'reagent-bottle', 'spotting-plate'].includes(
+        eqDef?.renderType || ''
+      )
+    : false;
+
+  const isChemistry =
+    experimentId === 'ph-testing' ||
+    experimentId === 'natural-indicators' ||
+    experimentId === 'chemical-reactions' ||
+    experimentId === 'acids-bases-salts' ||
+    experimentId === 'precipitation' ||
+    eqDef?.subjectId === 'chemistry' ||
+    eqDef?.category === 'container' ||
+    eqDef?.category === 'instrument' ||
+    isContainer;
+
   // Filter connections involving the selected object
   const objectConnections = selectedObject
     ? connections.filter(
         (c) => c.fromObjectId === selectedObject.id || c.toObjectId === selectedObject.id
       )
     : [];
+
+  // Find other container apparatus on the bench
+  const otherContainers = objects.filter(
+    (o) =>
+      selectedObject &&
+      o.id !== selectedObject.id &&
+      ['beaker', 'flask', 'cylinder', 'test-tube', 'reagent-bottle', 'spotting-plate'].includes(
+        getEquipmentDefinition(o.equipmentId)?.renderType || ''
+      )
+  );
+
+  const getContainerState = (obj: WorkspaceObject): ContainerLiquidState => {
+    const capacity = Number(obj.properties.capacityMl ?? 100);
+    const volume = Number(obj.properties.liquidVolume ?? 0);
+    const reagentId = String(obj.properties.reagentSolution ?? 'pure-water');
+    if (
+      obj.properties.mixtureComponentsJson &&
+      typeof obj.properties.mixtureComponentsJson === 'string'
+    ) {
+      try {
+        const parsedComps = JSON.parse(obj.properties.mixtureComponentsJson);
+        return recomputeMixtureProperties({
+          capacityMl: capacity,
+          totalVolumeMl: volume,
+          temperatureC: STANDARD_ROOM_TEMP,
+          ph: 7.0,
+          color: '#e2e8f0',
+          components: parsedComps,
+          isStirred: true,
+          reactionState: 'homogeneous',
+          observationText: '',
+          isOverflow: volume > capacity,
+        });
+      } catch {
+        return createContainerWithSubstance(reagentId, volume, capacity);
+      }
+    }
+    return createContainerWithSubstance(reagentId, volume, capacity);
+  };
+
+  const handlePourLiquid = () => {
+    if (!selectedObject) return;
+    if (!transferDestId) {
+      setTransferFeedback({ type: 'warning', text: 'Select a destination container first.' });
+      return;
+    }
+    const destObject = objects.find((o) => o.id === transferDestId);
+    if (!destObject) {
+      setTransferFeedback({ type: 'error', text: 'Destination container not found on bench.' });
+      return;
+    }
+
+    const sourceState = getContainerState(selectedObject);
+    const destState = getContainerState(destObject);
+
+    const result = transferLiquid(sourceState, destState, transferVolume);
+
+    if (!result.success) {
+      setTransferFeedback({ type: 'error', text: result.message });
+      return;
+    }
+
+    onUpdateProperty(selectedObject.id, 'liquidVolume', result.sourceRemainingMl);
+    onUpdateProperty(
+      selectedObject.id,
+      'mixtureComponentsJson',
+      JSON.stringify(result.sourceNewState.components)
+    );
+
+    onUpdateProperty(destObject.id, 'liquidVolume', result.destinationTotalMl);
+    onUpdateProperty(
+      destObject.id,
+      'mixtureComponentsJson',
+      JSON.stringify(result.destinationNewState.components)
+    );
+
+    if (result.overflowOccurred) {
+      setTransferFeedback({
+        type: 'warning',
+        text: `Transferred ${result.transferredVolumeMl} mL. Warning: Destination overflowed by ${result.overflowVolumeMl} mL!`,
+      });
+    } else {
+      setTransferFeedback({
+        type: 'success',
+        text: `Transferred ${result.transferredVolumeMl} mL into ${destObject.title}.`,
+      });
+    }
+  };
+
+  const handleDispenseReagent = (substanceId: string, volume: number) => {
+    if (!selectedObject) return;
+    const currentState = getContainerState(selectedObject);
+    const sub = getSubstanceById(substanceId);
+    if (!sub) return;
+
+    const moles = sub.defaultConcentrationM * (volume / 1000);
+    const newComp: MixtureComponent = {
+      substanceId: sub.id,
+      substanceName: sub.name,
+      volumeMl: volume,
+      concentrationM: sub.defaultConcentrationM,
+      moles,
+    };
+
+    const newComps = [...currentState.components];
+    const existingIdx = newComps.findIndex((c) => c.substanceId === sub.id);
+    if (existingIdx >= 0) {
+      newComps[existingIdx] = {
+        ...newComps[existingIdx],
+        volumeMl: newComps[existingIdx].volumeMl + volume,
+        moles: newComps[existingIdx].moles + moles,
+      };
+    } else {
+      newComps.push(newComp);
+    }
+
+    const newTotal = currentState.totalVolumeMl + volume;
+    const isOverflow = newTotal > currentState.capacityMl;
+    const cappedTotal = Math.min(newTotal, currentState.capacityMl);
+
+    const updated = recomputeMixtureProperties({
+      ...currentState,
+      components: newComps,
+      totalVolumeMl: cappedTotal,
+      isOverflow,
+    });
+
+    onUpdateProperty(selectedObject.id, 'liquidVolume', updated.totalVolumeMl);
+    onUpdateProperty(selectedObject.id, 'reagentSolution', substanceId);
+    onUpdateProperty(
+      selectedObject.id,
+      'mixtureComponentsJson',
+      JSON.stringify(updated.components)
+    );
+
+    setTransferFeedback({
+      type: isOverflow ? 'warning' : 'success',
+      text: isOverflow
+        ? `Added ${volume} mL ${sub.name}. Overflow: volume capped to ${currentState.capacityMl} mL!`
+        : `Added ${volume} mL of ${sub.name} into ${selectedObject.title}.`,
+    });
+  };
+
+  const handleStirSolution = () => {
+    if (!selectedObject) return;
+    const currentState = getContainerState(selectedObject);
+    const stirred = stirContainer(currentState);
+    onUpdateProperty(
+      selectedObject.id,
+      'mixtureComponentsJson',
+      JSON.stringify(stirred.components)
+    );
+    setTransferFeedback({
+      type: 'success',
+      text: `Agitated ${selectedObject.title} with glass stirring rod. Mixture is homogeneous.`,
+    });
+  };
 
   const handleAddMeasurement = (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,6 +366,51 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
         value: `T = ${period} s (g_calc = ${gCalc} m/s²)`,
         unit: '',
       };
+    } else if (experimentId === 'ph-testing') {
+      const containerObj =
+        selectedObject && isContainer
+          ? selectedObject
+          : objects.find((o) =>
+              ['beaker', 'flask', 'cylinder', 'test-tube', 'spotting-plate'].includes(
+                getEquipmentDefinition(o.equipmentId)?.renderType || ''
+              )
+            );
+      const updatesForObj = containerObj ? updates[containerObj.id] : null;
+      const phVal = updatesForObj?.samplePH ?? (containerObj?.properties?.samplePH as number) ?? 7.0;
+      const volVal =
+        updatesForObj?.liquidVolume ?? (containerObj?.properties?.liquidVolume as number) ?? 0;
+      const title = containerObj?.title ?? 'Tested Solution';
+      const obs = updatesForObj?.observationText ?? 'pH measurement logged';
+
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${title}`,
+        value: `pH = ${Number(phVal).toFixed(2)}, Vol = ${volVal} mL (${obs})`,
+        unit: '',
+      };
+    } else if (experimentId === 'natural-indicators') {
+      const containerObj =
+        selectedObject && isContainer
+          ? selectedObject
+          : objects.find((o) =>
+              ['beaker', 'flask', 'cylinder', 'test-tube', 'spotting-plate'].includes(
+                getEquipmentDefinition(o.equipmentId)?.renderType || ''
+              )
+            );
+      const updatesForObj = containerObj ? updates[containerObj.id] : null;
+      const phVal = updatesForObj?.samplePH ?? 7.0;
+      const colorVal = updatesForObj?.liquidColor ?? 'Yellow';
+      const obs = updatesForObj?.observationText ?? 'Indicator shift logged';
+      const title = containerObj?.title ?? 'Natural Indicator Sample';
+
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: ${title}`,
+        value: `Color = ${colorVal}, pH = ${Number(phVal).toFixed(1)} (${obs})`,
+        unit: '',
+      };
     } else {
       let volt = 0;
       let curr = 0;
@@ -224,6 +472,7 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
             { id: 'notebook', label: 'Notebook', icon: FileText },
             { id: 'questions', label: 'Quiz', icon: HelpCircle },
             { id: 'telemetry', label: 'Live Data', icon: Activity },
+            ...(isChemistry ? [{ id: 'reagents', label: 'Reagents', icon: Droplet }] : []),
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -453,6 +702,228 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                   <p className="text-xs text-slate-400">No editable properties for this apparatus.</p>
                 )}
               </div>
+
+              {/* Chemistry Container Interactions (Pouring, Dispensing, Agitation) */}
+              {isContainer && (
+                <div className="space-y-3 pt-1">
+                  {(() => {
+                    const cState = getContainerState(selectedObject);
+                    const fillPct = Math.min(
+                      100,
+                      Math.round((cState.totalVolumeMl / cState.capacityMl) * 100)
+                    );
+
+                    return (
+                      <>
+                        {/* Container Liquid Content Card */}
+                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                          <div className="flex items-center justify-between text-xs font-semibold">
+                            <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                              <FlaskConical className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                              Container Fill Level
+                            </span>
+                            <span className="font-mono text-emerald-600 dark:text-emerald-400">
+                              {cState.totalVolumeMl} / {cState.capacityMl} mL ({fillPct}%)
+                            </span>
+                          </div>
+
+                          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full transition-all duration-300 ${
+                                cState.isOverflow
+                                  ? 'bg-red-500 animate-pulse'
+                                  : cState.totalVolumeMl > 0
+                                    ? 'bg-emerald-500'
+                                    : 'bg-slate-300'
+                              }`}
+                              style={{ width: `${fillPct}%` }}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+                            <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                              <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                                Solution pH
+                              </span>
+                              <span className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5 mt-0.5">
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full inline-block border border-slate-300"
+                                  style={{ backgroundColor: cState.color }}
+                                />
+                                {cState.ph.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                              <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                                Temperature
+                              </span>
+                              <span className="font-bold text-slate-800 dark:text-slate-100 font-mono mt-0.5 block">
+                                {cState.temperatureC.toFixed(1)} °C
+                              </span>
+                            </div>
+                          </div>
+
+                          {cState.observationText && (
+                            <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug p-2 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
+                              {cState.observationText}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Liquid Transfer / Pouring */}
+                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                          <h5 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <Droplet className="w-3.5 h-3.5 text-blue-500" />
+                            Pour Liquid to Container
+                          </h5>
+                          {otherContainers.length > 0 ? (
+                            <div className="space-y-2">
+                              <div>
+                                <label className="text-[11px] text-slate-500 block mb-1">
+                                  Destination Container
+                                </label>
+                                <select
+                                  value={transferDestId}
+                                  onChange={(e) => setTransferDestId(e.target.value)}
+                                  className="w-full p-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200"
+                                >
+                                  <option value="">-- Select destination --</option>
+                                  {otherContainers.map((c) => (
+                                    <option key={c.id} value={c.id}>
+                                      {c.title} ({c.properties.liquidVolume ?? 0}/
+                                      {c.properties.capacityMl ?? 100} mL)
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1">
+                                  <label className="text-[11px] text-slate-500 block mb-1">
+                                    Pour Volume (mL)
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={cState.totalVolumeMl || 100}
+                                    value={transferVolume}
+                                    onChange={(e) =>
+                                      setTransferVolume(Math.max(1, parseInt(e.target.value) || 1))
+                                    }
+                                    className="w-full p-1.5 text-xs font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg"
+                                  />
+                                </div>
+                                <div className="flex gap-1 pt-4">
+                                  {[10, 25, 50].map((v) => (
+                                    <button
+                                      key={v}
+                                      type="button"
+                                      onClick={() => setTransferVolume(v)}
+                                      className="px-2 py-1 text-[10px] rounded bg-slate-200 dark:bg-slate-700 font-mono text-slate-700 dark:text-slate-300 hover:bg-blue-100 dark:hover:bg-blue-900"
+                                    >
+                                      {v}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="primary"
+                                onClick={handlePourLiquid}
+                                disabled={cState.totalVolumeMl <= 0 || !transferDestId}
+                                className="w-full text-xs"
+                                leftIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                              >
+                                Pour {transferVolume} mL Liquid
+                              </Button>
+                            </div>
+                          ) : (
+                            <p className="text-[11px] text-slate-400">
+                              Drag another beaker, flask, or cylinder onto the table to pour liquids.
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Reagent Dispenser Aliquot */}
+                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                          <h5 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                            Dispense Reagent Aliquot
+                          </h5>
+                          <div className="space-y-2">
+                            <select
+                              value={dispenseSubstanceId}
+                              onChange={(e) => setDispenseSubstanceId(e.target.value)}
+                              className="w-full p-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200"
+                            >
+                              {getAllSubstances().map((sub) => (
+                                <option key={sub.id} value={sub.id}>
+                                  {sub.name} ({sub.formula})
+                                </option>
+                              ))}
+                            </select>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min={1}
+                                max={100}
+                                value={dispenseVolume}
+                                onChange={(e) =>
+                                  setDispenseVolume(Math.max(1, parseInt(e.target.value) || 1))
+                                }
+                                className="w-20 p-1.5 text-xs font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg"
+                              />
+                              <span className="text-xs text-slate-500">mL</span>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() =>
+                                  handleDispenseReagent(dispenseSubstanceId, dispenseVolume)
+                                }
+                                className="flex-1 text-xs"
+                                leftIcon={<Plus className="w-3 h-3" />}
+                              >
+                                Add Chemical
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="pt-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={handleStirSolution}
+                              className="w-full text-xs"
+                              leftIcon={<RotateCw className="w-3.5 h-3.5 text-cyan-600" />}
+                            >
+                              Stir with Glass Rod
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Real-time Transfer Feedback Banner */}
+                        {transferFeedback && (
+                          <div
+                            className={`p-2.5 rounded-xl text-xs flex items-center justify-between border ${
+                              transferFeedback.type === 'error'
+                                ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+                                : transferFeedback.type === 'warning'
+                                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300'
+                                  : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
+                            }`}
+                          >
+                            <span>{transferFeedback.text}</span>
+                            <button
+                              onClick={() => setTransferFeedback(null)}
+                              className="text-slate-400 hover:text-slate-600 ml-2"
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
 
               {/* Connected Ports List */}
               <div>
@@ -923,6 +1394,118 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Tab 6: Chemical Reagent Inventory & Safety */}
+      {activeTab === 'reagents' && (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+          <div className="space-y-1">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              Chemical Reagents & Safety
+            </h4>
+            <p className="text-xs text-slate-500">
+              Curriculum substances with educational hazard classification and handling guidelines.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {getAllSubstances().map((sub) => {
+              const isIndicator =
+                sub.category === 'natural-indicator' || sub.category === 'synthetic-indicator';
+              const categoryColor =
+                sub.category === 'strong-acid' || sub.category === 'weak-acid'
+                  ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                  : sub.category === 'strong-base' || sub.category === 'weak-base'
+                    ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
+                    : isIndicator
+                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                      : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+
+              return (
+                <div
+                  key={sub.id}
+                  className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2.5 shadow-xs"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h5 className="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                        {sub.name}
+                      </h5>
+                      <span className="font-mono text-[11px] text-slate-500">{sub.formula}</span>
+                    </div>
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${categoryColor}`}
+                    >
+                      {sub.category.replace('-', ' ')}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-[11px]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-500">pH:</span>
+                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                        {sub.basePH.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-500">Color:</span>
+                      <span
+                        className="w-3.5 h-3.5 rounded border border-slate-300 inline-block"
+                        style={{ backgroundColor: sub.baseColor }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-500">Conc:</span>
+                      <span className="font-mono text-slate-700 dark:text-slate-300">
+                        {sub.defaultConcentrationM} M
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Hazard tags */}
+                  <div className="flex flex-wrap gap-1">
+                    {sub.hazards.map((h, i) => (
+                      <span
+                        key={i}
+                        className="px-1.5 py-0.5 rounded text-[10px] bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 flex items-center gap-1"
+                      >
+                        <ShieldAlert className="w-2.5 h-2.5 text-amber-600" />
+                        {h}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Educational Safety Note */}
+                  <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                    <p className="font-semibold text-slate-700 dark:text-slate-300 mb-0.5">
+                      Safety Handling Note:
+                    </p>
+                    <p>{sub.safetyNotes}</p>
+                  </div>
+
+                  {/* Action: Dispense into currently selected container */}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={!selectedObject || !isContainer}
+                    onClick={() =>
+                      handleDispenseReagent(
+                        sub.id,
+                        isIndicator ? 5 : 25
+                      )
+                    }
+                    className="w-full text-xs mt-1"
+                    leftIcon={<Droplet className="w-3 h-3 text-emerald-600" />}
+                  >
+                    {selectedObject && isContainer
+                      ? `Dispense ${isIndicator ? '5 mL' : '25 mL'} into ${selectedObject.title}`
+                      : 'Select a container on bench to dispense'}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </aside>

@@ -4,6 +4,10 @@ import {
   MAGNETIC_FIELD_QUESTIONS,
   SIMPLE_PENDULUM_QUESTIONS,
 } from '../physics/physicsQuestions';
+import {
+  PH_TESTING_QUESTIONS,
+  NATURAL_INDICATORS_QUESTIONS,
+} from '../chemistry/chemistryQuestions';
 
 export const OHMS_LAW_QUESTIONS: ConceptualQuestion[] = [
   {
@@ -95,5 +99,7 @@ export function getConceptualQuestions(experimentId: string): ConceptualQuestion
   if (experimentId === 'convex-lens') return CONVEX_LENS_QUESTIONS;
   if (experimentId === 'magnetic-field') return MAGNETIC_FIELD_QUESTIONS;
   if (experimentId === 'simple-pendulum') return SIMPLE_PENDULUM_QUESTIONS;
+  if (experimentId === 'ph-testing') return PH_TESTING_QUESTIONS;
+  if (experimentId === 'natural-indicators') return NATURAL_INDICATORS_QUESTIONS;
   return [...OHMS_LAW_QUESTIONS, ...SERIES_PARALLEL_QUESTIONS];
 }
