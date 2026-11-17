@@ -21,7 +21,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(ids).toContain('mathematics');
   });
 
-  it('should have Physics and Chemistry active, Biology and Mathematics Coming Soon', () => {
+  it('should have Physics, Chemistry, and Mathematics active, Biology Coming Soon', () => {
     const physics = getSubjectById('physics');
     const chemistry = getSubjectById('chemistry');
     const biology = getSubjectById('biology');
@@ -30,13 +30,16 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(physics?.status).toBe('active');
     expect(chemistry?.status).toBe('active');
     expect(biology?.status).toBe('coming-soon');
-    expect(math?.status).toBe('coming-soon');
+    expect(math?.status).toBe('active');
 
     expect(physics?.totalExperiments).toBe(25);
     expect(physics?.availableExperiments).toBe(25);
 
     expect(chemistry?.totalExperiments).toBe(27);
     expect(chemistry?.availableExperiments).toBe(27);
+
+    expect(math?.totalExperiments).toBe(12);
+    expect(math?.availableExperiments).toBe(12);
   });
 
   describe('Physics Curriculum (25 Experiments)', () => {

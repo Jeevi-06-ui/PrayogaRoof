@@ -45,10 +45,12 @@ test.describe('PrayogaProof E2E Test Suite', () => {
     await expect(page.getByText(/Biology is on hold for future phases/i)).toBeVisible();
   });
 
-  test('Mathematics subject route displays Coming Soon message without breaking', async ({ page }) => {
+  test('Mathematics subject route loads active Mathematics Laboratory with iframe host', async ({ page }) => {
     await page.goto('/subjects/mathematics');
     await expect(page.getByRole('heading', { name: /Mathematics Laboratory/i })).toBeVisible();
-    await expect(page.getByText(/Mathematics is on hold for future phases/i)).toBeVisible();
+    await expect(page.getByText('Active Interactive Laboratory')).toBeVisible();
+    const iframe = page.locator('iframe[title="PrayogaProof Interactive Mathematics Laboratory"]');
+    await expect(iframe).toBeVisible();
   });
 
   test('Loads Ohm’s Law workspace and interacts with Toolbar and Mode switch', async ({ page }) => {

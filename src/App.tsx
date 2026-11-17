@@ -7,6 +7,7 @@ import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { PhysicsPage } from './pages/PhysicsPage';
 import { ChemistryPage } from './pages/ChemistryPage';
+import { MathematicsPage } from './pages/MathematicsPage';
 import { ComingSoonPage } from './pages/ComingSoonPage';
 import { ExperimentDetailPage } from './pages/ExperimentDetailPage';
 import { WorkspacePage } from './pages/WorkspacePage';
@@ -28,7 +29,7 @@ export const App: React.FC = () => {
                 <Route path="subjects/physics" element={<PhysicsPage />} />
                 <Route path="subjects/chemistry" element={<ChemistryPage />} />
                 <Route path="subjects/biology" element={<ComingSoonPage subjectId="biology" />} />
-                <Route path="subjects/mathematics" element={<ComingSoonPage subjectId="mathematics" />} />
+                <Route path="subjects/mathematics" element={<MathematicsPage />} />
                 <Route path="experiments/:experimentId" element={<ExperimentDetailPage />} />
                 <Route path="workspace" element={<WorkspacePage />} />
                 <Route path="workspace/:experimentId" element={<WorkspacePage />} />

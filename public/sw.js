@@ -1,11 +1,15 @@
 // PrayogaProof Production Offline Service Worker
-// Version: 1.0.0 - Cross-platform Progressive Web App Cache
-const CACHE_NAME = 'prayogaproof-core-v1.0.0';
+// Version: 1.1.0 - Cross-platform Progressive Web App Cache with Mathematics Module
+const CACHE_NAME = 'prayogaproof-core-v1.1.0';
 const CORE_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.svg',
+  '/math-module/index.html',
+  '/math-module/assets/index-BR0wpfdv.js',
+  '/math-module/assets/index-DcihOyag.css',
+  '/math-module/icons/logo.svg',
 ];
 
 // Install Event: Pre-cache application shell
@@ -52,9 +56,13 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(async () => {
-          // If offline or network error, serve cached index.html
+          // If offline or network error, serve cached math-module index if math request, else root index.html
           const cachedNavigate = await caches.match(request);
           if (cachedNavigate) return cachedNavigate;
+          if (request.url.includes('/math-module/')) {
+            const cachedMath = await caches.match('/math-module/index.html');
+            if (cachedMath) return cachedMath;
+          }
           const cachedIndex = await caches.match('/index.html');
           if (cachedIndex) return cachedIndex;
           return caches.match('/');

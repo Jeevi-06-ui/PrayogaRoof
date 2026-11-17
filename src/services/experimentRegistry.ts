@@ -44,16 +44,15 @@ export const SUBJECTS: SubjectMetadata[] = [
   {
     id: 'mathematics',
     name: 'Mathematics',
-    tagline: 'Spatial Geometry & Dynamic Models',
-    description: 'Coordinate graphing, 3D polyhedra manipulations, probability experiments, and algebraic geometry canvases in development.',
-    status: 'coming-soon',
+    tagline: 'Classes 10–12 Interactive Mathematics & Labs',
+    description: 'Coordinate geometry, trigonometry, calculus, algebra simulations, 3D visualizers, and JEE practice arena.',
+    status: 'active',
     accentColor: '#7c3aed',
     badgeBg: 'bg-purple-100 dark:bg-purple-950/60',
     badgeText: 'text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800',
-    totalExperiments: 0,
-    availableExperiments: 0,
+    totalExperiments: 12,
+    availableExperiments: 12,
     iconName: 'Calculator',
-    plannedQuarter: 'Curriculum Alignment In Progress',
   },
 ];
 

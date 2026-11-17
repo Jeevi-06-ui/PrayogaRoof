@@ -70,10 +70,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       to: '/subjects/mathematics',
-      label: 'Mathematics',
+      label: 'Mathematics Lab',
       icon: Calculator,
-      badge: 'Soon',
-      comingSoon: true,
+      badge: 'Classes 10-12',
+      activeColor: 'text-purple-600 dark:text-purple-400',
     },
     {
       to: '/profile',

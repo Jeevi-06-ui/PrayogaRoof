@@ -91,12 +91,22 @@ export const SubjectCard: React.FC<SubjectCardProps> = ({
             <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden mb-3">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
-                  subject.id === 'physics' ? 'bg-blue-600 dark:bg-blue-500' : 'bg-emerald-600 dark:bg-emerald-500'
+                  subject.id === 'physics'
+                    ? 'bg-blue-600 dark:bg-blue-500'
+                    : subject.id === 'chemistry'
+                    ? 'bg-emerald-600 dark:bg-emerald-500'
+                    : 'bg-purple-600 dark:bg-purple-500'
                 }`}
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-sm font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">
+            <div className={`flex items-center justify-between text-sm font-semibold group-hover:translate-x-0.5 transition-transform ${
+              subject.id === 'physics'
+                ? 'text-blue-600 dark:text-blue-400'
+                : subject.id === 'chemistry'
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-purple-600 dark:text-purple-400'
+            }`}>
               <span>Enter {subject.name} Lab</span>
               <ArrowRight className="w-4 h-4 ml-1" />
             </div>
