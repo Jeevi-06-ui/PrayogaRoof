@@ -21,6 +21,7 @@ import { ObjectInspectorPanel } from './ObjectInspectorPanel';
 import { LabCanvas } from './canvas/LabCanvas';
 import { Modal } from '../shared/Modal';
 import { Button } from '../shared/Button';
+import { ErrorBoundary } from '../shared/ErrorBoundary';
 import {
   getWorkspacesByExperiment,
   createWorkspace,
@@ -482,21 +483,23 @@ export const UniversalLabWorkspace: React.FC<UniversalLabWorkspaceProps> = ({
 
         {/* Center: Large Interactive Working Canvas */}
         <main className="flex-1 h-full overflow-hidden relative">
-          <LabCanvas
-            objects={simulatedObjects}
-            connections={connections}
-            selectedObjectId={selectedObjectId}
-            selectedConnectionId={selectedConnectionId}
-            gridSnap={gridSnap}
-            scale={scale}
-            stagePosition={stagePosition}
-            onStagePositionChange={setStagePosition}
-            onSelectObject={setSelectedObjectId}
-            onSelectConnection={setSelectedConnectionId}
-            onMoveObject={handleMoveObject}
-            onConnectPorts={handleConnectPorts}
-            feedbackMessage={feedback}
-          />
+          <ErrorBoundary fallbackTitle="Canvas Canvas Engine Error">
+            <LabCanvas
+              objects={simulatedObjects}
+              connections={connections}
+              selectedObjectId={selectedObjectId}
+              selectedConnectionId={selectedConnectionId}
+              gridSnap={gridSnap}
+              scale={scale}
+              stagePosition={stagePosition}
+              onStagePositionChange={setStagePosition}
+              onSelectObject={setSelectedObjectId}
+              onSelectConnection={setSelectedConnectionId}
+              onMoveObject={handleMoveObject}
+              onConnectPorts={handleConnectPorts}
+              feedbackMessage={feedback}
+            />
+          </ErrorBoundary>
         </main>
 
         {/* Right Panel: Selected-Object Properties & Contextual Notebook */}

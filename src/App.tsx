@@ -12,30 +12,33 @@ import { ExperimentDetailPage } from './pages/ExperimentDetailPage';
 import { WorkspacePage } from './pages/WorkspacePage';
 import { ProfileSettingsPage } from './pages/ProfileSettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
 export const App: React.FC = () => {
   return (
     <ThemeProvider>
       <StudentProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Landing page wrapped inside master shell */}
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<LandingPage />} />
-              <Route path="dashboard" element={<DashboardPage />} />
-              <Route path="subjects/physics" element={<PhysicsPage />} />
-              <Route path="subjects/chemistry" element={<ChemistryPage />} />
-              <Route path="subjects/biology" element={<ComingSoonPage subjectId="biology" />} />
-              <Route path="subjects/mathematics" element={<ComingSoonPage subjectId="mathematics" />} />
-              <Route path="experiments/:experimentId" element={<ExperimentDetailPage />} />
-              <Route path="workspace" element={<WorkspacePage />} />
-              <Route path="workspace/:experimentId" element={<WorkspacePage />} />
-              <Route path="profile" element={<ProfileSettingsPage />} />
-              <Route path="settings" element={<Navigate to="/profile" replace />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
+        <ErrorBoundary>
+          <BrowserRouter>
+            <Routes>
+              {/* Landing page wrapped inside master shell */}
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<LandingPage />} />
+                <Route path="dashboard" element={<DashboardPage />} />
+                <Route path="subjects/physics" element={<PhysicsPage />} />
+                <Route path="subjects/chemistry" element={<ChemistryPage />} />
+                <Route path="subjects/biology" element={<ComingSoonPage subjectId="biology" />} />
+                <Route path="subjects/mathematics" element={<ComingSoonPage subjectId="mathematics" />} />
+                <Route path="experiments/:experimentId" element={<ExperimentDetailPage />} />
+                <Route path="workspace" element={<WorkspacePage />} />
+                <Route path="workspace/:experimentId" element={<WorkspacePage />} />
+                <Route path="profile" element={<ProfileSettingsPage />} />
+                <Route path="settings" element={<Navigate to="/profile" replace />} />
+                <Route path="*" element={<NotFoundPage />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </ErrorBoundary>
       </StudentProvider>
     </ThemeProvider>
   );

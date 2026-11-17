@@ -12,3 +12,17 @@ if (rootElement) {
     </React.StrictMode>
   );
 }
+
+// Register Offline Service Worker in production / supporting environments
+if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        console.info('PrayogaProof PWA Service Worker registered:', registration.scope);
+      })
+      .catch((error) => {
+        console.warn('PrayogaProof Service Worker registration failed:', error);
+      });
+  });
+}
