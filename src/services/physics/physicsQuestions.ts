@@ -1,5 +1,20 @@
 import { ConceptualQuestion } from '../circuit/types';
 import { OHMS_LAW_QUESTIONS, SERIES_PARALLEL_QUESTIONS } from '../circuit/conceptualQuestions';
+import {
+  VERNIER_CALLIPERS_QUESTIONS,
+  SCREW_GAUGE_QUESTIONS,
+  IRREGULAR_LAMINA_QUESTIONS,
+  SPHEROMETER_QUESTIONS,
+  BEAM_BALANCE_QUESTIONS,
+} from './class11Questions';
+
+export {
+  VERNIER_CALLIPERS_QUESTIONS,
+  SCREW_GAUGE_QUESTIONS,
+  IRREGULAR_LAMINA_QUESTIONS,
+  SPHEROMETER_QUESTIONS,
+  BEAM_BALANCE_QUESTIONS,
+};
 
 export const CONVEX_LENS_QUESTIONS: ConceptualQuestion[] = [
   {
@@ -157,6 +172,16 @@ export function getPhysicsQuestions(experimentId: string): ConceptualQuestion[] 
       return MAGNETIC_FIELD_QUESTIONS;
     case 'simple-pendulum':
       return SIMPLE_PENDULUM_QUESTIONS;
+    case 'vernier-callipers':
+      return VERNIER_CALLIPERS_QUESTIONS;
+    case 'screw-gauge':
+      return SCREW_GAUGE_QUESTIONS;
+    case 'irregular-lamina':
+      return IRREGULAR_LAMINA_QUESTIONS;
+    case 'spherometer':
+      return SPHEROMETER_QUESTIONS;
+    case 'beam-balance':
+      return BEAM_BALANCE_QUESTIONS;
     default:
       return [];
   }

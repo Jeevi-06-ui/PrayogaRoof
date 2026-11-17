@@ -11,6 +11,17 @@ import { solveDCCircuit } from '../circuit/circuitSolver';
 import { calculateThinLens } from '../physics/opticsModel';
 import { calculateMagneticField, simulateMagneticField } from '../physics/magnetismModel';
 import { calculatePendulumState } from '../physics/mechanicsModel';
+import {
+  calculateVernierReading,
+  calculateCylinderVolume,
+  calculateSphereVolume,
+  calculateScrewGaugeReading,
+  calculateWireCrossSection,
+  evaluateLaminaArea,
+  calculateSpherometerRadius,
+  calculateBeamBalanceState,
+  STANDARD_LAMINA_VERTICES,
+} from '../physics/precisionMechanicsModel';
 
 export const PHYSICS_EQUIPMENT: EquipmentDefinition[] = [
   {
@@ -749,6 +760,642 @@ export const PHYSICS_EQUIPMENT: EquipmentDefinition[] = [
     renderType: 'screen',
     colorTheme: '#0284c7',
   },
+  {
+    id: 'vernier-calliper',
+    name: 'Vernier Callipers',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Precision calliper with fixed and sliding jaws, main scale (1 mm pitch), 10-division vernier scale (0.1 mm LC), and depth probe.',
+    iconName: 'Ruler',
+    defaultWidth: 460,
+    defaultHeight: 140,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'jawPosition',
+        label: 'Jaw Separation (x)',
+        type: 'number',
+        defaultValue: 25.4,
+        min: 0,
+        max: 120,
+        step: 0.1,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'zeroError',
+        label: 'Zero Error (ZE)',
+        type: 'number',
+        defaultValue: 0.0,
+        min: -1.0,
+        max: 1.0,
+        step: 0.1,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'vernierDivisions',
+        label: 'Vernier Divisions',
+        type: 'number',
+        defaultValue: 10,
+        min: 10,
+        max: 20,
+        step: 10,
+        editable: true,
+      },
+      {
+        id: 'measurementMode',
+        label: 'Measurement Mode',
+        type: 'select',
+        defaultValue: 'external-jaws',
+        options: [
+          { label: 'External Jaws (Diameter/Length)', value: 'external-jaws' },
+          { label: 'Internal Jaws (Inner Diameter)', value: 'internal-jaws' },
+          { label: 'Depth Gauge Strip (Depth)', value: 'depth-gauge' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'grippedObject',
+        label: 'Object in Jaws',
+        type: 'select',
+        defaultValue: 'metallic-cylinder',
+        options: [
+          { label: 'Metallic Cylinder (d = 25.4 mm, h = 52.0 mm)', value: 'metallic-cylinder' },
+          { label: 'Steel Sphere (d = 18.6 mm)', value: 'steel-sphere' },
+          { label: 'Hollow Beaker (ID = 48.2 mm, Depth = 64.5 mm)', value: 'beaker' },
+          { label: 'Empty (Manual Jaw Slide)', value: 'none' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'vernier-calliper',
+    colorTheme: '#475569',
+  },
+  {
+    id: 'test-cylinder',
+    name: 'Metallic Specimen Cylinder',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Machined solid metallic test cylinder for diameter, height, and volume measurements.',
+    iconName: 'Cylinder',
+    defaultWidth: 90,
+    defaultHeight: 120,
+    rotatable: true,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'diameter',
+        label: 'Diameter (d)',
+        type: 'number',
+        defaultValue: 25.4,
+        min: 10,
+        max: 60,
+        step: 0.1,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'length',
+        label: 'Height / Length (h)',
+        type: 'number',
+        defaultValue: 52.0,
+        min: 20,
+        max: 100,
+        step: 0.1,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'material',
+        label: 'Material',
+        type: 'select',
+        defaultValue: 'Brass',
+        options: [
+          { label: 'Brass (ρ = 8.5 g/cm³)', value: 'Brass' },
+          { label: 'Steel (ρ = 7.8 g/cm³)', value: 'Steel' },
+          { label: 'Aluminum (ρ = 2.7 g/cm³)', value: 'Aluminum' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'test-cylinder',
+    colorTheme: '#d97706',
+  },
+  {
+    id: 'test-sphere',
+    name: 'Metallic Test Sphere',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Precision spherical ball bearing for curvature, diameter, and volume determinations.',
+    iconName: 'Circle',
+    defaultWidth: 100,
+    defaultHeight: 100,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'diameter',
+        label: 'Diameter (d)',
+        type: 'number',
+        defaultValue: 18.6,
+        min: 5,
+        max: 40,
+        step: 0.1,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'material',
+        label: 'Material',
+        type: 'select',
+        defaultValue: 'Steel',
+        options: [
+          { label: 'Hardened Steel', value: 'Steel' },
+          { label: 'Brass', value: 'Brass' },
+          { label: 'Glass', value: 'Glass' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'test-sphere',
+    colorTheme: '#64748b',
+  },
+  {
+    id: 'micrometer-screw-gauge',
+    name: 'Micrometer Screw Gauge',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'High-precision micrometer with ratchet stop, linear pitch scale (1 mm pitch), and 100-division circular thimble (0.01 mm LC).',
+    iconName: 'Crosshair',
+    defaultWidth: 420,
+    defaultHeight: 170,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'spindleGap',
+        label: 'Spindle Gap (d)',
+        type: 'number',
+        defaultValue: 2.45,
+        min: 0,
+        max: 25.0,
+        step: 0.01,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'pitch',
+        label: 'Screw Pitch',
+        type: 'number',
+        defaultValue: 1.0,
+        min: 0.5,
+        max: 1.0,
+        step: 0.5,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'circularDivisions',
+        label: 'Circular Scale Divisions',
+        type: 'number',
+        defaultValue: 100,
+        min: 50,
+        max: 100,
+        step: 50,
+        editable: true,
+      },
+      {
+        id: 'zeroErrorDivisions',
+        label: 'Zero Error (Divisions)',
+        type: 'number',
+        defaultValue: 0,
+        min: -10,
+        max: 10,
+        step: 1,
+        unit: 'div',
+        editable: true,
+      },
+      {
+        id: 'grippedObject',
+        label: 'Specimen in Gap',
+        type: 'select',
+        defaultValue: 'resistance-wire',
+        options: [
+          { label: 'Resistance Wire (d = 0.46 mm)', value: 'resistance-wire' },
+          { label: 'Glass Plate Slide (t = 1.25 mm)', value: 'glass-plate' },
+          { label: 'Lead Shot Sphere (d = 2.45 mm)', value: 'lead-shot' },
+          { label: 'Empty (Manual Thimble Turning)', value: 'none' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'screw-gauge',
+    colorTheme: '#0f766e',
+  },
+  {
+    id: 'gauge-wire',
+    name: 'Specimen Resistance Wire',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Calibrated thin metallic wire on a laboratory spool for diameter and cross-sectional area analysis.',
+    iconName: 'GitCommit',
+    defaultWidth: 100,
+    defaultHeight: 90,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'wireGauge',
+        label: 'Nominal Gauge',
+        type: 'select',
+        defaultValue: '26 SWG (0.46 mm)',
+        options: [
+          { label: '26 SWG (0.46 mm)', value: '26 SWG (0.46 mm)' },
+          { label: '30 SWG (0.31 mm)', value: '30 SWG (0.31 mm)' },
+          { label: '22 SWG (0.71 mm)', value: '22 SWG (0.71 mm)' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'diameter',
+        label: 'True Wire Diameter',
+        type: 'number',
+        defaultValue: 0.46,
+        min: 0.1,
+        max: 2.0,
+        step: 0.01,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'material',
+        label: 'Alloy',
+        type: 'select',
+        defaultValue: 'Nichrome',
+        options: [
+          { label: 'Nichrome (ρ = 1.10 × 10⁻⁶ Ω·m)', value: 'Nichrome' },
+          { label: 'Constantan (ρ = 0.49 × 10⁻⁶ Ω·m)', value: 'Constantan' },
+          { label: 'Copper (ρ = 1.68 × 10⁻⁸ Ω·m)', value: 'Copper' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'gauge-wire',
+    colorTheme: '#b45309',
+  },
+  {
+    id: 'gauge-plate',
+    name: 'Specimen Glass Slide / Metal Sheet',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Thin flat rectangular plate specimen for micrometer thickness measurements.',
+    iconName: 'Square',
+    defaultWidth: 100,
+    defaultHeight: 90,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'thickness',
+        label: 'Nominal Thickness',
+        type: 'number',
+        defaultValue: 1.25,
+        min: 0.2,
+        max: 5.0,
+        step: 0.01,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'material',
+        label: 'Specimen Type',
+        type: 'select',
+        defaultValue: 'Microscope Glass Slide',
+        options: [
+          { label: 'Microscope Glass Slide', value: 'Microscope Glass Slide' },
+          { label: 'Aluminum Foil Sheet', value: 'Aluminum Foil Sheet' },
+          { label: 'Cover Slip', value: 'Cover Slip' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'gauge-plate',
+    colorTheme: '#0284c7',
+  },
+  {
+    id: 'irregular-lamina-specimen',
+    name: 'Irregular Lamina Specimen',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Planar irregular specimen (leaf or acrylic shape) placed on graph paper for area integration.',
+    iconName: 'Feather',
+    defaultWidth: 180,
+    defaultHeight: 220,
+    rotatable: true,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'specimenType',
+        label: 'Lamina Type',
+        type: 'select',
+        defaultValue: 'Ficus Leaf',
+        options: [
+          { label: 'Natural Ficus Leaf', value: 'Ficus Leaf' },
+          { label: 'Maple Leaf Contour', value: 'Maple Leaf Contour' },
+          { label: 'Curved Cardboard Lamina', value: 'Curved Cardboard Lamina' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'scaleFactor',
+        label: 'Lamina Size Scale',
+        type: 'number',
+        defaultValue: 1.0,
+        min: 0.7,
+        max: 1.5,
+        step: 0.1,
+        editable: true,
+      },
+      {
+        id: 'isTraced',
+        label: 'Boundary Traced on Paper',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+    ],
+    renderType: 'irregular-lamina',
+    colorTheme: '#15803d',
+  },
+  {
+    id: 'graph-paper-grid',
+    name: 'Millimeter Graph Paper Sheet',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Precision Cartesian graph grid with 1 cm major rulings and 1 mm minor divisions for square counting.',
+    iconName: 'Grid',
+    defaultWidth: 320,
+    defaultHeight: 320,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'gridUnitCm',
+        label: 'Square Unit Size',
+        type: 'number',
+        defaultValue: 1.0,
+        min: 0.5,
+        max: 2.0,
+        step: 0.5,
+        unit: 'cm',
+        editable: true,
+      },
+      {
+        id: 'highlightCovered',
+        label: 'Highlight Enclosed Squares',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+    ],
+    renderType: 'graph-grid',
+    colorTheme: '#059669',
+  },
+  {
+    id: 'spherometer-instrument',
+    name: 'Spherometer Instrument',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Equilateral tripod with precision micrometer screw (1 mm pitch, 100 circular divisions) for measuring sagitta and curvature.',
+    iconName: 'Compass',
+    defaultWidth: 260,
+    defaultHeight: 260,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'legDistanceMm',
+        label: 'Outer Leg Distance (l)',
+        type: 'number',
+        defaultValue: 40.0,
+        min: 25.0,
+        max: 60.0,
+        step: 1.0,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'screwHeightMm',
+        label: 'Central Screw Reading (h₁)',
+        type: 'number',
+        defaultValue: 2.03,
+        min: -6.0,
+        max: 10.0,
+        step: 0.01,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'flatReferenceMm',
+        label: 'Plane Slab Zero (h₀)',
+        type: 'number',
+        defaultValue: 0.0,
+        min: -2.0,
+        max: 2.0,
+        step: 0.01,
+        unit: 'mm',
+        editable: true,
+      },
+      {
+        id: 'surfaceTarget',
+        label: 'Placed On Surface',
+        type: 'select',
+        defaultValue: 'convex-watch-glass',
+        options: [
+          { label: 'Plane Glass Plate (Flat Reference)', value: 'plane-glass' },
+          { label: 'Spherical Convex Watch Glass (R ≈ 13.5 cm)', value: 'convex-watch-glass' },
+          { label: 'Spherical Concave Mirror (R ≈ 20.0 cm)', value: 'concave-mirror' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'spherometer',
+    colorTheme: '#7c3aed',
+  },
+  {
+    id: 'curved-surface',
+    name: 'Optical Curved Surface / Glass Slab',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Optical test surface (plane flat glass, convex watch glass, or concave spherical mirror) for spherometer contact.',
+    iconName: 'Sun',
+    defaultWidth: 150,
+    defaultHeight: 110,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'surfaceProfile',
+        label: 'Surface Geometry',
+        type: 'select',
+        defaultValue: 'Spherical Convex Watch Glass',
+        options: [
+          { label: 'Flat Plane Glass Plate', value: 'Flat Plane Glass Plate' },
+          { label: 'Spherical Convex Watch Glass', value: 'Spherical Convex Watch Glass' },
+          { label: 'Spherical Concave Mirror', value: 'Spherical Concave Mirror' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'nominalRadiusMm',
+        label: 'True Curvature Radius',
+        type: 'number',
+        defaultValue: 135.0,
+        min: 50.0,
+        max: 300.0,
+        step: 5.0,
+        unit: 'mm',
+        editable: true,
+      },
+    ],
+    renderType: 'curved-surface',
+    colorTheme: '#3b82f6',
+  },
+  {
+    id: 'physical-beam-balance',
+    name: 'Physical Beam Balance',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Equal-arm precision balance with agate knife-edge fulcrum, two suspended scale pans, and central oscillating pointer needle.',
+    iconName: 'Scale',
+    defaultWidth: 420,
+    defaultHeight: 280,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'isArrested',
+        label: 'Beam Arrestment Handle',
+        type: 'boolean',
+        defaultValue: false,
+        editable: true,
+      },
+      {
+        id: 'leftPanMassG',
+        label: 'Left Pan Mass (m₁)',
+        type: 'number',
+        defaultValue: 24.50,
+        min: 0,
+        max: 200,
+        step: 0.01,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'rightPanMassG',
+        label: 'Right Pan Mass (m₂)',
+        type: 'number',
+        defaultValue: 20.00,
+        min: 0,
+        max: 200,
+        step: 0.01,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'sensitivityGPerDiv',
+        label: 'Sensitivity (g/division)',
+        type: 'number',
+        defaultValue: 0.01,
+        min: 0.005,
+        max: 0.05,
+        step: 0.005,
+        unit: 'g/div',
+        editable: true,
+      },
+    ],
+    renderType: 'beam-balance',
+    colorTheme: '#b45309',
+  },
+  {
+    id: 'weight-box',
+    name: 'Analytical Weight Box',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Polished wooden case holding calibrated gram weights (1g–100g) and fractional milligram riders (10mg–500mg).',
+    iconName: 'Box',
+    defaultWidth: 180,
+    defaultHeight: 120,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'selectedWeightG',
+        label: 'Selected Weight to Add',
+        type: 'number',
+        defaultValue: 5.0,
+        min: 0.01,
+        max: 50.0,
+        step: 0.5,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'targetPan',
+        label: 'Place on Pan',
+        type: 'select',
+        defaultValue: 'right-pan',
+        options: [
+          { label: 'Right Pan (Standard Weights)', value: 'right-pan' },
+          { label: 'Left Pan (Tare Counterweight)', value: 'left-pan' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'weight-box',
+    colorTheme: '#78350f',
+  },
+  {
+    id: 'unknown-mass-specimen',
+    name: 'Unknown Mass Specimen',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Machined metal cylinder or irregular specimen whose true mass is to be determined experimentally.',
+    iconName: 'HelpCircle',
+    defaultWidth: 90,
+    defaultHeight: 100,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'actualMassG',
+        label: 'Specimen Hidden Mass',
+        type: 'number',
+        defaultValue: 24.50,
+        min: 5.0,
+        max: 80.0,
+        step: 0.5,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'material',
+        label: 'Specimen Metal',
+        type: 'select',
+        defaultValue: 'Brass Solid Weight',
+        options: [
+          { label: 'Brass Solid Weight', value: 'Brass Solid Weight' },
+          { label: 'Steel Component', value: 'Steel Component' },
+          { label: 'Glass Stopper', value: 'Glass Stopper' },
+        ],
+        editable: true,
+      },
+    ],
+    renderType: 'unknown-mass',
+    colorTheme: '#64748b',
+  },
 ];
 
 export const PHYSICS_LAB_DEFINITIONS: LabDefinition[] = [
@@ -1365,6 +2012,568 @@ export const PHYSICS_LAB_DEFINITIONS: LabDefinition[] = [
     defaultNotebookNotes:
       "Simple Pendulum Dynamics & Determination of g:\n- Equation of Motion: d²θ/dt² + (g/L)sinθ = 0\n- Small-Angle Approximation: For θ ≤ 15° (~0.26 rad), sinθ ≈ θ.\n  Equation becomes SHM: d²θ/dt² + (g/L)θ = 0\n- Time Period Formula: T = 2π√(L/g)\n- Natural Frequency: f = 1/T = (1/2π)√(g/L)\n- Acceleration due to gravity: g = 4π²L / T²\n\nCRITICAL PHYSICAL PROPERTY - MASS INDEPENDENCE:\nIn the pendulum equation, bob mass (m) cancels out identically because inertial mass equals gravitational mass. Therefore:\n∂T / ∂m = 0 (Period is strictly independent of mass).\n\nTheoretical Values (g = 9.80 m/s²):\n* L = 0.20 m => T = 0.898 s, T² = 0.806 s²\n* L = 0.50 m => T = 1.420 s, T² = 2.016 s²\n* L = 0.80 m => T = 1.795 s, T² = 3.222 s²\n* L = 1.00 m => T = 2.007 s, T² = 4.028 s²\n\nSlope of L vs T² graph = g / 4π² = 9.80 / 39.478 ≈ 0.248 m/s²",
   },
+  {
+    experimentId: 'vernier-callipers',
+    title: 'Vernier Callipers – Measurement of Diameter, Depth & Volume',
+    subjectId: 'physics',
+    allowedEquipmentIds: ['vernier-calliper', 'test-cylinder', 'test-sphere'],
+    initialObjects: [
+      {
+        id: 'calliper-1',
+        equipmentId: 'vernier-calliper',
+        title: 'Precision Vernier Callipers',
+        x: 60,
+        y: 80,
+        rotation: 0,
+        width: 460,
+        height: 140,
+        properties: {
+          jawPosition: 25.4,
+          zeroError: 0.0,
+          vernierDivisions: 10,
+          measurementMode: 'external-jaws',
+          grippedObject: 'metallic-cylinder',
+        },
+        state: {
+          leastCountMm: 0.1,
+          msrMm: 25,
+          vcd: 4,
+          observedReadingMm: 25.4,
+          correctedReadingMm: 25.4,
+          volumeCm3: 26.347,
+          status: 'Cylinder Gripped | d = 25.40 mm',
+        },
+      },
+      {
+        id: 'cyl-1',
+        equipmentId: 'test-cylinder',
+        title: 'Brass Specimen Cylinder',
+        x: 550,
+        y: 80,
+        rotation: 0,
+        width: 90,
+        height: 120,
+        properties: { diameter: 25.4, length: 52.0, material: 'Brass' },
+        state: { volumeCm3: 26.347, massG: 223.95 },
+      },
+      {
+        id: 'sphere-1',
+        equipmentId: 'test-sphere',
+        title: 'Steel Ball Bearing',
+        x: 670,
+        y: 80,
+        rotation: 0,
+        width: 90,
+        height: 90,
+        properties: { diameter: 18.6, material: 'Steel' },
+        state: { volumeCm3: 3.37, massG: 26.28 },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'vc-step-1',
+        stepNumber: 1,
+        title: 'Determine Vernier Least Count (LC)',
+        instruction:
+          'Observe the main scale divisions (1 MSD = 1.0 mm) and vernier divisions (10 VSD). Calculate LC = 1 MSD - 1 VSD = 1 mm - 0.9 mm = 0.1 mm = 0.01 cm.',
+      },
+      {
+        id: 'vc-step-2',
+        stepNumber: 2,
+        title: 'Calibrate Zero Error with Jaws Closed',
+        instruction:
+          'Inspect the zero error property. When jaws touch (x = 0), verify that Vernier zero aligns with Main zero. If displaced to the right, subtract positive zero error.',
+      },
+      {
+        id: 'vc-step-3',
+        stepNumber: 3,
+        title: 'Measure External Diameter of Brass Cylinder',
+        instruction:
+          'Grip the brass cylinder between lower jaws. Read the Main Scale Reading (MSR) before the vernier zero, and identify the Vernier Coincidence (VCD). Total = MSR + (VCD × LC).',
+      },
+      {
+        id: 'vc-step-4',
+        stepNumber: 4,
+        title: 'Measure Length of Cylinder and Compute Volume',
+        instruction:
+          'Turn cylinder to measure its height h = 52.0 mm. Compute cross-sectional area and cylinder volume V = πd²h / 4.',
+      },
+      {
+        id: 'vc-step-5',
+        stepNumber: 5,
+        title: 'Log Measurements in Laboratory Notebook',
+        instruction:
+          'Record diameter, length, zero correction, and calculated volume in your observation table.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-vc-lc',
+        description: 'Verify vernier calliper least count LC = 0.1 mm and zero error.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-vc-measure',
+        description: 'Measure cylinder diameter and height across multiple trials.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-vc-volume',
+        description: 'Calculate cylinder volume V = πd²h / 4 and record in notebook.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Vernier Callipers Measurements & Volume Determination:\n- Value of 1 Main Scale Division (MSD) = 1.0 mm = 0.1 cm\n- Number of Vernier Divisions (n) = 10\n- Least Count (LC) = 1 MSD / n = 1.0 mm / 10 = 0.1 mm = 0.01 cm\n\nZero Error Calibration:\n- Zero Error (ZE) = ± (Coincident division × LC)\n- Zero Correction (ZC) = -ZE\n- Corrected Reading = Observed Reading + ZC = MSR + (VCD × LC) - ZE\n\nVolume Formulas:\n- Cylinder: V = π·r²·h = (π / 4) · d² · h\n- Sphere: V = (4/3)·π·r³ = (π / 6) · d³",
+  },
+  {
+    experimentId: 'screw-gauge',
+    title: 'Micrometer Screw Gauge – Wire Diameter & Sheet Thickness',
+    subjectId: 'physics',
+    allowedEquipmentIds: ['micrometer-screw-gauge', 'gauge-wire', 'gauge-plate'],
+    initialObjects: [
+      {
+        id: 'sg-1',
+        equipmentId: 'micrometer-screw-gauge',
+        title: 'Micrometer Screw Gauge',
+        x: 60,
+        y: 70,
+        rotation: 0,
+        width: 420,
+        height: 170,
+        properties: {
+          spindleGap: 0.46,
+          pitch: 1.0,
+          circularDivisions: 100,
+          zeroErrorDivisions: 0,
+          grippedObject: 'resistance-wire',
+        },
+        state: {
+          leastCountMm: 0.01,
+          psrMm: 0.0,
+          csr: 46,
+          observedReadingMm: 0.46,
+          correctedReadingMm: 0.46,
+          crossSectionMm2: 0.1662,
+          status: 'Wire Gripped | d = 0.460 mm',
+        },
+      },
+      {
+        id: 'wire-1',
+        equipmentId: 'gauge-wire',
+        title: 'Nichrome Resistance Wire',
+        x: 520,
+        y: 80,
+        rotation: 0,
+        width: 110,
+        height: 100,
+        properties: { diameter: 0.46, wireGauge: '26 SWG (0.46 mm)', material: 'Nichrome' },
+        state: { areaMm2: 0.1662 },
+      },
+      {
+        id: 'plate-1',
+        equipmentId: 'gauge-plate',
+        title: 'Glass Slide Plate',
+        x: 660,
+        y: 80,
+        rotation: 0,
+        width: 100,
+        height: 100,
+        properties: { thickness: 1.25, material: 'Microscope Glass Slide' },
+        state: { thicknessMm: 1.25 },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'sg-step-1',
+        stepNumber: 1,
+        title: 'Determine Pitch and Least Count',
+        instruction:
+          'Inspect screw pitch (1.0 mm advance per revolution) and 100 circular divisions. Least Count = Pitch / 100 = 0.01 mm = 0.001 cm.',
+      },
+      {
+        id: 'sg-step-2',
+        stepNumber: 2,
+        title: 'Determine Zero Error and Ratchet Stop',
+        instruction:
+          'Rotate ratchet until spindle meets anvil. Check if circular zero matches sleeve reference line. Record zero error in circular divisions.',
+      },
+      {
+        id: 'sg-step-3',
+        stepNumber: 3,
+        title: 'Measure Nichrome Wire Diameter',
+        instruction:
+          'Place resistance wire between anvil and spindle. Turn ratchet until 3 gentle clicks sound. Read Pitch Scale Reading (PSR) and Circular Scale Reading (CSR).',
+      },
+      {
+        id: 'sg-step-4',
+        stepNumber: 4,
+        title: 'Calculate Cross-Sectional Area',
+        instruction:
+          'Apply zero correction: d = PSR + (CSR × LC) - ZE. Compute cross-sectional area A = πd² / 4.',
+      },
+      {
+        id: 'sg-step-5',
+        stepNumber: 5,
+        title: 'Measure Glass Slide Thickness and Log Readings',
+        instruction:
+          'Switch specimen to Glass Slide (t = 1.25 mm) and record readings across multiple points to check uniformity.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-sg-lc',
+        description: 'Calculate pitch and least count LC = 0.01 mm.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-sg-wire',
+        description: 'Measure wire diameter and apply zero error correction.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-sg-area',
+        description: 'Calculate wire cross-sectional area A = πd² / 4 and log to notebook.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Micrometer Screw Gauge Measurements:\n- Pitch of screw = Distance moved / No. of full rotations = 1.0 mm\n- Total Circular Scale Divisions (N) = 100\n- Least Count (LC) = Pitch / N = 1.0 mm / 100 = 0.01 mm = 0.001 cm\n\nZero Error (ZE):\n- Positive Zero Error: 0 on circular scale is below reference line: ZE = +n × LC\n- Negative Zero Error: 0 on circular scale is above reference line: ZE = -(N - n) × LC\n- Zero Correction (ZC) = -ZE\n- Corrected Diameter = PSR + (CSR × LC) + ZC\n\nCross-sectional Area of Wire:\n- A = π · r² = (π / 4) · d²\nExample (d = 0.46 mm): A = (π/4)·(0.46)² = 0.1662 mm² = 1.662 × 10⁻³ cm²",
+  },
+  {
+    experimentId: 'irregular-lamina',
+    title: 'Area of an Irregular Lamina by Graph-Grid Integration',
+    subjectId: 'physics',
+    allowedEquipmentIds: ['graph-paper-grid', 'irregular-lamina-specimen'],
+    initialObjects: [
+      {
+        id: 'grid-1',
+        equipmentId: 'graph-paper-grid',
+        title: 'Millimeter Graph Paper',
+        x: 180,
+        y: 40,
+        rotation: 0,
+        width: 380,
+        height: 380,
+        properties: { gridUnitCm: 1.0, highlightCovered: true },
+        state: { fullSquares: 16, moreThanHalf: 8, halfSquares: 4, calculatedAreaCm2: 22.0 },
+      },
+      {
+        id: 'lamina-1',
+        equipmentId: 'irregular-lamina-specimen',
+        title: 'Ficus Leaf Lamina',
+        x: 280,
+        y: 110,
+        rotation: 0,
+        width: 180,
+        height: 220,
+        properties: { specimenType: 'Ficus Leaf', scaleFactor: 1.0, isTraced: true },
+        state: { theoreticalAreaCm2: 22.45, estimatedAreaCm2: 22.0 },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'il-step-1',
+        stepNumber: 1,
+        title: 'Place Lamina Over Millimeter Graph Grid',
+        instruction:
+          'Position the irregular lamina (leaf specimen) over the Cartesian millimeter graph paper grid.',
+      },
+      {
+        id: 'il-step-2',
+        stepNumber: 2,
+        title: 'Trace Closed Boundary Contour',
+        instruction:
+          'Ensure boundary tracing is active to lock the exact perimeter coordinates onto the grid coordinate frame.',
+      },
+      {
+        id: 'il-step-3',
+        stepNumber: 3,
+        title: 'Count Fully Enclosed Squares (N₁)',
+        instruction:
+          'Enumerate squares that lie completely inside the boundary curve (> 75% covered). Mark with full weight = 1.',
+      },
+      {
+        id: 'il-step-4',
+        stepNumber: 4,
+        title: 'Count Boundary Squares (N₂ and N₃)',
+        instruction:
+          'Count squares with more than half covered (N₂, weight = 1) and half covered (N₃, weight = 0.5). Neglect squares with less than half covered.',
+      },
+      {
+        id: 'il-step-5',
+        stepNumber: 5,
+        title: 'Compute Estimated Area and Uncertainty',
+        instruction:
+          'Calculate Area A = (N₁ + N₂ + 0.5·N₃) × s². Compare with the theoretical geometric area derived by Gauss’s Shoelace algorithm.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-il-trace',
+        description: 'Position and trace irregular lamina on graph paper.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-il-count',
+        description: 'Enumerate full and partial grid squares systematically.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-il-area',
+        description: 'Calculate area with uncertainty and record in laboratory notebook.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Area of an Irregular Lamina by Graph-Grid Method:\n- Area of 1 graph square = s × s (for 1 cm grid, area = 1.0 cm²)\n\nCounting Convention:\n1. N₁ = Number of fully enclosed squares (weight = 1)\n2. N₂ = Number of squares with > 50% covered (weight = 1)\n3. N₃ = Number of squares with ~50% covered (weight = 0.5)\n4. Squares with < 50% covered are neglected (weight = 0)\n\nCalculation Formula:\n- Total Effective Squares N = N₁ + N₂ + 0.5 × N₃\n- Estimated Area A = N × s²\n- Boundary Uncertainty: ΔA ≈ ± 0.5 × (N₂ + N₃) × s²\n\nMathematical Benchmark:\nGauss's Shoelace formula evaluates exact polygon area:\nA_exact = 0.5 × |∑(x_i·y_{i+1} - x_{i+1}·y_i)|",
+  },
+  {
+    experimentId: 'spherometer',
+    title: 'Spherometer – Radius of Curvature of Spherical Surfaces',
+    subjectId: 'physics',
+    allowedEquipmentIds: ['spherometer-instrument', 'curved-surface'],
+    initialObjects: [
+      {
+        id: 'sph-1',
+        equipmentId: 'spherometer-instrument',
+        title: 'Spherometer Instrument',
+        x: 80,
+        y: 80,
+        rotation: 0,
+        width: 260,
+        height: 260,
+        properties: {
+          legDistanceMm: 40.0,
+          screwHeightMm: 2.03,
+          flatReferenceMm: 0.0,
+          surfaceTarget: 'convex-watch-glass',
+        },
+        state: {
+          leastCountMm: 0.01,
+          sagittaMm: 2.03,
+          radiusOfCurvatureCm: 13.23,
+          surfaceType: 'convex',
+          isValidGeometry: true,
+          status: 'Convex Watch Glass | R = 13.23 cm',
+        },
+      },
+      {
+        id: 'surf-1',
+        equipmentId: 'curved-surface',
+        title: 'Spherical Convex Watch Glass',
+        x: 420,
+        y: 80,
+        rotation: 0,
+        width: 160,
+        height: 110,
+        properties: { surfaceProfile: 'Spherical Convex Watch Glass', nominalRadiusMm: 135.0 },
+        state: { nominalRadiusCm: 13.5 },
+      },
+      {
+        id: 'surf-plane',
+        equipmentId: 'curved-surface',
+        title: 'Flat Plane Glass Plate',
+        x: 610,
+        y: 80,
+        rotation: 0,
+        width: 150,
+        height: 110,
+        properties: { surfaceProfile: 'Flat Plane Glass Plate', nominalRadiusMm: 0 },
+        state: { nominalRadiusCm: Infinity },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'sph-step-1',
+        stepNumber: 1,
+        title: 'Measure Outer Leg Separation (l)',
+        instruction:
+          'Measure the distance l between each pair of the three outer pointed legs on paper. Verify l = 40.0 mm.',
+      },
+      {
+        id: 'sph-step-2',
+        stepNumber: 2,
+        title: 'Obtain Zero Reference on Flat Glass Slab (h₀)',
+        instruction:
+          'Place spherometer on plane flat glass plate. Turn central screw until all 4 legs touch the surface simultaneously. Record zero reading h₀.',
+      },
+      {
+        id: 'sph-step-3',
+        stepNumber: 3,
+        title: 'Measure Sagitta on Convex Watch Glass (h₁)',
+        instruction:
+          'Place spherometer on the convex watch glass. Elevate central screw until its tip contacts the vertex. Record h₁ and compute sagitta h = |h₁ - h₀|.',
+      },
+      {
+        id: 'sph-step-4',
+        stepNumber: 4,
+        title: 'Calculate Radius of Curvature (R = l² / 6h + h / 2)',
+        instruction:
+          'Substitute l = 40.0 mm and h = 2.03 mm into R = l²/(6h) + h/2. Verify geometric validity constraints.',
+      },
+      {
+        id: 'sph-step-5',
+        stepNumber: 5,
+        title: 'Log Radius of Curvature in Notebook',
+        instruction:
+          'Record sagitta, radius of curvature, and percentage uncertainty in your laboratory notebook.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-sph-zero',
+        description: 'Calibrate flat plane reference reading h₀.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-sph-sagitta',
+        description: 'Measure sagitta h on convex or concave optical surface.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-sph-radius',
+        description: 'Calculate radius of curvature R = l²/(6h) + h/2 and log to notebook.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Spherometer & Radius of Curvature of Spherical Surface:\n- Pitch of central screw = 1.0 mm\n- Circular disc divisions = 100\n- Least Count (LC) = 1.0 mm / 100 = 0.01 mm = 0.001 cm\n\nGeometry of Equilateral Triangle Base:\n- Mean distance between any two outer legs = l\n- Circumradius of base circle: r = l / √3\n\nRadius of Curvature Formula:\nFrom right triangle on sphere: R² = r² + (R - h)²\n=> R² = (l² / 3) + R² - 2·R·h + h²\n=> 2·R·h = (l² / 3) + h²\n=> R = l² / (6·h) + h / 2\n\nExample Calculation:\n* l = 40.0 mm = 4.0 cm\n* h = 2.03 mm = 0.203 cm\n* l² / (6·h) = 1600 / 12.18 = 131.36 mm\n* h / 2 = 1.02 mm\n* R = 131.36 + 1.02 = 132.38 mm = 13.24 cm",
+  },
+  {
+    experimentId: 'beam-balance',
+    title: 'Physical Beam Balance – Mass Determination by Method of Oscillations',
+    subjectId: 'physics',
+    allowedEquipmentIds: [
+      'physical-beam-balance',
+      'weight-box',
+      'unknown-mass-specimen',
+    ],
+    initialObjects: [
+      {
+        id: 'bb-1',
+        equipmentId: 'physical-beam-balance',
+        title: 'Physical Beam Balance',
+        x: 60,
+        y: 60,
+        rotation: 0,
+        width: 420,
+        height: 280,
+        properties: {
+          isArrested: true,
+          leftPanMassG: 24.50,
+          rightPanMassG: 20.00,
+          sensitivityGPerDiv: 0.01,
+        },
+        state: {
+          status: 'arrested',
+          isBalanced: false,
+          massDifferenceGrams: -4.50,
+          currentPointerAngleDeg: 0,
+        },
+      },
+      {
+        id: 'wb-1',
+        equipmentId: 'weight-box',
+        title: 'Analytical Weight Box',
+        x: 520,
+        y: 60,
+        rotation: 0,
+        width: 180,
+        height: 140,
+        properties: { selectedWeightG: 5.0, targetPan: 'right-pan' },
+        state: { availableWeights: '100g, 50g, 20g, 10g, 5g, 2g, 1g, mg riders' },
+      },
+      {
+        id: 'unknown-1',
+        equipmentId: 'unknown-mass-specimen',
+        title: 'Unknown Brass Mass',
+        x: 520,
+        y: 220,
+        rotation: 0,
+        width: 110,
+        height: 100,
+        properties: { actualMassG: 24.50, material: 'Brass Solid Weight' },
+        state: { placedOnPan: 'left-pan' },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'bb-step-1',
+        stepNumber: 1,
+        title: 'Level Balance and Verify Zero Resting Point',
+        instruction:
+          'Ensure the balance base is level. Release the arrestment handle with empty pans and verify pointer oscillates symmetrically around 0.',
+      },
+      {
+        id: 'bb-step-2',
+        stepNumber: 2,
+        title: 'Place Unknown Mass in Left Pan',
+        instruction:
+          'Arrest the beam before placing objects. Place the unknown mass specimen on the left scale pan.',
+      },
+      {
+        id: 'bb-step-3',
+        stepNumber: 3,
+        title: 'Add Calibrated Weights to Right Pan',
+        instruction:
+          'Add standard weights from the weight box (e.g., 20g + 2g + 2g + 500mg = 24.50g) to the right scale pan using forceps.',
+      },
+      {
+        id: 'bb-step-4',
+        stepNumber: 4,
+        title: 'Release Arrestment and Observe Oscillations',
+        instruction:
+          'Turn the arrestment lever to release the beam. Watch the pointer needle swing across the index scale and determine the resting point RP = (d₁ + 2d₂ + d₃) / 4.',
+      },
+      {
+        id: 'bb-step-5',
+        stepNumber: 5,
+        title: 'Record Equilibrium Mass in Notebook',
+        instruction:
+          'When resting point aligns at 0.0 divisions (|Δm| ≤ 5 mg), mechanical equilibrium is achieved. Unknown mass = Total right weights.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-bb-arrest',
+        description: 'Operate arrestment lever safely before and after weight changes.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-bb-balance',
+        description: 'Counterbalance unknown mass with standard calibrated weights.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-bb-mass',
+        description: 'Determine unknown mass to within ± 0.01 g and log to notebook.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Physical Beam Balance & Mass Determination:\n- Principle of Moments: Equilibrium occurs when clockwise torque equals counter-clockwise torque.\n  m_left × g × L = m_right × g × L  =>  m_left = m_right\n\nMethod of Oscillations (Resting Point):\n- When turning points on index scale are d₁, d₂, d₃:\n  Resting Point (RP) = (d₁ + 2·d₂ + d₃) / 4\n\nSensitivity of Balance:\n- Sensitivity S = Deflection in divisions per unit mass difference (divisions / mg).\n- Minimum detectable threshold = ± 0.005 g (5 mg).\n\nPrecautions:\n1. Never add or remove weights without arresting the beam first.\n2. Handle all weights with forceps, never bare fingers.\n3. Close glass doors during final oscillation readings to eliminate air drafts.",
+  },
 ];
 
 export const physicsExtension: SubjectLabExtension = {
@@ -1617,6 +2826,293 @@ export const physicsExtension: SubjectLabExtension = {
 
       messages.push(
         `Simple Pendulum: L = ${L.toFixed(2)}m, m = ${mGrams}g => T = ${pendSim.period.toFixed(2)}s, f = ${pendSim.frequency.toFixed(2)}Hz (Mass Independent: changing m does not alter T)`
+      );
+    }
+
+    // 5. Vernier Callipers Precision Measurement Simulation
+    const callipers = objects.filter((o) => o.equipmentId === 'vernier-calliper');
+    const cylinders = objects.filter((o) => o.equipmentId === 'test-cylinder');
+    const spheres = objects.filter((o) => o.equipmentId === 'test-sphere');
+
+    for (const vc of callipers) {
+      const mode = String(vc.properties.measurementMode ?? 'external-jaws');
+      const gripped = String(vc.properties.grippedObject ?? 'metallic-cylinder');
+      const zeroError = Number(vc.properties.zeroError ?? 0.0);
+      const divisions = Number(vc.properties.vernierDivisions ?? 10);
+
+      let targetDimensionMm = Number(vc.properties.jawPosition ?? 25.4);
+      let specimenDesc = 'Empty Jaws';
+      let derivedVolCm3 = 0;
+
+      if (gripped === 'metallic-cylinder') {
+        const cyl = cylinders[0];
+        const d = cyl ? Number(cyl.properties.diameter ?? 25.4) : 25.4;
+        const h = cyl ? Number(cyl.properties.length ?? 52.0) : 52.0;
+        targetDimensionMm = mode === 'depth-gauge' ? h : d;
+        specimenDesc = `Brass Cylinder (${mode === 'depth-gauge' ? `h = ${h} mm` : `d = ${d} mm`})`;
+        derivedVolCm3 = calculateCylinderVolume(d, h).volumeCm3;
+        if (cyl) {
+          updates[cyl.id] = { volumeCm3: derivedVolCm3, status: `d = ${d} mm, h = ${h} mm` };
+        }
+      } else if (gripped === 'steel-sphere') {
+        const sph = spheres[0];
+        const d = sph ? Number(sph.properties.diameter ?? 18.6) : 18.6;
+        targetDimensionMm = d;
+        specimenDesc = `Steel Sphere (d = ${d} mm)`;
+        derivedVolCm3 = calculateSphereVolume(d).volumeCm3;
+        if (sph) {
+          updates[sph.id] = { volumeCm3: derivedVolCm3, status: `d = ${d} mm` };
+        }
+      } else if (gripped === 'beaker') {
+        targetDimensionMm = mode === 'depth-gauge' ? 64.5 : 48.2;
+        specimenDesc = `Beaker (${mode === 'depth-gauge' ? 'Internal Depth' : 'Internal Diameter'})`;
+      }
+
+      const reading = calculateVernierReading(targetDimensionMm, {
+        mainScalePitchMm: 1.0,
+        vernierDivisions: divisions,
+        zeroErrorMm: zeroError,
+      });
+
+      updates[vc.id] = {
+        jawPositionMm: targetDimensionMm,
+        leastCountMm: reading.leastCountMm,
+        msrMm: reading.msrMm,
+        vcd: reading.vcd,
+        observedReadingMm: reading.observedReadingMm,
+        zeroErrorMm: reading.zeroErrorMm,
+        zeroCorrectionMm: reading.zeroCorrectionMm,
+        correctedReadingMm: reading.correctedReadingMm,
+        correctedReadingCm: reading.correctedReadingCm,
+        volumeCm3: derivedVolCm3,
+        status: `${specimenDesc} | Reading: ${reading.correctedReadingMm.toFixed(2)} mm (MSR=${reading.msrMm}, VCD=${reading.vcd})`,
+      };
+
+      messages.push(
+        `Vernier Callipers: ${specimenDesc} => MSR = ${reading.msrMm} mm, VCD = ${reading.vcd}, Corrected = ${reading.correctedReadingMm.toFixed(2)} mm (LC = ${reading.leastCountMm} mm)`
+      );
+    }
+
+    // 6. Micrometer Screw Gauge Measurement Simulation
+    const screwGauges = objects.filter((o) => o.equipmentId === 'micrometer-screw-gauge');
+    const wires = objects.filter((o) => o.equipmentId === 'gauge-wire');
+    const plates = objects.filter((o) => o.equipmentId === 'gauge-plate');
+
+    for (const sg of screwGauges) {
+      const gripped = String(sg.properties.grippedObject ?? 'resistance-wire');
+      const pitch = Number(sg.properties.pitch ?? 1.0);
+      const circularDivs = Number(sg.properties.circularDivisions ?? 100);
+      const zeroErrorDivs = Number(sg.properties.zeroErrorDivisions ?? 0);
+
+      let targetGapMm = Number(sg.properties.spindleGap ?? 0.46);
+      let specimenDesc = 'Empty Gap';
+      let crossSectionMm2 = 0;
+
+      if (gripped === 'resistance-wire') {
+        const wire = wires[0];
+        targetGapMm = wire ? Number(wire.properties.diameter ?? 0.46) : 0.46;
+        specimenDesc = `Nichrome Wire (d = ${targetGapMm.toFixed(3)} mm)`;
+        crossSectionMm2 = calculateWireCrossSection(targetGapMm).areaMm2;
+        if (wire) {
+          updates[wire.id] = { areaMm2: crossSectionMm2, status: `d = ${targetGapMm.toFixed(3)} mm` };
+        }
+      } else if (gripped === 'glass-plate') {
+        const plate = plates[0];
+        targetGapMm = plate ? Number(plate.properties.thickness ?? 1.25) : 1.25;
+        specimenDesc = `Glass Slide (t = ${targetGapMm.toFixed(3)} mm)`;
+        if (plate) {
+          updates[plate.id] = { thicknessMm: targetGapMm, status: `t = ${targetGapMm.toFixed(3)} mm` };
+        }
+      } else if (gripped === 'lead-shot') {
+        targetGapMm = 2.45;
+        specimenDesc = 'Lead Shot Ball (d = 2.450 mm)';
+      }
+
+      const reading = calculateScrewGaugeReading(targetGapMm, {
+        pitchMm: pitch,
+        circularDivisions: circularDivs,
+        zeroErrorDivisions: zeroErrorDivs,
+      });
+
+      updates[sg.id] = {
+        spindleGapMm: targetGapMm,
+        leastCountMm: reading.leastCountMm,
+        psrMm: reading.psrMm,
+        csr: reading.csr,
+        observedReadingMm: reading.observedReadingMm,
+        zeroErrorMm: reading.zeroErrorMm,
+        zeroCorrectionMm: reading.zeroCorrectionMm,
+        correctedReadingMm: reading.correctedReadingMm,
+        correctedReadingCm: reading.correctedReadingCm,
+        crossSectionMm2: crossSectionMm2,
+        status: `${specimenDesc} | Reading: ${reading.correctedReadingMm.toFixed(3)} mm (PSR=${reading.psrMm}, CSR=${reading.csr})`,
+      };
+
+      messages.push(
+        `Screw Gauge: ${specimenDesc} => PSR = ${reading.psrMm} mm, CSR = ${reading.csr}, Corrected = ${reading.correctedReadingMm.toFixed(3)} mm (LC = ${reading.leastCountMm} mm)`
+      );
+    }
+
+    // 7. Area of an Irregular Lamina by Graph-Grid Integration Simulation
+    const graphGrids = objects.filter((o) => o.equipmentId === 'graph-paper-grid');
+    const laminas = objects.filter((o) => o.equipmentId === 'irregular-lamina-specimen');
+
+    for (const grid of graphGrids) {
+      const lamina = laminas[0];
+      const gridUnitCm = Number(grid.properties.gridUnitCm ?? 1.0);
+
+      if (lamina) {
+        const scale = Number(lamina.properties.scaleFactor ?? 1.0);
+        const scaledPolygon = STANDARD_LAMINA_VERTICES.map((p) => ({
+          x: p.x * scale,
+          y: p.y * scale,
+        }));
+
+        // Relative offset of lamina center over grid
+        const dx = ((lamina.x + (lamina.width || 180) / 2) - (grid.x + (grid.width || 380) / 2)) / 35;
+        const dy = ((lamina.y + (lamina.height || 220) / 2) - (grid.y + (grid.height || 380) / 2)) / 35;
+
+        const areaResult = evaluateLaminaArea(scaledPolygon, gridUnitCm, dx, dy);
+
+        updates[grid.id] = {
+          fullSquares: areaResult.fullSquaresCount,
+          moreThanHalf: areaResult.moreThanHalfCount,
+          halfSquares: areaResult.halfSquaresCount,
+          neglected: areaResult.neglectedCount,
+          totalSquares: areaResult.totalSquaresCount,
+          calculatedAreaCm2: areaResult.calculatedAreaCm2,
+          uncertaintyCm2: areaResult.uncertaintyCm2,
+          theoreticalAreaCm2: areaResult.theoreticalShoelaceAreaCm2,
+          percentageError: areaResult.percentageError,
+          status: `Area = ${areaResult.calculatedAreaCm2} ± ${areaResult.uncertaintyCm2} cm² (${areaResult.totalSquaresCount} sq)`,
+        };
+
+        updates[lamina.id] = {
+          estimatedAreaCm2: areaResult.calculatedAreaCm2,
+          theoreticalAreaCm2: areaResult.theoreticalShoelaceAreaCm2,
+          uncertaintyCm2: areaResult.uncertaintyCm2,
+          status: `Lamina Area: ${areaResult.calculatedAreaCm2} cm² (Gauss Exact: ${areaResult.theoreticalShoelaceAreaCm2} cm²)`,
+        };
+
+        messages.push(
+          `Irregular Lamina: N₁ = ${areaResult.fullSquaresCount}, N₂ = ${areaResult.moreThanHalfCount}, N₃ = ${areaResult.halfSquaresCount} => Estimated Area = ${areaResult.calculatedAreaCm2} ± ${areaResult.uncertaintyCm2} cm² (Exact Shoelace = ${areaResult.theoreticalShoelaceAreaCm2} cm²)`
+        );
+      }
+    }
+
+    // 8. Spherometer & Radius of Curvature Simulation
+    const spherometers = objects.filter((o) => o.equipmentId === 'spherometer-instrument');
+    const surfaces = objects.filter((o) => o.equipmentId === 'curved-surface');
+
+    for (const sph of spherometers) {
+      const legDist = Number(sph.properties.legDistanceMm ?? 40.0);
+      const target = String(sph.properties.surfaceTarget ?? 'convex-watch-glass');
+      const flatRef = Number(sph.properties.flatReferenceMm ?? 0.0);
+
+      let h1 = Number(sph.properties.screwHeightMm ?? 2.03);
+      let targetDesc = 'Convex Watch Glass';
+
+      if (target === 'plane-glass') {
+        h1 = flatRef;
+        targetDesc = 'Flat Plane Glass Plate';
+      } else if (target === 'concave-mirror') {
+        h1 = flatRef - 1.34;
+        targetDesc = 'Concave Spherical Mirror';
+      } else {
+        h1 = flatRef + 2.03;
+        targetDesc = 'Spherical Convex Watch Glass';
+      }
+
+      const sphResult = calculateSpherometerRadius(h1, flatRef, {
+        legDistanceMm: legDist,
+        pitchMm: 1.0,
+        circularDivisions: 100,
+      });
+
+      updates[sph.id] = {
+        legDistanceMm: legDist,
+        leastCountMm: sphResult.leastCountMm,
+        flatReadingMm: sphResult.flatReadingMm,
+        curvedReadingMm: sphResult.curvedReadingMm,
+        sagittaMm: sphResult.sagittaMm,
+        surfaceType: sphResult.surfaceType,
+        radiusOfCurvatureCm: sphResult.radiusOfCurvatureCm,
+        radiusOfCurvatureMm: sphResult.radiusOfCurvatureMm,
+        uncertaintyMm: sphResult.uncertaintyMm,
+        isValidGeometry: sphResult.isValidGeometry,
+        status: `${targetDesc} | h = ${sphResult.sagittaMm} mm => R = ${sphResult.radiusOfCurvatureCm === Infinity ? '∞' : `${sphResult.radiusOfCurvatureCm} cm`}`,
+      };
+
+      for (const surf of surfaces) {
+        updates[surf.id] = {
+          contactSagittaMm: sphResult.sagittaMm,
+          measuredRadiusCm: sphResult.radiusOfCurvatureCm,
+          status: `Placed Spherometer Contact: Sagitta h = ${sphResult.sagittaMm} mm`,
+        };
+      }
+
+      messages.push(
+        `Spherometer: l = ${legDist} mm, h = ${sphResult.sagittaMm} mm => Radius of Curvature R = ${sphResult.radiusOfCurvatureCm === Infinity ? '∞' : `${sphResult.radiusOfCurvatureCm} cm`} (${sphResult.surfaceType})`
+      );
+    }
+
+    // 9. Physical Beam Balance Simulation
+    const beamBalances = objects.filter((o) => o.equipmentId === 'physical-beam-balance');
+    const unknownMasses = objects.filter((o) => o.equipmentId === 'unknown-mass-specimen');
+    const weightBoxes = objects.filter((o) => o.equipmentId === 'weight-box');
+
+    for (const bb of beamBalances) {
+      const isArrested = bb.properties.isArrested !== false;
+      const unknown = unknownMasses[0];
+      const actualMass = unknown ? Number(unknown.properties.actualMassG ?? 24.50) : 24.50;
+
+      const leftPanMass = Number(bb.properties.leftPanMassG ?? actualMass);
+      const rightPanMass = Number(bb.properties.rightPanMassG ?? 20.00);
+      const sensitivity = Number(bb.properties.sensitivityGPerDiv ?? 0.01);
+
+      const bbState = calculateBeamBalanceState(
+        leftPanMass,
+        rightPanMass,
+        isArrested,
+        0,
+        sensitivity
+      );
+
+      updates[bb.id] = {
+        isArrested: bbState.isArrested,
+        leftPanMassGrams: bbState.leftPanMassGrams,
+        rightPanMassGrams: bbState.rightPanMassGrams,
+        massDifferenceGrams: bbState.massDifferenceGrams,
+        pointerRestingDivision: bbState.pointerRestingDivision,
+        isBalanced: bbState.isBalanced,
+        currentPointerAngleDeg: bbState.currentPointerAngleDeg,
+        balanceStatus: bbState.status,
+        status: bbState.isArrested
+          ? 'Beam Arrested (Safe for Weight Placement)'
+          : bbState.isBalanced
+          ? `EQUILIBRIUM REACHED (m = ${bbState.rightPanMassGrams.toFixed(2)} g)`
+          : `Imbalance: ${bbState.massDifferenceGrams > 0 ? '+' : ''}${bbState.massDifferenceGrams.toFixed(2)} g (${bbState.status})`,
+      };
+
+      for (const wb of weightBoxes) {
+        updates[wb.id] = {
+          currentTareG: rightPanMass,
+          status: `Right Pan Loaded: ${rightPanMass.toFixed(2)} g`,
+        };
+      }
+
+      if (unknown) {
+        updates[unknown.id] = {
+          trueMassG: actualMass,
+          placedOnPan: 'left-pan',
+          status: bbState.isBalanced
+            ? `Determined Mass = ${rightPanMass.toFixed(2)} g (Exact = ${actualMass.toFixed(2)} g)`
+            : `Testing on Left Pan (${actualMass.toFixed(2)} g)`,
+        };
+      }
+
+      messages.push(
+        `Beam Balance: Left = ${leftPanMass.toFixed(2)} g, Right = ${rightPanMass.toFixed(2)} g => Δm = ${bbState.massDifferenceGrams.toFixed(2)} g [${bbState.status}]`
       );
     }
 

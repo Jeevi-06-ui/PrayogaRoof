@@ -61,6 +61,38 @@ test.describe('PrayogaProof E2E Test Suite', () => {
     await expect(page.getByText('Equipment Catalogue')).toBeVisible();
   });
 
+  test('Loads Vernier Callipers workspace and interacts with Toolbar and Mode switch', async ({ page }) => {
+    await page.goto('/workspace/vernier-callipers');
+
+    await expect(page.getByText(/Vernier Callipers/i).first()).toBeVisible();
+
+    // Switch to Free Lab
+    const freeLabBtn = page.getByRole('button', { name: /Free/i });
+    await expect(freeLabBtn).toBeVisible();
+    await freeLabBtn.click();
+
+    // Equipment catalogue should be open in Free Lab
+    await expect(page.getByText('Equipment Catalogue')).toBeVisible();
+  });
+
+  test('Loads Screw Gauge workspace and verifies micrometer interface', async ({ page }) => {
+    await page.goto('/workspace/screw-gauge');
+    await expect(page.getByText(/Screw Gauge/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Spherometer workspace and verifies curvature measurement setup', async ({ page }) => {
+    await page.goto('/workspace/spherometer');
+    await expect(page.getByText(/Spherometer/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
+  test('Loads Beam Balance workspace and verifies dual-pan balance setup', async ({ page }) => {
+    await page.goto('/workspace/beam-balance');
+    await expect(page.getByText(/Beam Balance/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Guide', exact: true })).toBeVisible();
+  });
+
   test('Loads Paper Chromatography workspace and inspects paper strip properties', async ({ page }) => {
     await page.goto('/workspace/paper-chromatography');
 

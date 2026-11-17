@@ -10,11 +10,11 @@
 
 | Category | Total Experiments | Implemented (Active) | Under Development | Status |
 |----------|-------------------|----------------------|-------------------|--------|
-| **Physics** | **25** | **5** (Foundation) | **20** (Class 11: 10, Class 12: 10) | Active Hybrid |
+| **Physics** | **25** | **10** (5 Foundation + 5 Class 11) | **15** (Class 11: 5, Class 12: 10) | Active Hybrid |
 | **Chemistry** | **27** | **5** (Foundation) | **22** (Class 11: 11, Class 12: 11) | Active Hybrid |
 | **Biology** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
 | **Mathematics** | **0** | **0** | **0** (Curriculum alignment) | **ON HOLD (Coming Soon)** |
-| **Total** | **52** | **10** (19.2%) | **42** (80.8%) | **Verified Operational Baseline** |
+| **Total** | **52** | **15** (28.8%) | **37** (71.2%) | **Verified Operational Baseline** |
 
 ---
 
@@ -29,14 +29,14 @@
 | 4 | `magnetic-field` | Magnetic Field | Foundation | **Implemented** | Dipole magnetic field model, Alnico bar magnet orientation, freely rotating plotting compass needles, field-line vector rendering. |
 | 5 | `simple-pendulum` | Simple Pendulum | Foundation | **Implemented** | Harmonic motion engine ($\theta(t) = \theta_0 \cos(\omega t)$), mass-independence verification ($dT/dm = 0$), $g$-determination from period and string length ($g = \frac{4\pi^2 L}{T^2}$). |
 
-### Class 11 Experiments — 10 of 10 Registered (Under Development)
-| # | ID | Title | Class Level | Status | Target Capabilities |
-|---|----|-------|-------------|--------|---------------------|
-| 6 | `vernier-callipers` | Vernier Callipers | Class 11 | **Under Development** | Dual scale slider, $LC = 0.01\text{ cm}$, zero-error adjustment, internal/external dimension measurement. |
-| 7 | `screw-gauge` | Screw Gauge | Class 11 | **Under Development** | Thimble ratchet, $LC = 0.001\text{ cm}$, circular scale division, wire diameter & sheet thickness gauge. |
-| 8 | `irregular-lamina` | Area of an Irregular Lamina | Class 11 | **Under Development** | Centimeter grid overlay, boundary curve polygon clipping, square counting algorithms. |
-| 9 | `spherometer` | Spherometer | Class 11 | **Under Development** | Tripod pitch screw with circular head, lens/mirror curvature radius $R = \frac{l^2}{6h} + \frac{h}{2}$. |
-| 10 | `beam-balance` | Beam Balance | Class 11 | **Under Development** | Central knife-edge fulcrum torque balance, rider scale calibration, gravitational mass comparison. |
+### Class 11 Experiments — 5 Implemented, 5 Under Development
+| # | ID | Title | Class Level | Status | Scientific Engine & Capabilities |
+|---|----|-------|-------------|--------|----------------------------------|
+| 6 | `vernier-callipers` | Vernier Callipers | Class 11 | **Implemented** | Draggable jaws, steel beam main scale (1 mm pitch), 10/20 vernier divisions, least count $LC = 0.1\text{ mm}$ / $0.05\text{ mm}$, zero error correction, cylinder & sphere volume ($V = \pi d^2 h / 4$ and $V = 4/3 \pi r^3$). |
+| 7 | `screw-gauge` | Screw Gauge | Class 11 | **Implemented** | Cast iron U-frame, rotatable thimble, circular scale (50/100 divisions), pitch 1.0/0.5 mm, $LC = 0.01\text{ mm}$, zero error calibration, wire cross-section ($A = \pi d^2 / 4$) and glass plate thickness. |
+| 8 | `irregular-lamina` | Area of an Irregular Lamina | Class 11 | **Implemented** | Millimeter coordinate graph grid, 4x4 subgrid ray-casting boundary polygon integration, full ($N_1$), more-than-half ($N_2$), half ($N_3$) square counting, estimated area and boundary uncertainty $\Delta A$. |
+| 9 | `spherometer` | Spherometer | Class 11 | **Implemented** | Equilateral tripod legs, central micrometer screw, circumradius $r_0 = l/\sqrt{3}$, measured sagitta $h = |h_1 - h_0|$, curvature radius $R = \frac{l^2}{6h} + \frac{h}{2}$, convex/concave/plane classification with geometry bounds. |
+| 10 | `beam-balance` | Beam Balance | Class 11 | **Implemented** | Central brass pillar, dual scale pans, arrestment handle mechanism, calibrated weight box (50g–1g + mg riders), damped oscillation dynamics $\theta(t)$, and resting point equilibrium calculation. |
 | 11 | `parallelogram-law` | Parallelogram Law of Vectors | Class 11 | **Under Development** | Gravesande's apparatus, concurrent force pulleys, vector resultant calculation $\vec{R} = \sqrt{P^2 + Q^2 + 2PQ\cos\theta}$. |
 | 12 | `limiting-friction` | Laws of Limiting Friction | Class 11 | **Under Development** | Friction block on multi-surface beds, limiting friction force vs normal reaction linear ratio $\mu_s$. |
 | 13 | `inclined-plane-friction` | Friction on an Inclined Plane | Class 11 | **Under Development** | Tilting angle ramp, angle of repose determination, force decomposition along and perpendicular to plane. |

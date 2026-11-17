@@ -74,19 +74,20 @@ flowchart TD
 
 ### Phase 8: Physics Class 11 — Mechanics, Vectors, Friction & Elasticity (10 Experiments)
 **Focus:** Precision measurement instruments, Newtonian mechanics, statics, vectors, and fluid laws.
+**Current Status:** 5 of 10 Experiments Implemented and Operational (`vernier-callipers`, `screw-gauge`, `irregular-lamina`, `spherometer`, `beam-balance`).
 
-| # | Experiment ID | Title | Core Scientific Model to Implement |
-|---|---------------|-------|------------------------------------|
-| 1 | `vernier-callipers` | Vernier Callipers | Dual-scale vernier slider with zero-error calibration (positive/negative), least count $LC = \frac{1\text{ MSD}}{N} = 0.01\text{ cm}$, internal/external jaws, and depth probe. |
-| 2 | `screw-gauge` | Screw Gauge | Pitch scale and circular thimble division tracker ($LC = 0.001\text{ cm}$), backlash correction, ratchet click simulation, and wire gauge micrometry. |
-| 3 | `irregular-lamina` | Area of an Irregular Lamina | Centimeter millimeter-ruled grid overlay, boundary curve traversal, full/half/partial square counting algorithms. |
-| 4 | `spherometer` | Spherometer | Three-legged pitch screw tripod with circular disk scale; radius of curvature $R = \frac{l^2}{6h} + \frac{h}{2}$ for spherical lenses and mirrors. |
-| 5 | `beam-balance` | Beam Balance | Fulcrum moment balance ($\sum \tau = 0$), rider scale calibration, gravitational buoyancy corrections, resting point pointer oscillations. |
-| 6 | `parallelogram-law` | Parallelogram Law of Vectors | Gravesande's apparatus with pulleys, suspended weight hangers, spring balances, and vector resultant calculation $\vec{R} = \sqrt{P^2 + Q^2 + 2PQ\cos\theta}$. |
-| 7 | `limiting-friction` | Laws of Limiting Friction | Horizontal sliding block on wood/glass/metal beds, pan weights, static coefficient $\mu_s = \frac{F_{\text{limit}}}{N}$, and dynamic transition. |
-| 8 | `inclined-plane-friction` | Friction on an Inclined Plane | Angle of repose $\theta_r$ tilting ramp, normal force decomposition ($mg\cos\theta, mg\sin\theta$), and acceleration down plane. |
-| 9 | `hookes-law` | Hooke's Law and Spring Constant | Helical spring suspension, slotted mass hanger, vertical mirror scale (anti-parallax), linear extension $F = k \cdot x$, and dynamic oscillation period $T = 2\pi\sqrt{\frac{m}{k}}$. |
-| 10 | `boyles-law` | Boyle's Law | Quill tube / J-tube mercury column apparatus, atmospheric barometer compensation, isothermal compression verification ($P \cdot V = \text{constant}$). |
+| # | Experiment ID | Title | Status | Core Scientific Model Implemented / Planned |
+|---|---------------|-------|--------|---------------------------------------------|
+| 1 | `vernier-callipers` | Vernier Callipers | **Implemented** | Dual-scale vernier slider with zero-error calibration ($ZE = \pm n \cdot LC$), least count $LC = 0.1\text{ mm}$ / $0.05\text{ mm}$, internal/external jaws, and cylinder/sphere volume calculation. |
+| 2 | `screw-gauge` | Screw Gauge | **Implemented** | Pitch scale and circular thimble division tracker ($LC = 0.01\text{ mm}$), backlash/zero-error calibration, ratchet simulation, wire diameter/area, and glass plate thickness gauge. |
+| 3 | `irregular-lamina` | Area of an Irregular Lamina | **Implemented** | Millimeter coordinate graph grid, 4x4 subgrid ray-casting boundary polygon integration, full ($N_1$), more-than-half ($N_2$), half ($N_3$) square counting, estimated area and boundary uncertainty $\Delta A$. |
+| 4 | `spherometer` | Spherometer | **Implemented** | Three-legged pitch screw tripod with circular disk scale; circumradius $r_0 = l/\sqrt{3}$, sagitta $h = |h_1 - h_0|$, radius of curvature $R = \frac{l^2}{6h} + \frac{h}{2}$ for spherical lenses and mirrors. |
+| 5 | `beam-balance` | Beam Balance | **Implemented** | Fulcrum moment balance ($\sum \tau = 0$), dual-pan suspension, arrestment handle mechanism, calibrated weight box (50g–1g + mg riders), damped oscillation dynamics $\theta(t)$, and resting point pointer oscillations. |
+| 6 | `parallelogram-law` | Parallelogram Law of Vectors | Under Development | Gravesande's apparatus with pulleys, suspended weight hangers, spring balances, and vector resultant calculation $\vec{R} = \sqrt{P^2 + Q^2 + 2PQ\cos\theta}$. |
+| 7 | `limiting-friction` | Laws of Limiting Friction | Under Development | Horizontal sliding block on wood/glass/metal beds, pan weights, static coefficient $\mu_s = \frac{F_{\text{limit}}}{N}$, and dynamic transition. |
+| 8 | `inclined-plane-friction` | Friction on an Inclined Plane | Under Development | Angle of repose $\theta_r$ tilting ramp, normal force decomposition ($mg\cos\theta, mg\sin\theta$), and acceleration down plane. |
+| 9 | `hookes-law` | Hooke's Law and Spring Constant | Under Development | Helical spring suspension, slotted mass hanger, vertical mirror scale (anti-parallax), linear extension $F = k \cdot x$, and dynamic oscillation period $T = 2\pi\sqrt{\frac{m}{k}}$. |
+| 10 | `boyles-law` | Boyle's Law | Under Development | Quill tube / J-tube mercury column apparatus, atmospheric barometer compensation, isothermal compression verification ($P \cdot V = \text{constant}$). |
 
 ---
 

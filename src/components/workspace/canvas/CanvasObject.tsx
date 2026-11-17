@@ -2426,6 +2426,756 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
         );
       }
 
+      // =========================================================================
+      // CLASS 11 PRECISION MECHANICS VISUAL RENDERERS
+      // =========================================================================
+
+      case 'vernier-calliper': {
+        const gapMm = Number(object.state.correctedReadingMm ?? object.properties.jawPosition ?? 25.4);
+        const visualGapPx = Math.min(width - 160, Math.max(0, gapMm * 2.2));
+        const gripped = String(object.properties.grippedObject ?? 'metallic-cylinder');
+        const readingStr = `${Number(gapMm).toFixed(2)} mm`;
+
+        return (
+          <Group>
+            {/* Background frame */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#f8fafc"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Main Steel Beam */}
+            <Rect
+              x={10}
+              y={35}
+              width={width - 20}
+              height={32}
+              fill="#94a3b8"
+              stroke="#64748b"
+              strokeWidth={1}
+              cornerRadius={2}
+            />
+
+            {/* Main Scale Ticks (0, 10, 20... 120 mm) */}
+            {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120].map((_val, idx) => {
+              const tickX = 40 + idx * 24;
+              if (tickX > width - 50) return null;
+              return (
+                <Group key={idx}>
+                  <Line points={[tickX, 35, tickX, 48]} stroke="#1e293b" strokeWidth={1.5} />
+                  <KonvaText
+                    text={`${idx}`}
+                    x={tickX - 3}
+                    y={50}
+                    fontSize={8}
+                    fontFamily="monospace"
+                    fontStyle="bold"
+                    fill="#0f172a"
+                  />
+                </Group>
+              );
+            })}
+
+            {/* Fixed Jaw (Left) */}
+            <Rect x={10} y={15} width={30} height={110} fill="#64748b" stroke="#334155" strokeWidth={1} />
+            {/* Fixed Upper Nib */}
+            <Rect x={10} y={5} width={18} height={25} fill="#64748b" stroke="#334155" strokeWidth={1} />
+
+            {/* Sliding Vernier Carriage */}
+            <Group x={35 + visualGapPx} y={20}>
+              {/* Carriage Block */}
+              <Rect
+                x={0}
+                y={5}
+                width={85}
+                height={50}
+                fill="#e2e8f0"
+                stroke="#475569"
+                strokeWidth={1.5}
+                cornerRadius={4}
+              />
+              {/* Sliding Lower Jaw */}
+              <Rect x={0} y={15} width={25} height={90} fill="#64748b" stroke="#334155" strokeWidth={1} />
+              {/* Sliding Upper Nib */}
+              <Rect x={0} y={-15} width={16} height={25} fill="#64748b" stroke="#334155" strokeWidth={1} />
+
+              {/* Vernier Scale Window & Ticks */}
+              <Rect x={26} y={12} width={52} height={24} fill="#f1f5f9" stroke="#94a3b8" strokeWidth={1} />
+              {[0, 2, 4, 6, 8, 10].map((vTick, vIdx) => (
+                <Group key={vIdx}>
+                  <Line points={[28 + vIdx * 9, 12, 28 + vIdx * 9, 22]} stroke="#0369a1" strokeWidth={1.2} />
+                  <KonvaText
+                    text={`${vTick}`}
+                    x={26 + vIdx * 9}
+                    y={24}
+                    fontSize={7}
+                    fontFamily="monospace"
+                    fill="#0369a1"
+                  />
+                </Group>
+              ))}
+
+              {/* Clamp Thumb Screw */}
+              <Circle x={60} y={-2} radius={7} fill="#b45309" stroke="#78350f" strokeWidth={1} />
+            </Group>
+
+            {/* Gripped Specimen between jaws */}
+            {gripped === 'metallic-cylinder' && visualGapPx > 10 && (
+              <Rect
+                x={40}
+                y={75}
+                width={Math.min(visualGapPx - 2, 45)}
+                height={50}
+                fill="#d97706"
+                stroke="#b45309"
+                strokeWidth={1}
+                cornerRadius={3}
+              />
+            )}
+            {gripped === 'steel-sphere' && visualGapPx > 10 && (
+              <Circle
+                x={40 + visualGapPx / 2}
+                y={95}
+                radius={Math.min(visualGapPx / 2 - 1, 22)}
+                fill="#64748b"
+                stroke="#334155"
+                strokeWidth={1.5}
+              />
+            )}
+
+            {/* Title & Digital Readout Badge */}
+            <Rect x={width - 150} y={10} width={140} height={22} fill="#0f172a" cornerRadius={4} />
+            <KonvaText
+              text={`Reading: ${readingStr}`}
+              x={width - 144}
+              y={15}
+              fontSize={11}
+              fontFamily="monospace"
+              fontStyle="bold"
+              fill="#38bdf8"
+            />
+            <KonvaText
+              text="VERNIER CALLIPERS (LC = 0.1 mm)"
+              x={15}
+              y={height - 14}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#475569"
+            />
+          </Group>
+        );
+      }
+
+      case 'test-cylinder': {
+        const d = Number(object.properties.diameter ?? 25.4);
+        const h = Number(object.properties.length ?? 52.0);
+        const mat = String(object.properties.material ?? 'Brass');
+        const fillCol = mat === 'Steel' ? '#64748b' : mat === 'Aluminum' ? '#94a3b8' : '#d97706';
+
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            {/* 3D Cylinder visualization */}
+            <Rect
+              x={width / 2 - 25}
+              y={20}
+              width={50}
+              height={70}
+              fill={fillCol}
+              stroke="#475569"
+              strokeWidth={1.5}
+              cornerRadius={6}
+            />
+            <KonvaText
+              text={mat.toUpperCase()}
+              x={width / 2 - 20}
+              y={45}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#ffffff"
+            />
+            <KonvaText
+              text={`d = ${d} mm | h = ${h} mm`}
+              x={10}
+              y={height - 18}
+              fontSize={8}
+              fontFamily="monospace"
+              fontStyle="bold"
+              fill="#1e293b"
+            />
+          </Group>
+        );
+      }
+
+      case 'test-sphere': {
+        const d = Number(object.properties.diameter ?? 18.6);
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            <Circle
+              x={width / 2}
+              y={height / 2 - 6}
+              radius={28}
+              fill="#64748b"
+              stroke="#334155"
+              strokeWidth={2}
+            />
+            {/* Highlight spot */}
+            <Circle x={width / 2 - 8} y={height / 2 - 14} radius={6} fill="#ffffff" opacity={0.6} />
+            <KonvaText
+              text={`Ø = ${d} mm`}
+              x={width / 2 - 26}
+              y={height - 18}
+              fontSize={9}
+              fontFamily="monospace"
+              fontStyle="bold"
+              fill="#1e293b"
+            />
+          </Group>
+        );
+      }
+
+      case 'screw-gauge': {
+        const gapMm = Number(object.state.correctedReadingMm ?? object.properties.spindleGap ?? 0.46);
+        const visualGapPx = Math.min(65, Math.max(0, gapMm * 18));
+        const gripped = String(object.properties.grippedObject ?? 'resistance-wire');
+        const readingStr = `${Number(gapMm).toFixed(3)} mm`;
+
+        return (
+          <Group>
+            {/* Background */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#f8fafc"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Classic U-Frame */}
+            <Line
+              points={[40, 45, 20, 75, 20, 115, 60, 145, 120, 145, 150, 115, 150, 75]}
+              stroke="#0f766e"
+              strokeWidth={24}
+              lineCap="round"
+              lineJoin="round"
+            />
+            <KonvaText
+              text="0 - 25 mm  0.01 mm"
+              x={40}
+              y={128}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#ccfbf1"
+            />
+
+            {/* Fixed Anvil (Left) */}
+            <Rect x={138} y={66} width={14} height={18} fill="#94a3b8" stroke="#334155" strokeWidth={1} />
+
+            {/* Movable Spindle (Advancing from right) */}
+            <Rect
+              x={152 + visualGapPx}
+              y={67}
+              width={55 - visualGapPx}
+              height={16}
+              fill="#cbd5e1"
+              stroke="#475569"
+              strokeWidth={1}
+            />
+
+            {/* Gripped Specimen */}
+            {gripped === 'resistance-wire' && (
+              <Line points={[152, 50, 152, 100]} stroke="#b45309" strokeWidth={2.5} />
+            )}
+            {gripped === 'glass-plate' && (
+              <Rect x={152} y={55} width={Math.max(4, visualGapPx)} height={40} fill="#38bdf8" opacity={0.6} stroke="#0284c7" strokeWidth={1} />
+            )}
+
+            {/* Linear Sleeve / Barrel with Pitch Scale */}
+            <Rect x={205} y={62} width={75} height={26} fill="#94a3b8" stroke="#475569" strokeWidth={1} />
+            {/* Baseline */}
+            <Line points={[205, 75, 280, 75]} stroke="#0f172a" strokeWidth={1.5} />
+            {/* Pitch ticks (0, 1, 2, 3, 4, 5 mm) */}
+            {[0, 1, 2, 3, 4, 5].map((pTick) => (
+              <Group key={pTick}>
+                <Line points={[215 + pTick * 10, 68, 215 + pTick * 10, 75]} stroke="#0f172a" strokeWidth={1} />
+                <Line points={[220 + pTick * 10, 75, 220 + pTick * 10, 81]} stroke="#0f172a" strokeWidth={1} />
+              </Group>
+            ))}
+
+            {/* Rotating Thimble with Beveled Circular Scale */}
+            <Rect x={280} y={54} width={75} height={42} fill="#64748b" stroke="#334155" strokeWidth={1.5} cornerRadius={2} />
+            {/* Circular division lines */}
+            {[0, 10, 20, 30, 40].map((_cDiv, cIdx) => (
+              <Line key={cIdx} points={[282, 58 + cIdx * 7, 292, 58 + cIdx * 7]} stroke="#f1f5f9" strokeWidth={1} />
+            ))}
+
+            {/* Ratchet Cap */}
+            <Rect x={355} y={63} width={35} height={24} fill="#475569" stroke="#1e293b" strokeWidth={1} cornerRadius={3} />
+            <KonvaText text="RATCHET" x={358} y={71} fontSize={6} fontFamily="sans-serif" fill="#94a3b8" />
+
+            {/* Readout Display */}
+            <Rect x={width - 150} y={10} width={140} height={22} fill="#0f172a" cornerRadius={4} />
+            <KonvaText
+              text={`Gap: ${readingStr}`}
+              x={width - 144}
+              y={15}
+              fontSize={11}
+              fontFamily="monospace"
+              fontStyle="bold"
+              fill="#2dd4bf"
+            />
+            <KonvaText
+              text="MICROMETER SCREW GAUGE (LC = 0.01 mm)"
+              x={15}
+              y={height - 12}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#0f766e"
+            />
+          </Group>
+        );
+      }
+
+      case 'gauge-wire': {
+        const d = Number(object.properties.diameter ?? 0.46);
+        const mat = String(object.properties.material ?? 'Nichrome');
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            <Circle x={width / 2} y={height / 2 - 8} radius={26} fill="#b45309" stroke="#78350f" strokeWidth={2} />
+            <Circle x={width / 2} y={height / 2 - 8} radius={14} fill="#fef3c7" stroke="#b45309" strokeWidth={1} />
+            <KonvaText
+              text={mat}
+              x={width / 2 - 20}
+              y={height / 2 - 12}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#78350f"
+            />
+            <KonvaText
+              text={`d = ${d.toFixed(3)} mm`}
+              x={width / 2 - 28}
+              y={height - 16}
+              fontSize={9}
+              fontFamily="monospace"
+              fontStyle="bold"
+              fill="#1e293b"
+            />
+          </Group>
+        );
+      }
+
+      case 'gauge-plate': {
+        const t = Number(object.properties.thickness ?? 1.25);
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            <Rect
+              x={width / 2 - 35}
+              y={25}
+              width={70}
+              height={40}
+              fill="#e0f2fe"
+              stroke="#0284c7"
+              strokeWidth={1.5}
+              cornerRadius={2}
+            />
+            <KonvaText
+              text="GLASS SLIDE"
+              x={width / 2 - 24}
+              y={40}
+              fontSize={7}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#0369a1"
+            />
+            <KonvaText
+              text={`t = ${t.toFixed(2)} mm`}
+              x={width / 2 - 28}
+              y={height - 16}
+              fontSize={9}
+              fontFamily="monospace"
+              fontStyle="bold"
+              fill="#1e293b"
+            />
+          </Group>
+        );
+      }
+
+      case 'irregular-lamina': {
+        const area = Number(object.state.estimatedAreaCm2 ?? 22.0);
+        return (
+          <Group>
+            {/* Smooth polygonal leaf contour */}
+            <Line
+              points={[
+                width / 2, 15,
+                width / 2 + 35, 35,
+                width / 2 + 55, 75,
+                width / 2 + 60, 115,
+                width / 2 + 45, 155,
+                width / 2 + 20, 185,
+                width / 2, 205,
+                width / 2 - 20, 185,
+                width / 2 - 45, 155,
+                width / 2 - 60, 115,
+                width / 2 - 55, 75,
+                width / 2 - 35, 35,
+              ]}
+              closed
+              fill="#22c55e"
+              stroke={isSelected ? '#38bdf8' : '#15803d'}
+              strokeWidth={isSelected ? 3 : 2}
+            />
+            {/* Central Leaf Vein */}
+            <Line points={[width / 2, 20, width / 2, 200]} stroke="#166534" strokeWidth={2} />
+            <KonvaText
+              text={`Area: ${area} cm²`}
+              x={width / 2 - 32}
+              y={105}
+              fontSize={9}
+              fontFamily="monospace"
+              fontStyle="bold"
+              fill="#ffffff"
+            />
+          </Group>
+        );
+      }
+
+      case 'graph-grid': {
+        const gridUnit = Number(object.properties.gridUnitCm ?? 1.0);
+        const areaCm2 = Number(object.state.calculatedAreaCm2 ?? 22.0);
+
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#f0fdf4"
+              stroke={isSelected ? '#38bdf8' : '#10b981'}
+              strokeWidth={isSelected ? 3 : 1.5}
+            />
+            {/* 1 cm Major Grid Lines */}
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((idx) => {
+              const xPos = idx * 35;
+              const yPos = idx * 35;
+              return (
+                <Group key={idx}>
+                  {xPos <= width && <Line points={[xPos, 0, xPos, height]} stroke="#a7f3d0" strokeWidth={1} />}
+                  {yPos <= height && <Line points={[0, yPos, width, yPos]} stroke="#a7f3d0" strokeWidth={1} />}
+                </Group>
+              );
+            })}
+            <Rect x={10} y={10} width={135} height={20} fill="#065f46" cornerRadius={4} />
+            <KonvaText
+              text={`Grid: ${gridUnit} cm | ${areaCm2} cm²`}
+              x={14}
+              y={15}
+              fontSize={9}
+              fontFamily="monospace"
+              fontStyle="bold"
+              fill="#ecfdf5"
+            />
+          </Group>
+        );
+      }
+
+      case 'spherometer': {
+        const sagitta = Number(object.state.sagittaMm ?? 2.03);
+        const radiusCm = object.state.radiusOfCurvatureCm ?? 13.24;
+
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            {/* Tripod Frame (Equilateral triangle base) */}
+            <Line
+              points={[width / 2, 40, width / 2 + 70, 170, width / 2 - 70, 170]}
+              closed
+              fill="#fef3c7"
+              stroke="#b45309"
+              strokeWidth={4}
+            />
+            {/* 3 Outer Leg Feet */}
+            <Circle x={width / 2} y={40} radius={6} fill="#78350f" />
+            <Circle x={width / 2 + 70} y={170} radius={6} fill="#78350f" />
+            <Circle x={width / 2 - 70} y={170} radius={6} fill="#78350f" />
+
+            {/* Central Vertical Pitch Scale */}
+            <Rect x={width / 2 - 6} y={75} width={12} height={80} fill="#94a3b8" stroke="#475569" strokeWidth={1} />
+            <Line points={[width / 2 - 6, 115, width / 2 + 6, 115]} stroke="#0f172a" strokeWidth={2} />
+
+            {/* Circular Disc Head */}
+            <Circle x={width / 2} y={115} radius={34} fill="#e2e8f0" stroke="#7c3aed" strokeWidth={2} />
+            <Circle x={width / 2} y={115} radius={8} fill="#b45309" />
+
+            {/* Measurement Overlay */}
+            <Rect x={10} y={height - 35} width={width - 20} height={24} fill="#0f172a" cornerRadius={4} />
+            <KonvaText
+              text={`Sagitta h = ${sagitta.toFixed(2)} mm | R = ${radiusCm === Infinity ? '∞' : `${radiusCm} cm`}`}
+              x={16}
+              y={height - 29}
+              fontSize={10}
+              fontFamily="monospace"
+              fontStyle="bold"
+              fill="#a78bfa"
+            />
+          </Group>
+        );
+      }
+
+      case 'curved-surface': {
+        const prof = String(object.properties.surfaceProfile ?? 'Spherical Convex Watch Glass');
+        const isConvex = prof.includes('Convex');
+        const isConcave = prof.includes('Concave');
+
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            {/* Curved arc line */}
+            <Line
+              points={
+                isConvex
+                  ? [20, 75, width / 2, 40, width - 20, 75]
+                  : isConcave
+                  ? [20, 45, width / 2, 80, width - 20, 45]
+                  : [20, 60, width - 20, 60]
+              }
+              stroke="#0284c7"
+              strokeWidth={3}
+              tension={0.4}
+            />
+            <KonvaText
+              text={prof}
+              x={10}
+              y={height - 18}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#0369a1"
+            />
+          </Group>
+        );
+      }
+
+      case 'beam-balance': {
+        const isArr = object.properties.isArrested !== false;
+        const leftMass = Number(object.properties.leftPanMassG ?? 24.50);
+        const rightMass = Number(object.properties.rightPanMassG ?? 20.00);
+        const angleDeg = Number(object.state.currentPointerAngleDeg ?? 0);
+        const isBalanced = object.state.isBalanced === true;
+
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#f8fafc"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+
+            {/* Central Pillar */}
+            <Rect x={width / 2 - 8} y={40} width={16} height={190} fill="#b45309" stroke="#78350f" strokeWidth={1} cornerRadius={2} />
+            {/* Heavy Base Plate */}
+            <Rect x={width / 2 - 70} y={225} width={140} height={18} fill="#78350f" cornerRadius={3} />
+
+            {/* Central Agate Knife-Edge Block */}
+            <Rect x={width / 2 - 16} y={35} width={32} height={14} fill="#475569" cornerRadius={2} />
+
+            {/* Balanced Horizontal Beam (Pivoted around center) */}
+            <Group x={width / 2} y={42} rotation={isArr ? 0 : angleDeg}>
+              <Line points={[-150, 0, 150, 0]} stroke="#d97706" strokeWidth={7} lineCap="round" />
+              {/* Central pointer needle extending downwards */}
+              <Line points={[0, 0, 0, 95]} stroke="#ef4444" strokeWidth={2} />
+              <Circle x={0} y={0} radius={5} fill="#78350f" />
+
+              {/* Left Stirrup Wire & Pan */}
+              <Line points={[-140, 0, -140, 75]} stroke="#64748b" strokeWidth={1.5} />
+              <Line points={[-170, 75, -110, 75]} stroke="#475569" strokeWidth={3} lineCap="round" />
+              {/* Left Weight Disk */}
+              <Rect x={-155} y={58} width={30} height={16} fill="#d97706" stroke="#78350f" strokeWidth={1} cornerRadius={2} />
+
+              {/* Right Stirrup Wire & Pan */}
+              <Line points={[140, 0, 140, 75]} stroke="#64748b" strokeWidth={1.5} />
+              <Line points={[110, 75, 170, 75]} stroke="#475569" strokeWidth={3} lineCap="round" />
+              {/* Right Weights Disks */}
+              <Rect x={125} y={63} width={30} height={11} fill="#b45309" stroke="#78350f" strokeWidth={1} cornerRadius={1} />
+            </Group>
+
+            {/* Index Arc Scale at base of pointer */}
+            <Rect x={width / 2 - 40} y={130} width={80} height={18} fill="#fef3c7" stroke="#b45309" strokeWidth={1} cornerRadius={2} />
+            {[-4, -2, 0, 2, 4].map((div) => (
+              <Line key={div} points={[width / 2 + div * 8, 130, width / 2 + div * 8, 142]} stroke="#78350f" strokeWidth={1} />
+            ))}
+
+            {/* Arrestment Knob */}
+            <Circle x={width / 2} y={234} radius={8} fill={isArr ? '#ef4444' : '#22c55e'} stroke="#1e293b" strokeWidth={1.5} />
+
+            {/* Status Readout Banner */}
+            <Rect x={10} y={height - 28} width={width - 20} height={20} fill={isBalanced ? '#065f46' : isArr ? '#1e293b' : '#7c2d12'} cornerRadius={3} />
+            <KonvaText
+              text={
+                isArr
+                  ? 'BEAM ARRESTED'
+                  : isBalanced
+                  ? `EQUILIBRIUM ACHIEVED (m = ${rightMass.toFixed(2)} g)`
+                  : `Left: ${leftMass.toFixed(2)}g | Right: ${rightMass.toFixed(2)}g`
+              }
+              x={18}
+              y={height - 23}
+              fontSize={10}
+              fontFamily="monospace"
+              fontStyle="bold"
+              fill="#ffffff"
+            />
+          </Group>
+        );
+      }
+
+      case 'weight-box': {
+        const selWeight = Number(object.properties.selectedWeightG ?? 5.0);
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#78350f"
+              stroke={isSelected ? '#38bdf8' : '#451a03'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={6}
+            />
+            {/* Felt lining */}
+            <Rect x={8} y={8} width={width - 16} height={height - 16} fill="#14532d" cornerRadius={4} />
+            {/* Standard weight cylinders */}
+            {[50, 20, 10, 5, 2, 1].map((w, idx) => {
+              const xPos = 20 + (idx % 3) * 50;
+              const yPos = 20 + Math.floor(idx / 3) * 45;
+              return (
+                <Group key={idx}>
+                  <Circle x={xPos + 15} y={yPos + 15} radius={12} fill="#d97706" stroke="#78350f" strokeWidth={1} />
+                  <KonvaText
+                    text={`${w}g`}
+                    x={xPos + 6}
+                    y={yPos + 10}
+                    fontSize={8}
+                    fontFamily="monospace"
+                    fontStyle="bold"
+                    fill="#451a03"
+                  />
+                </Group>
+              );
+            })}
+            <KonvaText
+              text={`Active: ${selWeight}g`}
+              x={12}
+              y={height - 16}
+              fontSize={8}
+              fontFamily="monospace"
+              fontStyle="bold"
+              fill="#fef3c7"
+            />
+          </Group>
+        );
+      }
+
+      case 'unknown-mass': {
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#ffffff"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            <Rect
+              x={width / 2 - 25}
+              y={20}
+              width={50}
+              height={55}
+              fill="#d97706"
+              stroke="#78350f"
+              strokeWidth={1.5}
+              cornerRadius={4}
+            />
+            <Circle x={width / 2} y={15} radius={7} fill="#b45309" stroke="#78350f" strokeWidth={1} />
+            <KonvaText
+              text="?"
+              x={width / 2 - 7}
+              y={32}
+              fontSize={24}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#ffffff"
+            />
+            <KonvaText
+              text="UNKNOWN MASS"
+              x={width / 2 - 32}
+              y={height - 16}
+              fontSize={7}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#475569"
+            />
+          </Group>
+        );
+      }
+
       case 'generic-box':
       default: {
         const displayVal =

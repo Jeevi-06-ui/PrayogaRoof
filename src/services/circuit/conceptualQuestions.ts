@@ -3,6 +3,11 @@ import {
   CONVEX_LENS_QUESTIONS,
   MAGNETIC_FIELD_QUESTIONS,
   SIMPLE_PENDULUM_QUESTIONS,
+  VERNIER_CALLIPERS_QUESTIONS,
+  SCREW_GAUGE_QUESTIONS,
+  IRREGULAR_LAMINA_QUESTIONS,
+  SPHEROMETER_QUESTIONS,
+  BEAM_BALANCE_QUESTIONS,
 } from '../physics/physicsQuestions';
 import {
   PH_TESTING_QUESTIONS,
@@ -107,5 +112,10 @@ export function getConceptualQuestions(experimentId: string): ConceptualQuestion
   if (experimentId === 'paper-chromatography') return PAPER_CHROMATOGRAPHY_QUESTIONS;
   if (experimentId === 'displacement-reaction') return DISPLACEMENT_REACTION_QUESTIONS;
   if (experimentId === 'crystallisation') return CRYSTALLISATION_QUESTIONS;
+  if (experimentId === 'vernier-callipers') return VERNIER_CALLIPERS_QUESTIONS;
+  if (experimentId === 'screw-gauge') return SCREW_GAUGE_QUESTIONS;
+  if (experimentId === 'irregular-lamina') return IRREGULAR_LAMINA_QUESTIONS;
+  if (experimentId === 'spherometer') return SPHEROMETER_QUESTIONS;
+  if (experimentId === 'beam-balance') return BEAM_BALANCE_QUESTIONS;
   return [...OHMS_LAW_QUESTIONS, ...SERIES_PARALLEL_QUESTIONS];
 }

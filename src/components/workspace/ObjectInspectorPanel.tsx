@@ -488,6 +488,68 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
         value: `Status: ${sat} | Crystals: ${yieldG}g (Water: ${water}mL)`,
         unit: '',
       };
+    } else if (experimentId === 'vernier-callipers') {
+      const vcUpdate = Object.entries(updates).find(([id]) => id.includes('calliper') || id.includes('vc'))?.[1];
+      const msr = vcUpdate?.msrMm ?? 25;
+      const vcd = vcUpdate?.vcd ?? 4;
+      const reading = vcUpdate?.correctedReadingMm ?? 25.4;
+      const vol = vcUpdate?.volumeCm3 ?? 26.35;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Vernier Calliper`,
+        value: `MSR = ${msr} mm, VCD = ${vcd} => ${reading} mm (Vol: ${vol} cm³)`,
+        unit: '',
+      };
+    } else if (experimentId === 'screw-gauge') {
+      const sgUpdate = Object.entries(updates).find(([id]) => id.includes('sg') || id.includes('screw'))?.[1];
+      const psr = sgUpdate?.psrMm ?? 0.0;
+      const csr = sgUpdate?.csr ?? 46;
+      const reading = sgUpdate?.correctedReadingMm ?? 0.46;
+      const area = sgUpdate?.crossSectionMm2 ?? 0.166;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Screw Gauge`,
+        value: `PSR = ${psr} mm, CSR = ${csr} => ${reading} mm (Area: ${area} mm²)`,
+        unit: '',
+      };
+    } else if (experimentId === 'irregular-lamina') {
+      const gridUpdate = Object.entries(updates).find(([id]) => id.includes('grid') || id.includes('lamina'))?.[1];
+      const area = gridUpdate?.calculatedAreaCm2 ?? 22.0;
+      const unc = gridUpdate?.uncertaintyCm2 ?? 2.0;
+      const full = gridUpdate?.fullSquares ?? 16;
+      const more = gridUpdate?.moreThanHalf ?? 8;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Irregular Lamina`,
+        value: `Area = ${area} ± ${unc} cm² (N₁=${full}, N₂=${more})`,
+        unit: '',
+      };
+    } else if (experimentId === 'spherometer') {
+      const sphUpdate = Object.entries(updates).find(([id]) => id.includes('sph'))?.[1];
+      const sagitta = sphUpdate?.sagittaMm ?? 2.03;
+      const r = sphUpdate?.radiusOfCurvatureCm ?? 13.24;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Spherometer`,
+        value: `Sagitta h = ${sagitta} mm => R = ${r === Infinity ? '∞' : `${r} cm`}`,
+        unit: '',
+      };
+    } else if (experimentId === 'beam-balance') {
+      const bbUpdate = Object.entries(updates).find(([id]) => id.includes('bb') || id.includes('balance'))?.[1];
+      const left = bbUpdate?.leftPanMassGrams ?? 24.50;
+      const right = bbUpdate?.rightPanMassGrams ?? 20.00;
+      const status = bbUpdate?.balanceStatus ?? 'imbalance';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Beam Balance`,
+        value: `Left: ${left}g, Right: ${right}g (${String(status).toUpperCase()})`,
+        unit: '',
+      };
     } else {
       let volt = 0;
       let curr = 0;
@@ -549,14 +611,14 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
             { id: 'notebook', label: 'Notebook', icon: FileText },
             { id: 'questions', label: 'Quiz', icon: HelpCircle },
             { id: 'telemetry', label: 'Live Data', icon: Activity },
-            ...(isChemistry ? [{ id: 'reagents', label: 'Reagents', icon: Droplet }] : []),
+            ...(isChemistry ? [{ id: 'reagents' as const, label: 'Reagents', icon: Droplet }] : []),
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap ${
                   isActive
                     ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300'
@@ -1541,7 +1603,17 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                           ? 'Displacement Reaction Quick Log'
                           : experimentId === 'crystallisation'
                             ? 'Crystallisation Quick Log'
-                            : 'Active Bench Quick Log'}
+                            : experimentId === 'vernier-callipers'
+                              ? 'Vernier Callipers Quick Log'
+                              : experimentId === 'screw-gauge'
+                                ? 'Screw Gauge Quick Log'
+                                : experimentId === 'irregular-lamina'
+                                  ? 'Irregular Lamina Quick Log'
+                                  : experimentId === 'spherometer'
+                                    ? 'Spherometer Quick Log'
+                                    : experimentId === 'beam-balance'
+                                      ? 'Beam Balance Quick Log'
+                                      : 'Active Bench Quick Log'}
               </span>
               <p className="text-[10px] text-blue-700/80 dark:text-blue-400 leading-snug">
                 {experimentId === 'convex-lens'
@@ -1556,7 +1628,17 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
                           ? 'Instantly log immersion duration, reaction progress %, and net stoichiometric nail mass gain.'
                           : experimentId === 'crystallisation'
                             ? 'Instantly log solution temperature, saturation status, remaining solvent, and crystal yield.'
-                            : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
+                            : experimentId === 'vernier-callipers'
+                              ? 'Instantly log Main Scale Reading (MSR), Vernier Coincidence (VCD), corrected diameter/depth, and volume.'
+                              : experimentId === 'screw-gauge'
+                                ? 'Instantly log Pitch Scale Reading (PSR), Circular Scale (CSR), corrected thickness, and wire area.'
+                                : experimentId === 'irregular-lamina'
+                                  ? 'Instantly log full squares, partial boundary squares, and estimated lamina area ± uncertainty.'
+                                  : experimentId === 'spherometer'
+                                    ? 'Instantly log outer leg distance, measured sagitta h, and calculated spherical radius of curvature R.'
+                                    : experimentId === 'beam-balance'
+                                      ? 'Instantly log left pan mass, right pan tare weights, and beam equilibrium status.'
+                                      : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
               </p>
               <Button
                 type="button"
