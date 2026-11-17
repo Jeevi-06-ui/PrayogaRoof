@@ -28,6 +28,7 @@ import {
   deleteWorkspace,
 } from '../../services/studentProgressService';
 import { FolderOpen, Trash2 } from 'lucide-react';
+import { UnderDevelopmentWorkspace } from './UnderDevelopmentWorkspace';
 
 interface UniversalLabWorkspaceProps {
   experimentId: string;
@@ -41,12 +42,15 @@ export const UniversalLabWorkspace: React.FC<UniversalLabWorkspaceProps> = ({
   onWorkspaceSaved,
 }) => {
   // 1. Resolve Lab Definition
-  const labDef = useMemo(() => {
-    return (
-      getLabDefinition(experimentId) ||
-      getLabDefinition('generic-demo')!
-    );
+  const resolvedLabDef = useMemo(() => {
+    return getLabDefinition(experimentId) || (experimentId === 'generic-demo' ? getLabDefinition('generic-demo') : undefined);
   }, [experimentId]);
+
+  if (!resolvedLabDef) {
+    return <UnderDevelopmentWorkspace experimentId={experimentId} />;
+  }
+
+  const labDef = resolvedLabDef;
 
   // 2. Equipment Catalogue filtered by this lab's allowed list
   const equipmentCatalogue = useMemo(() => {

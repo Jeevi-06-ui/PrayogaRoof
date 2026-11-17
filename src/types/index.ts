@@ -7,6 +7,10 @@ export type SubjectId = 'physics' | 'chemistry' | 'biology' | 'mathematics';
 
 export type SubjectStatus = 'active' | 'coming-soon';
 
+export type ClassLevel = 'foundation' | 'class-11' | 'class-12';
+
+export type ImplementationStatus = 'implemented' | 'under-development' | 'planned';
+
 export type ExperimentDifficulty = 'Beginner' | 'Intermediate' | 'Advanced';
 
 export type ProgressStatus = 'not-started' | 'in-progress' | 'completed';
@@ -14,7 +18,7 @@ export type ProgressStatus = 'not-started' | 'in-progress' | 'completed';
 export interface ApparatusItem {
   id: string;
   name: string;
-  category: 'instrument' | 'glassware' | 'chemical' | 'component' | 'safety';
+  category: 'instrument' | 'glassware' | 'chemical' | 'component' | 'safety' | 'optics';
   description?: string;
   quantity?: string;
 }
@@ -23,6 +27,8 @@ export interface ExperimentMetadata {
   id: string;
   title: string;
   subjectId: SubjectId;
+  classLevel: ClassLevel;
+  implementationStatus: ImplementationStatus;
   shortDescription: string;
   fullDescription: string;
   difficulty: ExperimentDifficulty;
@@ -37,6 +43,8 @@ export interface ExperimentMetadata {
   freeLabOverview: string;
   thumbnailIcon: string;
   order: number;
+  reusedModuleId?: string;
+  activityPresetId?: string;
 }
 
 export interface SubjectMetadata {

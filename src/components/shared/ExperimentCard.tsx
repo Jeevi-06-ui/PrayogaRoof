@@ -44,6 +44,14 @@ export const ExperimentCard: React.FC<ExperimentCardProps> = ({
   };
 
   const getStatusBadge = () => {
+    if (experiment.implementationStatus === 'under-development') {
+      return (
+        <Badge variant="warning" dot>
+          Under Development
+        </Badge>
+      );
+    }
+
     switch (status) {
       case 'completed':
         return (
@@ -147,11 +155,23 @@ export const ExperimentCard: React.FC<ExperimentCardProps> = ({
         <div className="flex items-center gap-2">
           <Link to={`/experiments/${experiment.id}`}>
             <Button
-              variant={status === 'completed' ? 'secondary' : 'primary'}
+              variant={
+                experiment.implementationStatus === 'under-development'
+                  ? 'outline'
+                  : status === 'completed'
+                  ? 'secondary'
+                  : 'primary'
+              }
               size="sm"
               rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
             >
-              {status === 'completed' ? 'Review Lab' : status === 'in-progress' ? 'Resume' : 'Start Lab'}
+              {experiment.implementationStatus === 'under-development'
+                ? 'View Syllabus'
+                : status === 'completed'
+                ? 'Review Lab'
+                : status === 'in-progress'
+                ? 'Resume'
+                : 'Start Lab'}
             </Button>
           </Link>
         </div>

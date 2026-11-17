@@ -10,7 +10,7 @@ import {
   FolderOpen,
   FileText,
   AlertTriangle,
-  Lightbulb,
+  Clock,
 } from 'lucide-react';
 import { getExperimentById } from '../services/experimentRegistry';
 import { useStudent } from '../context/StudentContext';
@@ -20,6 +20,7 @@ import { Button } from '../components/shared/Button';
 import { Tabs } from '../components/shared/Tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/shared/Card';
 import { UniversalLabWorkspace } from '../components/workspace/UniversalLabWorkspace';
+import { UnderDevelopmentWorkspace } from '../components/workspace/UnderDevelopmentWorkspace';
 import { Modal } from '../components/shared/Modal';
 import { EmptyState } from '../components/shared/EmptyState';
 import {
@@ -168,7 +169,11 @@ export const ExperimentDetailPage: React.FC = () => {
               </span>
               <Badge variant="outline">{experiment.difficulty}</Badge>
               <Badge variant="outline">{experiment.gradeLevel}</Badge>
-              {isCompleted ? (
+              {experiment.implementationStatus === 'under-development' ? (
+                <Badge variant="warning" dot>
+                  Under Development
+                </Badge>
+              ) : isCompleted ? (
                 <Badge variant="success" dot>
                   Completed
                 </Badge>
@@ -193,6 +198,15 @@ export const ExperimentDetailPage: React.FC = () => {
               <div className="p-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 font-mono text-xs sm:text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
                 <span className="font-bold text-blue-600 dark:text-blue-400">Principle:</span>
                 <span>{experiment.keyFormulaOrPrinciple}</span>
+              </div>
+            )}
+
+            {experiment.implementationStatus === 'under-development' && (
+              <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2.5">
+                <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  <span className="font-bold">Under Development:</span> This {experiment.gradeLevel} experiment simulation is currently under active curriculum design. Full interactive instruments and simulation engine will be available in an upcoming release.
+                </div>
               </div>
             )}
           </div>
@@ -259,7 +273,7 @@ export const ExperimentDetailPage: React.FC = () => {
       {/* ================= TAB CONTENT: GUIDED MODE ================= */}
       {activeTab === 'guided' && (
         <div className="space-y-6">
-          {experiment.subjectId === 'physics' ? (
+          {experiment.implementationStatus === 'implemented' ? (
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <div>
@@ -267,7 +281,7 @@ export const ExperimentDetailPage: React.FC = () => {
                     Interactive Guided Laboratory
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Follow guided steps, construct valid circuits, verify physical laws, and complete syllabus goals.
+                    Follow guided steps, manipulate realistic apparatus, verify physical and chemical laws, and complete syllabus goals.
                   </p>
                 </div>
                 <Link to={`/workspace/${experiment.id}`}>
@@ -287,15 +301,7 @@ export const ExperimentDetailPage: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="p-4 sm:p-5 rounded-2xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 flex items-start gap-3">
-              <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-              <div className="text-xs sm:text-sm text-blue-900 dark:text-blue-200">
-                <p className="font-bold">Guided Laboratory Walkthrough (Phase 1 Placeholder)</p>
-                <p className="mt-0.5 text-blue-800 dark:text-blue-300">
-                  {experiment.guidedModeOverview} Review the structured procedure and learning objectives below.
-                </p>
-              </div>
-            </div>
+            <UnderDevelopmentWorkspace experimentId={experiment.id} />
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -414,84 +420,88 @@ export const ExperimentDetailPage: React.FC = () => {
 
       {/* ================= TAB CONTENT: FREE LAB CANVAS (PACKET TRACER STYLE) ================= */}
       {activeTab === 'freelab' && (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                Free-Form Virtual Workspaces
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {workspaces.length} workspace{workspaces.length === 1 ? '' : 's'} saved in local IndexedDB storage.
-              </p>
-            </div>
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<Plus className="w-4 h-4" />}
-              onClick={() => setIsNewWsModalOpen(true)}
-            >
-              Create New Workspace
-            </Button>
-          </div>
-
-          {/* Universal Interactive Laboratory Workspace */}
-          <div className="w-full">
-            <UniversalLabWorkspace experimentId={experiment.id} initialMode="freelab" />
-          </div>
-
-          {/* Saved Workspaces Management List */}
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
-              Saved Bench Workspaces for this Experiment
-            </h4>
-
-            {workspaces.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {workspaces.map((ws) => (
-                  <Card key={ws.id} className="p-4 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs">
-                          WS
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-400">
-                          {new Date(ws.updatedAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                        {ws.title}
-                      </h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        {ws.componentCount} components wired
-                      </p>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                      <Button variant="ghost" size="sm" className="text-xs">
-                        Open in Canvas
-                      </Button>
-                      <button
-                        onClick={() => handleDeleteWorkspace(ws.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
-                        aria-label="Delete workspace"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </Card>
-                ))}
+        experiment.implementationStatus === 'implemented' ? (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  Free-Form Virtual Workspaces
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {workspaces.length} workspace{workspaces.length === 1 ? '' : 's'} saved in local IndexedDB storage.
+                </p>
               </div>
-            ) : (
-              <EmptyState
-                icon={FolderOpen}
-                title="No custom workspaces yet"
-                description="Create a named workspace to experiment with free component layouts and save your bench setup locally in IndexedDB."
-                actionLabel="Create First Workspace"
-                onAction={() => setIsNewWsModalOpen(true)}
-              />
-            )}
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<Plus className="w-4 h-4" />}
+                onClick={() => setIsNewWsModalOpen(true)}
+              >
+                Create New Workspace
+              </Button>
+            </div>
+
+            {/* Universal Interactive Laboratory Workspace */}
+            <div className="w-full">
+              <UniversalLabWorkspace experimentId={experiment.id} initialMode="freelab" />
+            </div>
+
+            {/* Saved Workspaces Management List */}
+            <div>
+              <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+                Saved Bench Workspaces for this Experiment
+              </h4>
+
+              {workspaces.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {workspaces.map((ws) => (
+                    <Card key={ws.id} className="p-4 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs">
+                            WS
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {new Date(ws.updatedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                          {ws.title}
+                        </h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          {ws.componentCount} components wired
+                        </p>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          Open in Canvas
+                        </Button>
+                        <button
+                          onClick={() => handleDeleteWorkspace(ws.id)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
+                          aria-label="Delete workspace"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={FolderOpen}
+                  title="No custom workspaces yet"
+                  description="Create a named workspace to experiment with free component layouts and save your bench setup locally in IndexedDB."
+                  actionLabel="Create First Workspace"
+                  onAction={() => setIsNewWsModalOpen(true)}
+                />
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <UnderDevelopmentWorkspace experimentId={experiment.id} />
+        )
       )}
 
       {/* ================= TAB CONTENT: APPARATUS & SAFETY ================= */}

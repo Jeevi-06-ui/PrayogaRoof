@@ -50,8 +50,8 @@ describe('Shared UI Components', () => {
 
     expect(screen.getByText('Physics')).toBeInTheDocument();
     expect(screen.getByText('Active Lab')).toBeInTheDocument();
-    expect(screen.getByText(/2 of 5 completed/i)).toBeInTheDocument();
-    expect(screen.getByText('40%')).toBeInTheDocument();
+    expect(screen.getByText(/2 of 25 completed/i)).toBeInTheDocument();
+    expect(screen.getByText('8%')).toBeInTheDocument();
   });
 
   it('renders SubjectCard with Coming Soon for Biology', () => {

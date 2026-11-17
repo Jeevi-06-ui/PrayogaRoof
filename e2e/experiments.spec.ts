@@ -29,9 +29,9 @@ test.describe('PrayogaProof E2E Test Suite', () => {
     await page.goto('/subjects/chemistry');
     await expect(page.getByRole('link', { name: 'pH Testing' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Natural Indicators' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Paper Chromatography' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Paper Chromatography' }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: 'Displacement Reaction' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Crystallisation' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Crystallisation' }).first()).toBeVisible();
   });
 
   test('Biology subject route displays Coming Soon message without breaking', async ({ page }) => {

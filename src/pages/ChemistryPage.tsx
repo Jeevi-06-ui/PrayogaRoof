@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlaskConical, Search, SlidersHorizontal } from 'lucide-react';
+import { FlaskConical, Search, SlidersHorizontal, GraduationCap, CheckCircle2, Clock } from 'lucide-react';
 import { getExperimentsBySubject, getSubjectById } from '../services/experimentRegistry';
 import { useStudent } from '../context/StudentContext';
 import { ExperimentCard } from '../components/shared/ExperimentCard';
@@ -11,18 +11,31 @@ export const ChemistryPage: React.FC = () => {
   const experiments = getExperimentsBySubject('chemistry');
   const { progressMap, stats } = useStudent();
 
+  const [classFilter, setClassFilter] = useState<string>('all');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const filteredExperiments = experiments.filter((exp) => {
+    const matchesClass = classFilter === 'all' || exp.classLevel === classFilter;
     const matchesDifficulty =
       difficultyFilter === 'All' || exp.difficulty === difficultyFilter;
     const matchesSearch =
       exp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       exp.shortDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
       exp.curriculumTags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesDifficulty && matchesSearch;
+    return matchesClass && matchesDifficulty && matchesSearch;
   });
+
+  const foundationExps = filteredExperiments.filter((e) => e.classLevel === 'foundation');
+  const class11Exps = filteredExperiments.filter((e) => e.classLevel === 'class-11');
+  const class12Exps = filteredExperiments.filter((e) => e.classLevel === 'class-12');
+
+  const classTabs: Array<{ id: string; label: string; count: number }> = [
+    { id: 'all', label: 'All Classes', count: experiments.length },
+    { id: 'foundation', label: 'Foundation', count: experiments.filter((e) => e.classLevel === 'foundation').length },
+    { id: 'class-11', label: 'Class 11', count: experiments.filter((e) => e.classLevel === 'class-11').length },
+    { id: 'class-12', label: 'Class 12', count: experiments.filter((e) => e.classLevel === 'class-12').length },
+  ];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -54,12 +67,15 @@ export const ChemistryPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 min-w-[220px]">
+          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 min-w-[240px]">
             <p className="text-xs uppercase tracking-wider font-semibold text-emerald-200">
-              Module Mastery
+              Curriculum Progress
             </p>
             <p className="text-2xl font-black mt-0.5">
-              {stats.chemistryCompleted} <span className="text-sm font-normal text-emerald-200">/ 5 Completed</span>
+              {stats.chemistryCompleted}{' '}
+              <span className="text-xs font-normal text-emerald-200">
+                / 5 Foundation Done • 27 Total Labs
+              </span>
             </p>
             <div className="w-full bg-emerald-950/60 rounded-full h-2 mt-2.5 overflow-hidden">
               <div
@@ -71,51 +87,163 @@ export const ChemistryPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Controls: Search and Filters */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter chemistry experiments..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm bg-slate-100 dark:bg-slate-800 border-transparent rounded-xl text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mr-1">
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            Difficulty:
+      {/* Controls: Class Selector Tabs, Search, and Difficulty */}
+      <div className="flex flex-col gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+        {/* Class Level Navigation Tabs */}
+        <div className="flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar">
+          <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mr-1 flex-shrink-0" />
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 mr-2 flex-shrink-0">
+            Syllabus:
           </span>
-          {['All', 'Beginner', 'Intermediate'].map((diff) => (
+          {classTabs.map((tab) => (
             <button
-              key={diff}
-              onClick={() => setDifficultyFilter(diff)}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                difficultyFilter === diff
-                  ? 'bg-emerald-600 text-white'
+              key={tab.id}
+              onClick={() => setClassFilter(tab.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                classFilter === tab.id
+                  ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
-              {diff}
+              <span>{tab.label}</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                  classFilter === tab.id
+                    ? 'bg-white/20 text-white'
+                    : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                }`}
+              >
+                {tab.count}
+              </span>
             </button>
           ))}
         </div>
+
+        {/* Search and Difficulty Row */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search experiments, apparatus, chemicals..."
+              className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm bg-slate-100 dark:bg-slate-800 border-transparent rounded-xl text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1 mr-1">
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              Difficulty:
+            </span>
+            {['All', 'Beginner', 'Intermediate', 'Advanced'].map((diff) => (
+              <button
+                key={diff}
+                onClick={() => setDifficultyFilter(diff)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                  difficultyFilter === diff
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                {diff}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Experiment Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredExperiments.map((exp) => (
-          <ExperimentCard
-            key={exp.id}
-            experiment={exp}
-            status={progressMap[exp.id]?.status}
-            workspacesCount={progressMap[exp.id]?.freeLabWorkspacesCount}
-          />
-        ))}
-      </div>
+      {/* Experiment Cards Content */}
+      {classFilter === 'all' && !searchQuery && difficultyFilter === 'All' ? (
+        <div className="space-y-10">
+          {/* Foundation Section */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                  Foundation Laboratory (Class 9 - 10)
+                </h2>
+              </div>
+              <Badge variant="success">5 Interactive Labs Available</Badge>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {foundationExps.map((exp) => (
+                <ExperimentCard
+                  key={exp.id}
+                  experiment={exp}
+                  status={progressMap[exp.id]?.status}
+                  workspacesCount={progressMap[exp.id]?.freeLabWorkspacesCount}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Class 11 Section */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-amber-500" />
+                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                  Class 11 Chemistry Curriculum
+                </h2>
+              </div>
+              <Badge variant="warning">11 Labs • Under Development</Badge>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {class11Exps.map((exp) => (
+                <ExperimentCard
+                  key={exp.id}
+                  experiment={exp}
+                  status={progressMap[exp.id]?.status}
+                  workspacesCount={progressMap[exp.id]?.freeLabWorkspacesCount}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Class 12 Section */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-amber-500" />
+                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                  Class 12 Chemistry Curriculum
+                </h2>
+              </div>
+              <Badge variant="warning">11 Labs • Under Development</Badge>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {class12Exps.map((exp) => (
+                <ExperimentCard
+                  key={exp.id}
+                  experiment={exp}
+                  status={progressMap[exp.id]?.status}
+                  workspacesCount={progressMap[exp.id]?.freeLabWorkspacesCount}
+                />
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredExperiments.length > 0 ? (
+            filteredExperiments.map((exp) => (
+              <ExperimentCard
+                key={exp.id}
+                experiment={exp}
+                status={progressMap[exp.id]?.status}
+                workspacesCount={progressMap[exp.id]?.freeLabWorkspacesCount}
+              />
+            ))
+          ) : (
+            <div className="col-span-full py-12 text-center text-slate-500">
+              No chemistry experiments match the selected filters.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

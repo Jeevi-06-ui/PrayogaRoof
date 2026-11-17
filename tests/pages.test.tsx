@@ -80,9 +80,9 @@ describe('Application Pages', () => {
     expect(screen.getByText('Chemistry Virtual Bench')).toBeInTheDocument();
     expect(screen.getByText('pH Testing')).toBeInTheDocument();
     expect(screen.getByText('Natural Indicators')).toBeInTheDocument();
-    expect(screen.getByText('Paper Chromatography')).toBeInTheDocument();
+    expect(screen.getAllByText('Paper Chromatography')[0]).toBeInTheDocument();
     expect(screen.getByText('Displacement Reaction')).toBeInTheDocument();
-    expect(screen.getByText('Crystallisation')).toBeInTheDocument();
+    expect(screen.getAllByText('Crystallisation')[0]).toBeInTheDocument();
   });
 
   it('renders ComingSoonPage for Biology with curriculum note', () => {
