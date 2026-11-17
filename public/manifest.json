@@ -1,0 +1,19 @@
+{
+  "name": "PrayogaProof - Interactive STEM Laboratory",
+  "short_name": "PrayogaProof",
+  "description": "Cross-platform interactive STEM laboratory for school students, enabling free-form virtual experimentation in Physics, Chemistry, and more.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "science", "productivity"]
+}
