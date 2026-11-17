@@ -50,6 +50,10 @@ export const ExperimentDetailPage: React.FC = () => {
   const [notes, setNotes] = useState<string>('');
   const [observationCount, setObservationCount] = useState<number>(4);
   const [vivaCompleted, setVivaCompleted] = useState<boolean>(false);
+  const [remediationTarget, setRemediationTarget] = useState<{
+    segmentId: string;
+    questionId: string;
+  } | null>(null);
 
   const simulationMedia = useMemo(
     () => (experiment ? getSimulationMedia(experiment.id) : null),
@@ -357,6 +361,11 @@ export const ExperimentDetailPage: React.FC = () => {
         <LoadSimulationSection
           media={simulationMedia}
           onReturnToLab={() => setActiveTab('lab')}
+          remediationTarget={remediationTarget}
+          onClearRemediation={() => {
+            setRemediationTarget(null);
+            setActiveTab('viva');
+          }}
         />
       )}
 
@@ -375,6 +384,10 @@ export const ExperimentDetailPage: React.FC = () => {
         <VivaSection
           media={simulationMedia}
           onVivaComplete={() => setVivaCompleted(true)}
+          onRemediate={(segmentId, questionId) => {
+            setRemediationTarget({ segmentId, questionId });
+            setActiveTab('simulation');
+          }}
         />
       )}
 

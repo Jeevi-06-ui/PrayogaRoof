@@ -28,19 +28,19 @@ global.ResizeObserver = class ResizeObserver {
 // Mock react-konva for jsdom test runner with safe DOM prop filtering
 function filterKonvaProps(props: Record<string, any>) {
   const {
-    cornerRadius,
-    shadowColor,
-    shadowBlur,
-    shadowOpacity,
-    shadowOffsetX,
-    shadowOffsetY,
-    scaleX,
-    scaleY,
-    dash,
-    tension,
-    lineCap,
-    lineJoin,
-    onTap,
+    cornerRadius: _cornerRadius,
+    shadowColor: _shadowColor,
+    shadowBlur: _shadowBlur,
+    shadowOpacity: _shadowOpacity,
+    shadowOffsetX: _shadowOffsetX,
+    shadowOffsetY: _shadowOffsetY,
+    scaleX: _scaleX,
+    scaleY: _scaleY,
+    dash: _dash,
+    tension: _tension,
+    lineCap: _lineCap,
+    lineJoin: _lineJoin,
+    onTap: _onTap,
     ...rest
   } = props;
   return rest;
@@ -63,4 +63,60 @@ vi.mock('react-konva', () => {
     Group: ({ children, ...props }: any) =>
       React.createElement('div', { 'data-testid': 'konva-group', ...filterKonvaProps(props) }, children),
   };
+});
+
+// Mock Web Speech API SpeechSynthesis for JSDOM
+class MockSpeechSynthesisUtterance {
+  text: string = '';
+  lang: string = 'en-US';
+  voice: any = null;
+  volume: number = 1;
+  rate: number = 1;
+  pitch: number = 1;
+  onstart: (() => void) | null = null;
+  onend: (() => void) | null = null;
+  onerror: ((e: any) => void) | null = null;
+  onpause: (() => void) | null = null;
+  onresume: (() => void) | null = null;
+  constructor(text: string = '') {
+    this.text = text;
+  }
+}
+
+const mockVoices = [
+  { name: 'Google US English', lang: 'en-US', default: true, localService: true, voiceURI: 'google-us' },
+  { name: 'Samantha', lang: 'en-US', default: false, localService: true, voiceURI: 'samantha' },
+  { name: 'Daniel', lang: 'en-GB', default: false, localService: true, voiceURI: 'daniel' },
+];
+
+const mockSpeechSynthesis = {
+  speaking: false,
+  paused: false,
+  pending: false,
+  onvoiceschanged: null as (() => void) | null,
+  getVoices: () => mockVoices,
+  speak: vi.fn((utterance: MockSpeechSynthesisUtterance) => {
+    mockSpeechSynthesis.speaking = true;
+    mockSpeechSynthesis.paused = false;
+    utterance.onstart?.();
+  }),
+  cancel: vi.fn(() => {
+    mockSpeechSynthesis.speaking = false;
+    mockSpeechSynthesis.paused = false;
+  }),
+  pause: vi.fn(() => {
+    mockSpeechSynthesis.paused = true;
+  }),
+  resume: vi.fn(() => {
+    mockSpeechSynthesis.paused = false;
+  }),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+};
+
+global.SpeechSynthesisUtterance = MockSpeechSynthesisUtterance as any;
+Object.defineProperty(window, 'speechSynthesis', {
+  writable: true,
+  value: mockSpeechSynthesis,
 });

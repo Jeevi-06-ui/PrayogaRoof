@@ -17,6 +17,7 @@ import {
   Sparkles,
   BarChart,
   Lightbulb,
+  Volume2,
 } from 'lucide-react';
 import {
   ExperimentSimulationMedia,
@@ -27,11 +28,13 @@ import { Button } from '../shared/Button';
 interface VivaSectionProps {
   media: ExperimentSimulationMedia;
   onVivaComplete?: (score: number, total: number) => void;
+  onRemediate?: (segmentId: string, questionId: string) => void;
 }
 
 export const VivaSection: React.FC<VivaSectionProps> = ({
   media,
   onVivaComplete,
+  onRemediate,
 }) => {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
@@ -280,13 +283,29 @@ export const VivaSection: React.FC<VivaSectionProps> = ({
                       <span className="font-bold">Explanation:</span> {q.explanation}
                     </p>
 
-                    {!isCorrect && q.remediationHint && (
-                      <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 flex items-start gap-2 text-[11px]">
-                        <Lightbulb className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <span className="font-bold">Remediation Guide:</span>{' '}
-                          {q.remediationHint}
+                    {!isCorrect && (
+                      <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 space-y-2 text-[11px]">
+                        <div className="flex items-start gap-2">
+                          <Lightbulb className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold">Remediation Guide:</span>{' '}
+                            {q.remediationHint || 'Review the scientific principle in the simulation.'}
+                          </div>
                         </div>
+
+                        {onRemediate && (
+                          <div className="pt-1">
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              leftIcon={<Volume2 className="w-3.5 h-3.5 text-white" />}
+                              onClick={() => onRemediate(q.relevantSegmentId || 'explanation', q.id)}
+                              className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs"
+                            >
+                              Review Simulation Explanation with Voice
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

@@ -25,6 +25,8 @@ export interface SimulationSegment {
   summary: string;
   keyPoints: string[];
   transcript: string;
+  narrationScript?: string;
+  audioUrl?: string;
 }
 
 export interface WorkedExample {
@@ -52,6 +54,7 @@ export interface VivaQuestionItem {
   difficulty: 'easy' | 'medium' | 'hard';
   marks: number;
   remediationHint: string;
+  relevantSegmentId?: SimulationTopicSegmentId;
 }
 
 export interface RubricCriterion {
@@ -80,6 +83,8 @@ export interface ExperimentSimulationMedia {
     vivaMarks: 40;
     criteria: RubricCriterion[];
   };
+  narrationAudioUrl?: string;
+  isOfflineAudioAvailable?: boolean;
 }
 
 // -----------------------------------------------------------------------------
@@ -244,6 +249,7 @@ const OHMS_LAW_MEDIA: ExperimentSimulationMedia = {
       difficulty: 'easy',
       marks: 8,
       remediationHint: "Review factors affecting resistance: R = ρL/A, where resistivity ρ varies with temperature.",
+      relevantSegmentId: 'explanation',
     },
     {
       id: 'viva-ohms-2',
@@ -260,6 +266,7 @@ const OHMS_LAW_MEDIA: ExperimentSimulationMedia = {
       difficulty: 'medium',
       marks: 8,
       remediationHint: "Recall circuit laws: current is constant in a series branch; low internal resistance minimizes voltage drops.",
+      relevantSegmentId: 'apparatus',
     },
     {
       id: 'viva-ohms-3',
@@ -276,6 +283,7 @@ const OHMS_LAW_MEDIA: ExperimentSimulationMedia = {
       difficulty: 'medium',
       marks: 8,
       remediationHint: "Analyze graph slope: slope = ΔV / ΔI = R. A steeper slope implies greater resistance.",
+      relevantSegmentId: 'observation',
     },
     {
       id: 'viva-ohms-4',
@@ -292,6 +300,7 @@ const OHMS_LAW_MEDIA: ExperimentSimulationMedia = {
       difficulty: 'easy',
       marks: 8,
       remediationHint: "Metallic alloys like nichrome and pure metals obey Ohm's law, while semiconductor junctions are non-linear.",
+      relevantSegmentId: 'explanation',
     },
     {
       id: 'viva-ohms-5',
@@ -308,6 +317,7 @@ const OHMS_LAW_MEDIA: ExperimentSimulationMedia = {
       difficulty: 'hard',
       marks: 8,
       remediationHint: "Conservation of volume: length increases by factor n implies cross-sectional area decreases by factor n, giving R' = n²R.",
+      relevantSegmentId: 'worked-example',
     },
   ],
   learningObjectives: [
@@ -1271,6 +1281,7 @@ function generateProceduralMedia(experimentId: string): ExperimentSimulationMedi
         difficulty: 'easy',
         marks: 8,
         remediationHint: `Review the theoretical principle: ${principle}.`,
+        relevantSegmentId: 'intro',
       },
       {
         id: `viva-${experimentId}-2`,
@@ -1287,6 +1298,7 @@ function generateProceduralMedia(experimentId: string): ExperimentSimulationMedi
         difficulty: 'easy',
         marks: 8,
         remediationHint: "Least count definition: Value of one main scale division divided by total vernier/circular scale divisions.",
+        relevantSegmentId: 'apparatus',
       },
       {
         id: `viva-${experimentId}-3`,
@@ -1303,6 +1315,7 @@ function generateProceduralMedia(experimentId: string): ExperimentSimulationMedi
         difficulty: 'medium',
         marks: 8,
         remediationHint: "Recall error classification: systematic errors are reproducible and eliminable; random errors are treated statistically.",
+        relevantSegmentId: 'explanation',
       },
       {
         id: `viva-${experimentId}-4`,
@@ -1319,6 +1332,7 @@ function generateProceduralMedia(experimentId: string): ExperimentSimulationMedi
         difficulty: 'medium',
         marks: 8,
         remediationHint: "Error of the mean decreases proportionally to 1/√N as sample size N increases.",
+        relevantSegmentId: 'observation',
       },
       {
         id: `viva-${experimentId}-5`,
@@ -1335,6 +1349,7 @@ function generateProceduralMedia(experimentId: string): ExperimentSimulationMedi
         difficulty: 'hard',
         marks: 8,
         remediationHint: "Scientific integrity demands recording genuine observations and accounting for deviations analytically.",
+        relevantSegmentId: 'mistakes',
       },
     ],
     learningObjectives: [
