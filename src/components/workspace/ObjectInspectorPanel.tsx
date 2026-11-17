@@ -122,39 +122,80 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
     });
   };
 
-  const handleAutoLogCircuit = () => {
+  const handleAutoLogExperiment = () => {
     const updates = simulationResult?.objectStateUpdates || {};
-    let volt = 0;
-    let curr = 0;
-    for (const st of Object.values(updates)) {
-      if (st.measuredVoltage !== undefined && Number(st.measuredVoltage) > volt) {
-        volt = Number(st.measuredVoltage);
+    const trialNum = notebook.measurements.length + 1;
+    let newRecord = null;
+
+    if (experimentId === 'convex-lens') {
+      const lensUpdate = Object.entries(updates).find(
+        ([id]) => id.includes('lens') || id.includes('convex')
+      )?.[1];
+      const v = lensUpdate?.computedImageDistance ?? 30;
+      const m = lensUpdate?.magnification ?? -1.0;
+      const nature = lensUpdate?.imageNature ?? 'Real, Inverted';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Thin Lens`,
+        value: `v = ${Number(v) > 0 ? '+' : ''}${v} cm, m = ${m} (${nature})`,
+        unit: '',
+      };
+    } else if (experimentId === 'magnetic-field') {
+      const compassUpdate = Object.entries(updates).find(([id]) => id.includes('compass'))?.[1];
+      const angle = compassUpdate?.needleAngleDeg ?? 0;
+      const bField = compassUpdate?.magneticFieldUT ?? 50;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Magnetic Probe`,
+        value: `θ = ${angle}°, |B| = ${bField} µT`,
+        unit: '',
+      };
+    } else if (experimentId === 'simple-pendulum') {
+      const pendUpdate = Object.entries(updates).find(([id]) => id.includes('pend'))?.[1];
+      const period = pendUpdate?.periodSeconds ?? 1.8;
+      const gCalc = pendUpdate?.calculatedGravity ?? 9.8;
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: Simple Pendulum`,
+        value: `T = ${period} s (g_calc = ${gCalc} m/s²)`,
+        unit: '',
+      };
+    } else {
+      let volt = 0;
+      let curr = 0;
+      for (const st of Object.values(updates)) {
+        if (st.measuredVoltage !== undefined && Number(st.measuredVoltage) > volt) {
+          volt = Number(st.measuredVoltage);
+        }
+        if (st.outputVoltage !== undefined && Number(st.outputVoltage) > volt) {
+          volt = Number(st.outputVoltage);
+        }
+        if (st.measuredCurrent !== undefined && Number(st.measuredCurrent) > curr) {
+          curr = Number(st.measuredCurrent);
+        }
+        if (st.currentAmps !== undefined && Number(st.currentAmps) > curr) {
+          curr = Number(st.currentAmps);
+        }
       }
-      if (st.outputVoltage !== undefined && Number(st.outputVoltage) > volt) {
-        volt = Number(st.outputVoltage);
-      }
-      if (st.measuredCurrent !== undefined && Number(st.measuredCurrent) > curr) {
-        curr = Number(st.measuredCurrent);
-      }
-      if (st.currentAmps !== undefined && Number(st.currentAmps) > curr) {
-        curr = Number(st.currentAmps);
-      }
+
+      const reqStr = curr > 0.0001 ? `${(volt / curr).toFixed(1)} Ω` : '—';
+      newRecord = {
+        id: `meas-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        label: `Trial ${trialNum}: V=${volt.toFixed(1)}V`,
+        value: `${curr.toFixed(3)} A (Req: ${reqStr})`,
+        unit: '',
+      };
     }
 
-    const trialNum = notebook.measurements.length + 1;
-    const reqStr = curr > 0.0001 ? `${(volt / curr).toFixed(1)} Ω` : '—';
-
-    const newRecord = {
-      id: `meas-${Date.now()}`,
-      timestamp: new Date().toLocaleTimeString(),
-      label: `Trial ${trialNum}: V=${volt.toFixed(1)}V`,
-      value: `${curr.toFixed(3)} A (Req: ${reqStr})`,
-      unit: '',
-    };
-
-    onUpdateNotebook({
-      measurements: [...notebook.measurements, newRecord],
-    });
+    if (newRecord) {
+      onUpdateNotebook({
+        measurements: [...notebook.measurements, newRecord],
+      });
+    }
   };
 
   if (isCollapsed) {
@@ -632,16 +673,28 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
             {/* Quick Auto-Log Action */}
             <div className="p-2.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 flex flex-col gap-1.5">
               <span className="font-semibold text-blue-900 dark:text-blue-300 text-[11px]">
-                Active Circuit Quick Log
+                {experimentId === 'convex-lens'
+                  ? 'Optical Bench Quick Log'
+                  : experimentId === 'magnetic-field'
+                    ? 'Magnetic Probe Quick Log'
+                    : experimentId === 'simple-pendulum'
+                      ? 'Simple Pendulum Quick Log'
+                      : 'Active Bench Quick Log'}
               </span>
               <p className="text-[10px] text-blue-700/80 dark:text-blue-400 leading-snug">
-                Instantly snapshot solved bench voltage, current, and equivalent resistance into this measurement log.
+                {experimentId === 'convex-lens'
+                  ? 'Instantly log thin-lens object distance (u), image distance (v), and magnification (m).'
+                  : experimentId === 'magnetic-field'
+                    ? 'Instantly log probe compass orientation and net magnetic field vector magnitude.'
+                    : experimentId === 'simple-pendulum'
+                      ? 'Instantly log string length (L), time period (T), and calculated gravity (g).'
+                      : 'Instantly snapshot solved bench voltage, current, and equivalent resistance into this log.'}
               </p>
               <Button
                 type="button"
                 variant="secondary"
                 size="sm"
-                onClick={handleAutoLogCircuit}
+                onClick={handleAutoLogExperiment}
                 className="w-full text-xs text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
                 leftIcon={<Activity className="w-3.5 h-3.5 text-blue-500" />}
               >
@@ -808,6 +861,52 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
               Simulation Status: {simulationResult?.valid ? 'Calculated Stable' : 'Evaluating'}
             </p>
           </div>
+
+          {/* Special Telemetry: Simple Pendulum Harmonic Oscillation Waveform */}
+          {experimentId === 'simple-pendulum' && (
+            <div className="p-3 rounded-xl bg-slate-900 text-white space-y-2">
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="font-semibold text-sky-400">Angular Displacement θ(t)</span>
+                <span className="text-slate-400 font-mono">T = 2π√(L/g)</span>
+              </div>
+              <div className="w-full h-24 bg-slate-950 rounded-lg p-1.5 flex flex-col justify-between">
+                <svg className="w-full h-full overflow-visible" viewBox="0 0 200 60">
+                  <line
+                    x1="0"
+                    y1="30"
+                    x2="200"
+                    y2="30"
+                    stroke="#334155"
+                    strokeWidth="1"
+                    strokeDasharray="3 3"
+                  />
+                  <path
+                    d={(() => {
+                      let path = 'M 0 30';
+                      const T = 1.8;
+                      for (let x = 0; x <= 200; x += 4) {
+                        const t = (x / 200) * 4.0;
+                        const y = 30 - 22 * Math.cos((2 * Math.PI * t) / T);
+                        path += ` L ${x} ${y.toFixed(1)}`;
+                      }
+                      return path;
+                    })()}
+                    fill="none"
+                    stroke="#38bdf8"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </div>
+              <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                <span>0.0s</span>
+                <span>θ(t) = θ₀ cos(ωt)</span>
+                <span>4.0s</span>
+              </div>
+              <div className="p-1.5 rounded bg-emerald-950/60 border border-emerald-800/50 text-[10px] text-emerald-300">
+                ✓ Mass Independence: Changing bob mass m does not change period T.
+              </div>
+            </div>
+          )}
 
           {simulationResult?.messages && simulationResult.messages.length > 0 && (
             <div className="space-y-1.5">

@@ -1,4 +1,9 @@
 import { ConceptualQuestion } from './types';
+import {
+  CONVEX_LENS_QUESTIONS,
+  MAGNETIC_FIELD_QUESTIONS,
+  SIMPLE_PENDULUM_QUESTIONS,
+} from '../physics/physicsQuestions';
 
 export const OHMS_LAW_QUESTIONS: ConceptualQuestion[] = [
   {
@@ -87,5 +92,8 @@ export const SERIES_PARALLEL_QUESTIONS: ConceptualQuestion[] = [
 export function getConceptualQuestions(experimentId: string): ConceptualQuestion[] {
   if (experimentId === 'ohms-law') return OHMS_LAW_QUESTIONS;
   if (experimentId === 'series-parallel-circuits') return SERIES_PARALLEL_QUESTIONS;
+  if (experimentId === 'convex-lens') return CONVEX_LENS_QUESTIONS;
+  if (experimentId === 'magnetic-field') return MAGNETIC_FIELD_QUESTIONS;
+  if (experimentId === 'simple-pendulum') return SIMPLE_PENDULUM_QUESTIONS;
   return [...OHMS_LAW_QUESTIONS, ...SERIES_PARALLEL_QUESTIONS];
 }
