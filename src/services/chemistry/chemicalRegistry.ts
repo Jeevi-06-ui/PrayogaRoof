@@ -126,6 +126,42 @@ export const CHEMICAL_SUBSTANCES: Record<string, ChemicalSubstance> = {
     safetyNotes:
       'Composite dye indicator (thymol blue, methyl red, bromothymol blue, phenolphthalein). Gives continuous rainbow spectrum from pH 1 to 14.',
   },
+  cuso4: {
+    id: 'cuso4',
+    name: '0.5M Copper(II) Sulphate',
+    formula: 'CuSO₄·5H₂O(aq)',
+    category: 'salt-solution',
+    basePH: 4.5,
+    defaultConcentrationM: 0.5,
+    baseColor: '#2563eb', // Royal brilliant blue
+    hazards: ['Aquatic Toxin (GHS09)', 'Skin/Eye Irritant (GHS07)', 'Harmful if Swallowed'],
+    safetyNotes:
+      'Heavy metal salt solution. Toxic to aquatic organisms with long lasting effects. Collect waste in heavy-metal collection containers, never dispose down the sink.',
+  },
+  feso4: {
+    id: 'feso4',
+    name: '0.5M Iron(II) Sulphate',
+    formula: 'FeSO₄·7H₂O(aq)',
+    category: 'salt-solution',
+    basePH: 4.8,
+    defaultConcentrationM: 0.5,
+    baseColor: '#86efac', // Pale light green
+    hazards: ['Skin/Eye Irritant', 'Oxidizes to Fe³⁺ in Air'],
+    safetyNotes:
+      'Aqueous green vitriol solution produced as iron displaces copper. Gradually oxidizes to rusty orange-brown iron(III) upon atmospheric oxygen exposure.',
+  },
+  'water-ethanol-eluent': {
+    id: 'water-ethanol-eluent',
+    name: 'Chromatography Mobile Phase (Water/Ethanol 80:20)',
+    formula: 'H₂O + C₂H₅OH (80:20 v/v)',
+    category: 'neutral',
+    basePH: 7.0,
+    defaultConcentrationM: 1.0,
+    baseColor: '#f8fafc', // Crystal clear
+    hazards: ['Flammable Liquid/Vapor', 'Keep Sealed'],
+    safetyNotes:
+      'Optimized polar mobile phase for ascending paper chromatography. Keeps development chamber saturated for uniform capillary dye migration.',
+  },
 };
 
 /**

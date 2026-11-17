@@ -87,6 +87,12 @@ export interface EquipmentDefinition {
     | 'thermometer'
     | 'reagent-bottle'
     | 'burner'
+    | 'chromatography-paper'
+    | 'developing-chamber'
+    | 'chromatography-ruler'
+    | 'iron-nail'
+    | 'evaporating-dish'
+    | 'watch-glass'
     | 'generic-box'
     | 'sensor-probe';
   colorTheme?: string;

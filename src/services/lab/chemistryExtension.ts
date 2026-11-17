@@ -13,6 +13,12 @@ import {
   STANDARD_ROOM_TEMP,
 } from '../chemistry/chemistryEngine';
 import { ContainerLiquidState } from '../chemistry/chemistryTypes';
+import {
+  calculateSolventFront,
+  calculatePigmentPositions,
+} from '../chemistry/chromatographyModel';
+import { calculateDisplacementState } from '../chemistry/displacementModel';
+import { calculateCrystallisation } from '../chemistry/crystallisationModel';
 
 export const REAGENT_OPTIONS = [
   { label: 'Pure Distilled Water (H₂O)', value: 'pure-water' },
@@ -26,6 +32,8 @@ export const REAGENT_OPTIONS = [
   { label: 'Natural Red Cabbage Extract', value: 'red-cabbage-indicator' },
   { label: 'Universal Indicator Solution', value: 'universal-indicator' },
   { label: '0.5M Copper(II) Sulphate (CuSO₄)', value: 'cuso4' },
+  { label: '0.5M Iron(II) Sulphate (FeSO₄)', value: 'feso4' },
+  { label: 'Chromatography Mobile Phase (Water/Ethanol 80:20)', value: 'water-ethanol-eluent' },
 ];
 
 export const CHEMISTRY_EQUIPMENT: EquipmentDefinition[] = [
@@ -770,16 +778,16 @@ export const CHEMISTRY_EQUIPMENT: EquipmentDefinition[] = [
     description:
       'Emery-sandpapered iron nail substrate for single displacement reactions in copper sulphate solution.',
     iconName: 'RefreshCw',
-    defaultWidth: 110,
-    defaultHeight: 70,
+    defaultWidth: 120,
+    defaultHeight: 60,
     rotatable: true,
     ports: [
       {
         id: 'tip',
         name: 'Metal Contact Point',
         type: 'generic',
-        xOffset: 110,
-        yOffset: 35,
+        xOffset: 120,
+        yOffset: 30,
         direction: 'east',
         color: '#64748b',
       },
@@ -796,16 +804,297 @@ export const CHEMISTRY_EQUIPMENT: EquipmentDefinition[] = [
         id: 'immersionTimeMinutes',
         label: 'Immersion Elapsed',
         type: 'number',
-        defaultValue: 15,
+        defaultValue: 20,
         min: 0,
-        max: 60,
-        step: 5,
+        max: 30,
+        step: 2,
         unit: 'mins',
         editable: true,
       },
     ],
-    renderType: 'generic-box',
+    renderType: 'iron-nail',
     colorTheme: '#475569',
+  },
+  {
+    id: 'chromatography-paper-strip',
+    name: 'Chromatography Paper Strip (Whatman No. 1)',
+    subjectId: 'chemistry',
+    category: 'accessory',
+    description:
+      'Grade 1 pure cellulose chromatography paper strip (15cm x 3cm) for ascending mobile phase dye separation.',
+    iconName: 'Layers',
+    defaultWidth: 110,
+    defaultHeight: 220,
+    rotatable: false,
+    ports: [
+      {
+        id: 'bottom-wick',
+        name: 'Solvent Contact Line',
+        type: 'fluid-in',
+        xOffset: 55,
+        yOffset: 220,
+        direction: 'south',
+        color: '#38bdf8',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'sampleInk',
+        label: 'Spot Sample Ink',
+        type: 'select',
+        defaultValue: 'black-ink',
+        options: [
+          { label: 'Black Sketch Pen Ink (Yellow, Red, Cyan)', value: 'black-ink' },
+          { label: 'Green Marker Ink (Tartrazine & Blue)', value: 'green-ink' },
+          { label: 'Brown Calligraphy Ink (Orange, Crimson, Indigo)', value: 'brown-ink' },
+          { label: 'Spinach Leaf Chloroplast Extract (Carotenes, Chlorophylls)', value: 'plant-extract' },
+        ],
+        editable: true,
+      },
+      {
+        id: 'elapsedSeconds',
+        label: 'Development Elapsed',
+        type: 'number',
+        defaultValue: 60,
+        min: 0,
+        max: 120,
+        step: 5,
+        unit: 's',
+        editable: true,
+      },
+      {
+        id: 'isDeveloping',
+        label: 'Ascending Migration Active',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+    ],
+    renderType: 'chromatography-paper',
+    colorTheme: '#0284c7',
+  },
+  {
+    id: 'developing-chamber',
+    name: 'Chromatography Developing Chamber (with Lid)',
+    subjectId: 'chemistry',
+    category: 'container',
+    description:
+      'Heavy-wall cylindrical glass developing tank with ground-glass airtight lid maintaining solvent vapor saturation.',
+    iconName: 'FlaskConical',
+    defaultWidth: 140,
+    defaultHeight: 240,
+    rotatable: false,
+    ports: [
+      {
+        id: 'chamber-inlet',
+        name: 'Chamber Mouth',
+        type: 'fluid-in',
+        xOffset: 70,
+        yOffset: 15,
+        direction: 'north',
+        color: '#06b6d4',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'capacityMl',
+        label: 'Chamber Volume',
+        type: 'number',
+        defaultValue: 200,
+        editable: false,
+      },
+      {
+        id: 'liquidVolume',
+        label: 'Solvent Pool Level',
+        type: 'number',
+        defaultValue: 25,
+        min: 10,
+        max: 50,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'reagentSolution',
+        label: 'Eluent Mobile Phase',
+        type: 'select',
+        defaultValue: 'water-ethanol-eluent',
+        options: REAGENT_OPTIONS,
+        editable: true,
+      },
+    ],
+    renderType: 'developing-chamber',
+    colorTheme: '#0891b2',
+  },
+  {
+    id: 'chromatography-ruler',
+    name: 'Metric Chromatography Measurement Ruler',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Transparent 100 mm metric laboratory ruler for measuring pigment migration distance and solvent front from baseline.',
+    iconName: 'Ruler',
+    defaultWidth: 50,
+    defaultHeight: 200,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'scaleUnits',
+        label: 'Graduation Units',
+        type: 'string',
+        defaultValue: 'Millimeters (0 - 100 mm)',
+        editable: false,
+      },
+    ],
+    renderType: 'chromatography-ruler',
+    colorTheme: '#3b82f6',
+  },
+  {
+    id: 'porcelain-evaporating-dish',
+    name: 'Porcelain Evaporating Dish (China Dish)',
+    subjectId: 'chemistry',
+    category: 'container',
+    description:
+      'Glazed white ceramic shallow basin with pour spout designed for thermal evaporation, solution concentration, and crystallisation.',
+    iconName: 'Disc',
+    defaultWidth: 140,
+    defaultHeight: 90,
+    rotatable: false,
+    ports: [
+      {
+        id: 'dish-pour-spout',
+        name: 'Pour Lip',
+        type: 'fluid-out',
+        xOffset: 135,
+        yOffset: 30,
+        direction: 'east',
+        color: '#0ea5e9',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'solutionTemperatureC',
+        label: 'Solution Temperature',
+        type: 'number',
+        defaultValue: 85,
+        min: 20,
+        max: 100,
+        step: 5,
+        unit: '°C',
+        editable: true,
+      },
+      {
+        id: 'soluteMassGrams',
+        label: 'CuSO₄ Solute Added',
+        type: 'number',
+        defaultValue: 20,
+        min: 5,
+        max: 40,
+        step: 2,
+        unit: 'g',
+        editable: true,
+      },
+      {
+        id: 'initialWaterVolumeMl',
+        label: 'Initial Solvent Volume',
+        type: 'number',
+        defaultValue: 50,
+        min: 20,
+        max: 100,
+        step: 5,
+        unit: 'mL',
+        editable: true,
+      },
+      {
+        id: 'evaporationTimeMins',
+        label: 'Evaporation Time',
+        type: 'number',
+        defaultValue: 15,
+        min: 0,
+        max: 30,
+        step: 2,
+        unit: 'mins',
+        editable: true,
+      },
+      {
+        id: 'isHeating',
+        label: 'Heating Applied',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+    ],
+    renderType: 'evaporating-dish',
+    colorTheme: '#0284c7',
+  },
+  {
+    id: 'bunsen-burner-tripod',
+    name: 'Bunsen Burner & Wire Gauze Stand',
+    subjectId: 'chemistry',
+    category: 'instrument',
+    description:
+      'Laboratory gas burner with adjustable air collar, steel tripod stand, and ceramic-centered wire gauze for uniform thermal distribution.',
+    iconName: 'Flame',
+    defaultWidth: 110,
+    defaultHeight: 140,
+    rotatable: false,
+    ports: [
+      {
+        id: 'gauze-stand',
+        name: 'Wire Gauze Heating Plate',
+        type: 'generic',
+        xOffset: 55,
+        yOffset: 15,
+        direction: 'north',
+        color: '#f97316',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'flameActive',
+        label: 'Heating Flame',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+      {
+        id: 'heatingPowerWatts',
+        label: 'Thermal Power',
+        type: 'number',
+        defaultValue: 450,
+        min: 150,
+        max: 800,
+        step: 50,
+        unit: 'W',
+        editable: true,
+      },
+    ],
+    renderType: 'burner',
+    colorTheme: '#ea580c',
+  },
+  {
+    id: 'watch-glass',
+    name: 'Borosilicate Watch Glass (Cooling Cover)',
+    subjectId: 'chemistry',
+    category: 'accessory',
+    description:
+      'Concave circular borosilicate glass disk placed over the evaporating dish to retard dust and foster slow, undisturbed crystal growth.',
+    iconName: 'Disc',
+    defaultWidth: 100,
+    defaultHeight: 50,
+    rotatable: false,
+    ports: [],
+    propertyDefinitions: [
+      {
+        id: 'isCoveringDish',
+        label: 'Cover Placed over Dish',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+    ],
+    renderType: 'watch-glass',
+    colorTheme: '#38bdf8',
   },
 ];
 
@@ -1094,65 +1383,428 @@ export const CHEMISTRY_LAB_DEFINITIONS: LabDefinition[] = [
       "Natural Acid-Base Indicators Investigation:\n\n1. Turmeric Indicator (Curcumin - Curcuma longa):\n- Acidic medium (HCl, lemon juice): Yellow (no change)\n- Neutral medium (water): Yellow\n- Alkaline/Basic medium (NaOH, baking soda, soap): Deep Reddish-Brown (pH ≥ 7.5)\n- Reversible Neutralization: Adding acid neutralizes OH- ions, restoring the golden yellow color.\n- Practical connection: Curry stains on clothing turn reddish-brown when scrubbed with alkaline laundry soap.\n\n2. Red Cabbage Indicator (Anthocyanins - Brassica oleracea):\n- Strongly Acidic (pH 1-2, 0.1M HCl): Bright Scarlet Red (Flavylium cation)\n- Weakly Acidic (pH 3-5, vinegar, lemon): Pink / Magenta\n- Neutral (pH 6-7.5, water): Royal Purple / Violet\n- Weakly Alkaline (pH 8-10, baking soda): Blue-Green / Cyan\n- Strongly Alkaline (pH 11-14, 0.1M NaOH): Grass Green to Yellowish-Green",
   },
   {
+    experimentId: 'paper-chromatography',
+    title: 'Paper Chromatography (Separation of Inks & Pigments)',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'chromatography-paper-strip',
+      'developing-chamber',
+      'chromatography-ruler',
+      'pasteur-pipette-dropper',
+      'beaker-100ml',
+      'beaker-50ml',
+      'borosilicate-beaker',
+    ],
+    initialObjects: [
+      {
+        id: 'chamber-1',
+        equipmentId: 'developing-chamber',
+        title: 'Developing Chamber (with Lid)',
+        x: 80,
+        y: 80,
+        rotation: 0,
+        width: 140,
+        height: 240,
+        properties: {
+          capacityMl: 200,
+          liquidVolume: 25,
+          reagentSolution: 'water-ethanol-eluent',
+        },
+        state: { chamberStatus: 'Vapor-saturated atmosphere' },
+      },
+      {
+        id: 'paper-1',
+        equipmentId: 'chromatography-paper-strip',
+        title: 'Whatman #1 Chromatography Strip',
+        x: 280,
+        y: 80,
+        rotation: 0,
+        width: 110,
+        height: 220,
+        properties: {
+          sampleInk: 'black-ink',
+          elapsedSeconds: 60,
+          isDeveloping: true,
+        },
+        state: { developmentStatus: 'Ascending Capillary Migration Active' },
+      },
+      {
+        id: 'ruler-1',
+        equipmentId: 'chromatography-ruler',
+        title: 'Metric Chromatography Ruler (100mm)',
+        x: 440,
+        y: 90,
+        rotation: 0,
+        width: 50,
+        height: 200,
+        properties: {},
+        state: { scale: '0 - 100 mm' },
+      },
+      {
+        id: 'beaker-ink',
+        equipmentId: 'beaker-100ml',
+        title: 'Ink Sample Beaker',
+        x: 550,
+        y: 110,
+        rotation: 0,
+        width: 110,
+        height: 130,
+        properties: {
+          capacityMl: 100,
+          liquidVolume: 30,
+          reagentSolution: 'pure-water',
+        },
+        state: { samplePH: 7.0 },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'chrom-step-1',
+        stepNumber: 1,
+        title: 'Prepare Developing Chamber Mobile Phase',
+        instruction:
+          'Inspect the developing chamber containing 25 mL of 80:20 water-ethanol eluent. Keep the chamber lid tightly sealed to ensure a vapor-saturated atmosphere.',
+      },
+      {
+        id: 'chrom-step-2',
+        stepNumber: 2,
+        title: 'Draw Pencil Baseline & Spot Ink Sample',
+        instruction:
+          'On the chromatography paper strip, a pencil baseline is drawn ~20 mm from the bottom edge. Deposit a concentrated micro-drop of sample ink (Black Ink) on the origin mark.',
+      },
+      {
+        id: 'chrom-step-3',
+        stepNumber: 3,
+        title: 'Suspend Paper Strip in Chamber',
+        instruction:
+          'Suspend the paper strip vertically into the chamber. Crucial: The bottom edge must touch the solvent, but the sample ink spot MUST remain above the liquid surface.',
+      },
+      {
+        id: 'chrom-step-4',
+        stepNumber: 4,
+        title: 'Monitor Ascending Capillary Migration',
+        instruction:
+          'Watch the mobile phase ascend through the cellulose fibers via capillary action. As solvent moves, constituent dye pigments partition between stationary cellulose and ascending eluent.',
+      },
+      {
+        id: 'chrom-step-5',
+        stepNumber: 5,
+        title: 'Measure Solvent Front and Pigment Bands',
+        instruction:
+          'Use the metric ruler to measure the distance from the baseline to the solvent front, and to the center of each separated dye band (Yellow, Crimson Red, Cyan Blue).',
+      },
+      {
+        id: 'chrom-step-6',
+        stepNumber: 6,
+        title: 'Calculate Rf (Retention Factor) Values',
+        instruction:
+          'Compute Rf = (distance traveled by pigment) / (distance traveled by solvent front). Notice that Rf values are characteristic of each solute in a given solvent system.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-chamber-prep',
+        description: 'Set up developing chamber with water-ethanol eluent mobile phase.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-paper-develop',
+        description: 'Develop paper strip with ink sample (run development time ≥ 45s).',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-rf-measurement',
+        description: 'Measure pigment distances and solvent front to calculate Rf values.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Paper Chromatography Analysis (Whatman No. 1 Cellulose Paper):\n- Separation Mechanism: Partition chromatography between stationary phase (cellulose-bound water) and ascending mobile phase (80:20 H2O:Ethanol eluent).\n- Retention Factor Formula: Rf = (Distance traveled by pigment from baseline) / (Distance traveled by solvent front from baseline)\n\nObserved Rf Values (Standard Calibration):\n1. Black Sketch Pen Ink:\n   - Yellow Pigment: Rf ≈ 0.28 (Stronger adsorption to cellulose)\n   - Crimson Red: Rf ≈ 0.55 (Moderate partitioning)\n   - Cyan Blue: Rf ≈ 0.82 (High solubility in mobile phase)\n2. Green Marker Ink:\n   - Tartrazine Yellow: Rf ≈ 0.30\n   - Brilliant Blue FCF: Rf ≈ 0.78\n3. Brown Calligraphy Ink:\n   - Orange: Rf ≈ 0.32 | Crimson: Rf ≈ 0.58 | Indigo: Rf ≈ 0.85\n\nAssumptions & Theoretical Notes:\n- Capillary flow follows Lucas-Washburn diffusion kinetics: d(t) = d_max * (1 - e^(-t/tau)).\n- Constant partition coefficient K = Cs/Cm assumed throughout paper length.\n- Chamber is sealed; solvent evaporation during ascent is negligible.",
+  },
+  {
     experimentId: 'displacement-reaction',
     title: 'Displacement Reaction (Iron in Copper Sulphate)',
     subjectId: 'chemistry',
-    allowedEquipmentIds: ['test-tube-rack', 'iron-nail-substrate', 'borosilicate-beaker'],
+    allowedEquipmentIds: [
+      'test-tube-rack',
+      'iron-nail-substrate',
+      'borosilicate-beaker',
+      'beaker-100ml',
+      'pasteur-pipette-dropper',
+    ],
     initialObjects: [
       {
         id: 'tube-cu',
         equipmentId: 'test-tube-rack',
-        title: 'Test Tube (CuSO₄ Sol.)',
-        x: 180,
-        y: 120,
+        title: 'Reaction Tube (0.5M CuSO₄)',
+        x: 100,
+        y: 110,
         rotation: 0,
         width: 80,
         height: 160,
-        properties: { capacityMl: 50, liquidVolume: 25, reagentSolution: 'cuso4' },
+        properties: { capacityMl: 50, liquidVolume: 30, reagentSolution: 'cuso4' },
         state: { solutionColor: '#2563eb', reactionStatus: 'Pre-immersion' },
+      },
+      {
+        id: 'tube-control',
+        equipmentId: 'test-tube-rack',
+        title: 'Control Tube (0.5M CuSO₄)',
+        x: 260,
+        y: 110,
+        rotation: 0,
+        width: 80,
+        height: 160,
+        properties: { capacityMl: 50, liquidVolume: 30, reagentSolution: 'cuso4' },
+        state: { solutionColor: '#2563eb', reactionStatus: 'Unreacted Reference' },
       },
       {
         id: 'nail-1',
         equipmentId: 'iron-nail-substrate',
-        title: 'Clean Iron Nail',
-        x: 360,
-        y: 160,
+        title: 'Clean Iron Nail (Fe)',
+        x: 420,
+        y: 130,
         rotation: 0,
-        width: 110,
-        height: 70,
+        width: 120,
+        height: 60,
         properties: { isImmersed: true, immersionTimeMinutes: 20 },
         state: {
           coatingDeposited: 'Reddish-brown elemental copper deposit',
           ironStatus: 'Displaced',
         },
       },
+      {
+        id: 'beaker-wash',
+        equipmentId: 'beaker-100ml',
+        title: 'Distilled H₂O Rinse',
+        x: 580,
+        y: 120,
+        rotation: 0,
+        width: 110,
+        height: 130,
+        properties: { capacityMl: 100, liquidVolume: 50, reagentSolution: 'pure-water' },
+        state: { samplePH: 7.0 },
+      },
     ],
     initialConnections: [],
     guidedSteps: [
       {
-        id: 'fe-step-1',
+        id: 'disp-step-1',
         stepNumber: 1,
-        title: 'Suspend Iron Nail into Blue Copper Sulphate',
-        instruction: 'Place clean iron nail into the test tube containing 0.5M CuSO4.',
+        title: 'Prepare Two Matched Test Tubes with CuSO₄',
+        instruction:
+          'Observe the two test tubes containing 30 mL of 0.5M Copper(II) Sulphate solution. Both display a brilliant royal blue hue due to hydrated [Cu(H₂O)₆]²⁺ complex ions.',
       },
       {
-        id: 'fe-step-2',
+        id: 'disp-step-2',
         stepNumber: 2,
-        title: 'Observe Chemical Displacement',
+        title: 'Inspect Sandpapered Iron Nail',
         instruction:
-          'Over 15-20 minutes, observe blue Cu²⁺ fade to light green Fe²⁺ (FeSO₄) while reddish metallic copper plates onto the nail.',
+          'Examine the clean iron nail. Sandpapering with emery paper removes passive iron oxide (rust) film, exposing active metallic iron (Fe) for redox electron transfer.',
+      },
+      {
+        id: 'disp-step-3',
+        stepNumber: 3,
+        title: 'Immerse Iron Nail into Reaction Tube',
+        instruction:
+          'Suspend the iron nail into the first test tube. Keep the second test tube unreacted as a visual color comparison control.',
+      },
+      {
+        id: 'disp-step-4',
+        stepNumber: 4,
+        title: 'Observe Single Displacement Kinetics',
+        instruction:
+          'Over 15 to 20 minutes, observe the solution color gradually shifting from deep blue to pale green due to formation of iron(II) sulphate [Fe²⁺(aq)].',
+      },
+      {
+        id: 'disp-step-5',
+        stepNumber: 5,
+        title: 'Examine Deposited Elemental Copper',
+        instruction:
+          'Notice the formation of a granular reddish-brown deposit on the iron nail surface. This is metallic copper (Cu) displaced from solution by the more reactive iron.',
+      },
+      {
+        id: 'disp-step-6',
+        stepNumber: 6,
+        title: 'Analyze Redox Stoichiometry & Mass Change',
+        instruction:
+          'Write the balanced equation: Fe(s) + CuSO₄(aq) → FeSO₄(aq) + Cu(s). Because Cu (63.55 g/mol) is heavier than Fe (55.85 g/mol), the coated nail shows a net mass increase!',
       },
     ],
     goals: [
       {
-        id: 'goal-redox',
-        description: 'Verify iron displacement reaction Fe(s) + CuSO₄(aq) → FeSO₄(aq) + Cu(s).',
+        id: 'goal-immersion',
+        description: 'Immerse clean iron nail into 0.5M copper(II) sulphate solution for at least 15 minutes.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-color-change',
+        description: 'Observe solution color shift from blue (Cu²⁺) to pale green (Fe²⁺ FeSO₄ formation).',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-copper-deposit',
+        description: 'Observe reddish-brown metallic copper deposition on iron nail and record observations.',
         isCompleted: false,
         validatorType: 'generic',
       },
     ],
     defaultNotebookNotes:
-      'Displacement Reaction: Fe(s) + CuSO4(aq) -> FeSO4(aq) + Cu(s). Iron is more reactive than copper, displacing copper from copper sulphate solution. Blue solution fades to pale green iron sulphate, and reddish-brown copper deposits on the iron nail.',
+      "Displacement Reaction Investigation:\n- Balanced Chemical Equation: Fe(s) + CuSO4(aq) -> FeSO4(aq) + Cu(s)\n- Ionic Net Equation: Fe(s) + Cu²⁺(aq) -> Fe²⁺(aq) + Cu(s)\n\nRedox Half-Reactions:\n1. Oxidation (Anode): Fe(s) -> Fe²⁺(aq) + 2e⁻  [Standard oxidation potential E° = +0.44 V]\n2. Reduction (Cathode): Cu²⁺(aq) + 2e⁻ -> Cu(s)  [Standard reduction potential E° = +0.34 V]\n- Net Cell Potential: E°cell = +0.78 V (> 0, thermodynamically spontaneous)\n\nReactivity Series Justification:\n- Iron (Fe) is positioned above Copper (Cu) in the metal activity series (K > Na > Ca > Mg > Al > Zn > Fe > Pb > [H] > Cu > Ag > Au).\n- Iron readily loses valence electrons to Cu²⁺ ions, displacing copper from solution.\n\nStoichiometric Mass Changes:\n- Dissolved Iron: 1 mole Fe = 55.85 g\n- Deposited Copper: 1 mole Cu = 63.55 g\n- Net mass gain of nail: Δm = (63.55 - 55.85) = +7.70 g per mole of iron reacted.\n\nSafety Note: Virtual simulation for educational inquiry. Copper sulphate is classified as harmful and hazardous to aquatic environments; handle with care in laboratories.",
+  },
+  {
+    experimentId: 'crystallisation',
+    title: 'Crystallisation of Copper Sulphate',
+    subjectId: 'chemistry',
+    allowedEquipmentIds: [
+      'bunsen-burner-tripod',
+      'porcelain-evaporating-dish',
+      'glass-stirring-rod',
+      'watch-glass',
+      'borosilicate-beaker',
+      'beaker-100ml',
+      'chemical-thermometer',
+    ],
+    initialObjects: [
+      {
+        id: 'burner-1',
+        equipmentId: 'bunsen-burner-tripod',
+        title: 'Bunsen Burner & Wire Gauze',
+        x: 80,
+        y: 100,
+        rotation: 0,
+        width: 110,
+        height: 140,
+        properties: { flameActive: true, heatingPowerWatts: 450 },
+        state: { thermalStatus: 'Active Gas Flame' },
+      },
+      {
+        id: 'dish-1',
+        equipmentId: 'porcelain-evaporating-dish',
+        title: 'China Dish (CuSO₄ Solution)',
+        x: 260,
+        y: 110,
+        rotation: 0,
+        width: 140,
+        height: 90,
+        properties: {
+          solutionTemperatureC: 85,
+          soluteMassGrams: 20,
+          initialWaterVolumeMl: 50,
+          evaporationTimeMins: 15,
+          isHeating: true,
+        },
+        state: { crystallisationState: 'Heating & Concentrating Solution' },
+      },
+      {
+        id: 'rod-1',
+        equipmentId: 'glass-stirring-rod',
+        title: 'Glass Stirring Rod',
+        x: 440,
+        y: 110,
+        rotation: 0,
+        width: 70,
+        height: 140,
+        properties: { isStirring: true },
+        state: { status: 'Agitating Solution' },
+      },
+      {
+        id: 'watchglass-1',
+        equipmentId: 'watch-glass',
+        title: 'Watch Glass Cover',
+        x: 570,
+        y: 130,
+        rotation: 0,
+        width: 100,
+        height: 50,
+        properties: { isCoveringDish: true },
+        state: { coverStatus: 'Cooling Cover Ready' },
+      },
+      {
+        id: 'thermometer-1',
+        equipmentId: 'chemical-thermometer',
+        title: 'Chemical Thermometer',
+        x: 700,
+        y: 90,
+        rotation: 0,
+        width: 60,
+        height: 180,
+        properties: { displayedTemp: 85 },
+        state: { currentTemp: '85.0 °C' },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'crys-step-1',
+        stepNumber: 1,
+        title: 'Prepare Hot Copper Sulphate Solution',
+        instruction:
+          'Observe the porcelain evaporating dish placed on the wire gauze tripod. 20 g of crude copper sulphate is dissolved in 50 mL of water, creating a blue solution.',
+      },
+      {
+        id: 'crys-step-2',
+        stepNumber: 2,
+        title: 'Apply Thermal Heating to Evaporate Solvent',
+        instruction:
+          'Ignite the Bunsen burner. As heat raises the solution temperature to 80-85°C, solvent water evaporates, steadily concentrating the dissolved solute.',
+      },
+      {
+        id: 'crys-step-3',
+        stepNumber: 3,
+        title: 'Stir Continuously with Glass Rod',
+        instruction:
+          'Agitate the boiling solution with the glass stirring rod to maintain uniform temperature and prevent crusting at the basin perimeter.',
+      },
+      {
+        id: 'crys-step-4',
+        stepNumber: 4,
+        title: 'Test for Crystallisation Point',
+        instruction:
+          'Periodically dip the glass rod tip into the hot solution and withdraw it into the air. When a crust of tiny crystals forms rapidly on the rod, the crystallisation point is reached!',
+      },
+      {
+        id: 'crys-step-5',
+        stepNumber: 5,
+        title: 'Cover with Watch Glass & Cool Undisturbed',
+        instruction:
+          'Turn off the burner. Cover the dish with a watch glass to prevent dust contamination and facilitate slow, uniform cooling without disturbance.',
+      },
+      {
+        id: 'crys-step-6',
+        stepNumber: 6,
+        title: 'Harvest Pure Triclinic Blue Crystals',
+        instruction:
+          'As temperature drops to 20°C, solubility decreases sharply. Pure, well-formed blue triclinic crystals of copper sulphate pentahydrate (CuSO₄·5H₂O) separate out from the mother liquor.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-heating-sol',
+        description: 'Heat CuSO₄ solution to elevated temperature (≥ 70°C) with active evaporation.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-crystallisation-point',
+        description: 'Reach saturation / supersaturation threshold (saturation ratio ≥ 1.0).',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+      {
+        id: 'goal-crystal-growth',
+        description: 'Cool undisturbed to yield triclinic blue copper sulphate pentahydrate crystals.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Crystallisation & Purification of Copper Sulphate:\n- Principle: Purification technique based on the steep temperature dependency of solute solubility in water.\n- Crystal Habit: Triclinic pinacoidal blue crystals of Copper(II) Sulphate Pentahydrate (CuSO4·5H2O).\n\nSolubility Model: S(T) = 14.3 + 0.25*T + 0.003*T²  [g anhydrous CuSO4 / 100 mL H2O]\n- At 20°C (Room Temp): S(20) ≈ 20.5 g / 100 mL\n- At 85°C (Hot Solution): S(85) ≈ 57.2 g / 100 mL\n\nCrystallisation vs Simple Evaporation to Dryness:\n- Evaporation to dryness traps all soluble and insoluble impurities in the residue.\n- Slow crystallisation allows pure CuSO4·5H2O lattice growth while impurities remain dissolved in the mother liquor.\n\nStoichiometry of Pentahydrate Hydration:\n- Molar mass anhydrous CuSO4 = 159.61 g/mol\n- Molar mass pentahydrate CuSO4·5H2O = 249.68 g/mol\n- Yield multiplier: 249.68 / 159.61 = 1.564 g hydrate per g anhydrous solute\n\nSafety Precautions: Virtual laboratory simulation. In physical labs, use crucible tongs to handle hot porcelain dishes and wear splash-proof goggles.",
   },
 ];
 
@@ -1205,7 +1857,7 @@ export const chemistryExtension: SubjectLabExtension = {
     const messages: string[] = [];
     const warnings: string[] = [];
 
-    // Evaluate all containers (beakers, flasks, cylinders, tubes, reagent bottles)
+    // Evaluate all containers (beakers, flasks, cylinders, tubes, reagent bottles, chamber, dish)
     const containerTypes = [
       'borosilicate-beaker',
       'beaker-100ml',
@@ -1214,6 +1866,7 @@ export const chemistryExtension: SubjectLabExtension = {
       'graduated-measuring-cylinder',
       'test-tube-rack',
       'reagent-bottle',
+      'developing-chamber',
     ];
 
     for (const obj of objects) {
@@ -1297,27 +1950,124 @@ export const chemistryExtension: SubjectLabExtension = {
       updates[p.id] = plateUpdates;
     }
 
-    // Evaluate displacement reaction (iron nail + cuso4)
+    // Evaluate chromatography paper strips
+    const papers = objects.filter((o) => o.equipmentId === 'chromatography-paper-strip');
+    for (const paper of papers) {
+      const sampleInk = String(paper.properties.sampleInk ?? 'black-ink');
+      const elapsedSeconds = Number(paper.properties.elapsedSeconds ?? 60);
+      const isDeveloping = paper.properties.isDeveloping !== false;
+
+      const effectiveSeconds = isDeveloping ? elapsedSeconds : 0;
+      const frontMm = calculateSolventFront(effectiveSeconds, 100);
+      const spots = calculatePigmentPositions(sampleInk, frontMm);
+      const rfText = spots
+        .map((s) => `${s.pigmentName} (Rf=${s.rf.toFixed(2)})`)
+        .join(', ');
+
+      updates[paper.id] = {
+        sampleInk,
+        elapsedSeconds: effectiveSeconds,
+        solventFrontMm: Number(frontMm.toFixed(1)),
+        pigmentSpotsJson: JSON.stringify(spots),
+        rfSummary: rfText,
+        status:
+          effectiveSeconds > 0
+            ? `Solvent front: ${frontMm.toFixed(1)} mm. Bands: ${rfText}`
+            : 'Dry chromatography strip at origin line',
+      };
+      messages.push(`Chromatography paper: Solvent front advanced to ${frontMm.toFixed(1)} mm.`);
+    }
+
+    // Evaluate displacement reaction (iron nail + copper sulphate)
     const tubes = objects.filter((o) => o.equipmentId === 'test-tube-rack');
     const nails = objects.filter((o) => o.equipmentId === 'iron-nail-substrate');
 
     for (const nail of nails) {
-      const timeElapsed = Number(nail.properties.immersionTimeMinutes ?? 15);
+      const timeElapsed = Number(nail.properties.immersionTimeMinutes ?? 20);
       const isImmersed = nail.properties.isImmersed !== false;
 
-      if (isImmersed && timeElapsed >= 10) {
-        updates[nail.id] = {
-          reactionProgress: 'Fe(s) + Cu²⁺(aq) → Fe²⁺(aq) + Cu(s) active',
-          coatingAppearance: 'Reddish-brown metallic Cu crust formed',
-          reactionState: 'Complete',
-        };
+      const dispState = calculateDisplacementState(timeElapsed, isImmersed);
 
-        for (const t of tubes) {
+      updates[nail.id] = {
+        isImmersed,
+        immersionTimeMinutes: timeElapsed,
+        reactionProgressPercent: dispState.progressPercent,
+        nailSurfaceColor: dispState.nailColor,
+        solutionColor: dispState.solutionColor,
+        depositedCopperGrams: dispState.depositedCopperGrams,
+        dissolvedIronGrams: dispState.dissolvedIronGrams,
+        netNailMassChangeGrams: dispState.netMassChangeGrams,
+        redoxEquation: dispState.redoxEquation,
+        reactionStatus: dispState.appearanceDescription,
+        coatingAppearance: dispState.appearanceDescription,
+        status: dispState.appearanceDescription,
+      };
+
+      if (isImmersed) {
+        messages.push(
+          `Displacement reaction: ${dispState.progressPercent}% progress (${dispState.depositedCopperGrams}g Cu deposited).`
+        );
+      }
+
+      // Update reaction test tube
+      for (const t of tubes) {
+        if (t.id === 'tube-cu' || t.properties.reagentSolution === 'cuso4') {
           updates[t.id] = {
-            solutionColor: '#86efac', // Pale green FeSO4
-            chemicalComposition: 'Iron(II) sulphate (FeSO₄) + Elemental Copper',
+            solutionColor: dispState.solutionColor,
+            molarityCuSO4: dispState.molarityCuSO4,
+            molarityFeSO4: dispState.molarityFeSO4,
+            chemicalComposition:
+              dispState.progressPercent > 50
+                ? '0.5M FeSO₄(aq) + Cu(s) deposit'
+                : 'CuSO₄(aq) + FeSO₄(aq)',
+            observationText:
+              dispState.progressPercent > 0
+                ? `Color shifted to ${dispState.solutionColor} (Fe²⁺ ion formation)`
+                : 'Initial blue CuSO₄ solution',
           };
         }
+      }
+    }
+
+    // Evaluate evaporating dishes (crystallisation)
+    const dishes = objects.filter((o) => o.equipmentId === 'porcelain-evaporating-dish');
+    for (const dish of dishes) {
+      const tempC = Number(dish.properties.solutionTemperatureC ?? 85);
+      const soluteG = Number(dish.properties.soluteMassGrams ?? 20);
+      const waterMl = Number(dish.properties.initialWaterVolumeMl ?? 50);
+      const evapMins = Number(dish.properties.evaporationTimeMins ?? 15);
+      const isHeating = dish.properties.isHeating !== false;
+
+      const crysState = calculateCrystallisation({
+        initialSoluteMassG: soluteG,
+        initialWaterVolumeMl: waterMl,
+        temperatureC: tempC,
+        evaporationTimeMins: evapMins,
+        isHeating,
+      });
+
+      updates[dish.id] = {
+        solutionTemperatureC: tempC,
+        remainingWaterMl: crysState.remainingWaterMl,
+        saturationRatio: crysState.saturationRatio,
+        saturationStatus: crysState.saturationStatus,
+        crystalYieldGrams: crysState.crystalYieldGrams,
+        crystalGrowthPercent: crysState.crystalGrowthPercent,
+        crystalDescription: crysState.crystalDescription,
+        liquidVolume: crysState.remainingWaterMl,
+        liquidColor: '#2563eb',
+        status:
+          crysState.saturationStatus === 'supersaturated'
+            ? `Crystallisation Active: ${crysState.crystalYieldGrams.toFixed(1)}g crystals formed`
+            : crysState.saturationStatus === 'saturated'
+              ? 'At Crystallisation Point (Saturated Solution)'
+              : 'Unsaturated Solution',
+      };
+
+      if (crysState.saturationStatus === 'supersaturated') {
+        messages.push(
+          `Crystallisation: ${crysState.crystalYieldGrams.toFixed(1)}g pure CuSO₄·5H₂O crystals nucleated.`
+        );
       }
     }
 

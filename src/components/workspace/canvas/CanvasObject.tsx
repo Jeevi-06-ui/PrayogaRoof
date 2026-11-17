@@ -1800,6 +1800,632 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
         );
       }
 
+      case 'chromatography-paper': {
+        const sampleInk = String(object.properties.sampleInk ?? 'black-ink');
+        const elapsed = Number(object.properties.elapsedSeconds ?? 60);
+        const frontMm = Number(
+          object.state.solventFrontMm ?? (elapsed > 0 ? Math.min(100, elapsed * 0.8) : 0)
+        );
+        let spots: { pigmentName: string; color: string; distanceMm: number; rf: number }[] = [];
+        if (object.state.pigmentSpotsJson && typeof object.state.pigmentSpotsJson === 'string') {
+          try {
+            spots = JSON.parse(object.state.pigmentSpotsJson);
+          } catch {
+            spots = [];
+          }
+        }
+
+        const baselineY = height - 35;
+        const travelHeight = height - 70;
+        const frontY = baselineY - (Math.min(100, frontMm) / 100) * travelHeight;
+
+        return (
+          <Group>
+            {/* Paper backing */}
+            <Rect
+              x={5}
+              y={5}
+              width={width - 10}
+              height={height - 10}
+              fill="#fdfbf7"
+              stroke={isSelected ? '#38bdf8' : '#cbd5e1'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={4}
+              shadowColor="#000000"
+              shadowBlur={3}
+              shadowOpacity={0.12}
+            />
+            {/* Top suspension hole */}
+            <Circle
+              x={width / 2}
+              y={15}
+              radius={4}
+              fill="#e2e8f0"
+              stroke="#94a3b8"
+              strokeWidth={1}
+            />
+            <KonvaText
+              text="WHATMAN #1"
+              x={12}
+              y={24}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#94a3b8"
+            />
+            {/* Pencil origin baseline */}
+            <Line
+              points={[10, baselineY, width - 10, baselineY]}
+              stroke="#64748b"
+              strokeWidth={1}
+              dash={[3, 2]}
+            />
+            <KonvaText
+              text="Origin Baseline"
+              x={12}
+              y={baselineY + 4}
+              fontSize={7}
+              fontFamily="sans-serif"
+              fill="#64748b"
+            />
+            {/* Advancing solvent front line */}
+            {frontMm > 0 && (
+              <Group>
+                <Line
+                  points={[8, frontY, width - 8, frontY]}
+                  stroke="#0284c7"
+                  strokeWidth={1.5}
+                  dash={[4, 2]}
+                />
+                <KonvaText
+                  text={`Front: ${frontMm.toFixed(0)}mm`}
+                  x={width - 56}
+                  y={frontY - 11}
+                  fontSize={8}
+                  fontFamily="sans-serif"
+                  fontStyle="bold"
+                  fill="#0284c7"
+                />
+              </Group>
+            )}
+            {/* Pigment spots */}
+            {spots.map((spot, idx) => {
+              const spotY = baselineY - (Math.min(100, spot.distanceMm) / 100) * travelHeight;
+              return (
+                <Group key={idx}>
+                  <Circle
+                    x={width / 2}
+                    y={spotY}
+                    radius={9}
+                    fill={spot.color}
+                    opacity={0.85}
+                    stroke="#ffffff"
+                    strokeWidth={1}
+                  />
+                  <KonvaText
+                    text={`${spot.rf.toFixed(2)}`}
+                    x={width / 2 + 12}
+                    y={spotY - 5}
+                    fontSize={8}
+                    fontFamily="Courier New, monospace"
+                    fontStyle="bold"
+                    fill="#334155"
+                  />
+                </Group>
+              );
+            })}
+            {/* Bottom solvent immersion zone hint */}
+            <Rect
+              x={5}
+              y={height - 18}
+              width={width - 10}
+              height={13}
+              fill="#e0f2fe"
+              opacity={0.6}
+              cornerRadius={[0, 0, 4, 4]}
+            />
+            <KonvaText
+              text={`${sampleInk.replace('-ink', '').toUpperCase()}`}
+              x={width / 2 - 25}
+              y={height - 14}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#0369a1"
+            />
+          </Group>
+        );
+      }
+
+      case 'developing-chamber': {
+        const vol = Number(object.properties.liquidVolume ?? 25);
+        const maxVol = Number(object.properties.capacityMl ?? 200);
+        const fillFraction = Math.min(0.8, Math.max(0.1, vol / maxVol));
+        const liquidH = Math.round((height - 30) * fillFraction);
+
+        return (
+          <Group>
+            {/* Heavy Glass Tank Body */}
+            <Rect
+              x={8}
+              y={25}
+              width={width - 16}
+              height={height - 28}
+              fill="#f0f9ff"
+              opacity={0.8}
+              stroke={isSelected ? '#38bdf8' : '#0891b2'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={[4, 4, 8, 8]}
+            />
+            {/* Glass Lid on Top */}
+            <Rect
+              x={4}
+              y={10}
+              width={width - 8}
+              height={16}
+              fill="#0891b2"
+              opacity={0.85}
+              stroke="#0e7490"
+              strokeWidth={1.5}
+              cornerRadius={4}
+            />
+            <Circle x={width / 2} y={8} radius={5} fill="#0e7490" />
+            {/* Solvent Pool at Bottom */}
+            <Rect
+              x={10}
+              y={height - liquidH}
+              width={width - 20}
+              height={liquidH - 5}
+              fill="#38bdf8"
+              opacity={0.55}
+              cornerRadius={[0, 0, 6, 6]}
+            />
+            {/* Paper strip outline inside chamber */}
+            <Rect
+              x={width / 2 - 18}
+              y={35}
+              width={36}
+              height={height - 45}
+              fill="#ffffff"
+              stroke="#cbd5e1"
+              strokeWidth={1}
+              opacity={0.7}
+            />
+            {/* Chamber text readout */}
+            <KonvaText
+              text="CHAMBER"
+              x={width / 2 - 24}
+              y={45}
+              fontSize={9}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#0e7490"
+            />
+            <KonvaText
+              text="Vapor Saturated"
+              x={width / 2 - 36}
+              y={60}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fill="#64748b"
+            />
+            <KonvaText
+              text={`${vol} mL Eluent`}
+              x={width / 2 - 28}
+              y={height - 20}
+              fontSize={9}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#0369a1"
+            />
+          </Group>
+        );
+      }
+
+      case 'chromatography-ruler': {
+        const numTicks = 10;
+        const tickSpacing = (height - 20) / numTicks;
+        return (
+          <Group>
+            {/* Clear acrylic body */}
+            <Rect
+              width={width}
+              height={height}
+              fill="#f8fafc"
+              opacity={0.88}
+              stroke={isSelected ? '#38bdf8' : '#94a3b8'}
+              strokeWidth={isSelected ? 2.5 : 1}
+              cornerRadius={4}
+            />
+            {/* Graduation ticks and labels */}
+            {Array.from({ length: numTicks + 1 }).map((_, i) => {
+              const y = 10 + i * tickSpacing;
+              const isMajor = i % 2 === 0;
+              const mmVal = (numTicks - i) * 10;
+              return (
+                <Group key={i}>
+                  <Line
+                    points={[0, y, isMajor ? 14 : 8, y]}
+                    stroke="#334155"
+                    strokeWidth={isMajor ? 1.5 : 1}
+                  />
+                  {isMajor && (
+                    <KonvaText
+                      text={`${mmVal}`}
+                      x={18}
+                      y={y - 5}
+                      fontSize={8}
+                      fontFamily="Courier New, monospace"
+                      fontStyle="bold"
+                      fill="#1e293b"
+                    />
+                  )}
+                </Group>
+              );
+            })}
+            <KonvaText
+              text="mm"
+              x={width - 18}
+              y={height - 15}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#64748b"
+            />
+          </Group>
+        );
+      }
+
+      case 'iron-nail': {
+        const isImmersed = object.properties.isImmersed !== false;
+        const progressPct = Number(
+          object.state.reactionProgressPercent ?? (isImmersed ? 80 : 0)
+        );
+        const nailColor = String(
+          object.state.nailSurfaceColor ?? (progressPct > 20 ? '#9a3412' : '#64748b')
+        );
+        const cuGrams = Number(object.state.depositedCopperGrams ?? 0);
+
+        return (
+          <Group>
+            {/* Nail head */}
+            <Rect
+              x={5}
+              y={height / 2 - 16}
+              width={10}
+              height={32}
+              fill="#475569"
+              stroke={isSelected ? '#38bdf8' : '#1e293b'}
+              strokeWidth={isSelected ? 2.5 : 1}
+              cornerRadius={2}
+            />
+            {/* Nail shank (metal body) */}
+            <Rect
+              x={15}
+              y={height / 2 - 8}
+              width={width - 35}
+              height={16}
+              fill="#64748b"
+              stroke={isSelected ? '#38bdf8' : '#334155'}
+              strokeWidth={isSelected ? 2 : 1}
+            />
+            {/* Sharp tapered point */}
+            <Line
+              points={[
+                width - 20,
+                height / 2 - 8,
+                width - 5,
+                height / 2,
+                width - 20,
+                height / 2 + 8,
+              ]}
+              fill="#64748b"
+              stroke="#334155"
+              strokeWidth={1}
+            />
+            {/* Copper deposit overlay */}
+            {progressPct > 0 && (
+              <Group>
+                <Rect
+                  x={20}
+                  y={height / 2 - 8}
+                  width={(width - 45) * (progressPct / 100)}
+                  height={16}
+                  fill={nailColor}
+                  opacity={0.88}
+                />
+                <Line
+                  points={[
+                    width - 20,
+                    height / 2 - 8,
+                    width - 5,
+                    height / 2,
+                    width - 20,
+                    height / 2 + 8,
+                  ]}
+                  fill={nailColor}
+                  opacity={progressPct > 50 ? 0.9 : 0.4}
+                />
+              </Group>
+            )}
+            {/* Labels */}
+            <KonvaText
+              text={progressPct > 50 ? 'Cu-Coated Iron Nail' : 'Clean Iron Nail (Fe)'}
+              x={18}
+              y={6}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isSelected ? '#0284c7' : '#1e293b'}
+            />
+            <KonvaText
+              text={
+                progressPct > 0
+                  ? `+${cuGrams.toFixed(2)}g Cu (${progressPct}% reacted)`
+                  : isImmersed
+                    ? 'Reacting in CuSO₄...'
+                    : 'Substrate Ready'
+              }
+              x={18}
+              y={height - 18}
+              fontSize={9}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill={progressPct > 0 ? '#b45309' : '#64748b'}
+            />
+          </Group>
+        );
+      }
+
+      case 'evaporating-dish': {
+        const temp = Number(object.properties.solutionTemperatureC ?? 85);
+        const waterMl = Number(
+          object.state.remainingWaterMl ?? object.properties.initialWaterVolumeMl ?? 35
+        );
+        const satStatus = String(object.state.saturationStatus ?? 'saturated');
+        const crystalYield = Number(object.state.crystalYieldGrams ?? 0);
+        const isHeating = object.properties.isHeating !== false;
+
+        return (
+          <Group>
+            {/* Porcelain ceramic dish bowl */}
+            <Rect
+              x={10}
+              y={18}
+              width={width - 20}
+              height={height - 24}
+              fill="#f8fafc"
+              stroke={isSelected ? '#38bdf8' : '#94a3b8'}
+              strokeWidth={isSelected ? 3 : 2}
+              cornerRadius={[0, 0, 35, 35]}
+              shadowColor="#000000"
+              shadowBlur={3}
+              shadowOpacity={0.12}
+            />
+            {/* Rim & pour spout */}
+            <Rect
+              x={5}
+              y={14}
+              width={width - 10}
+              height={8}
+              fill="#e2e8f0"
+              stroke="#94a3b8"
+              strokeWidth={1}
+              cornerRadius={4}
+            />
+            {/* Blue CuSO4 liquid fill */}
+            {waterMl > 0 && (
+              <Rect
+                x={16}
+                y={32}
+                width={width - 32}
+                height={Math.min(height - 42, Math.max(12, (waterMl / 50) * (height - 45)))}
+                fill="#2563eb"
+                opacity={0.68}
+                cornerRadius={[0, 0, 25, 25]}
+              />
+            )}
+            {/* Crystal nucleation clusters */}
+            {crystalYield > 0 && (
+              <Group>
+                {[
+                  { x: width / 2 - 25, y: height - 22 },
+                  { x: width / 2 - 10, y: height - 20 },
+                  { x: width / 2 + 8, y: height - 24 },
+                  { x: width / 2 + 20, y: height - 18 },
+                ].map((pos, i) => (
+                  <Rect
+                    key={i}
+                    x={pos.x}
+                    y={pos.y}
+                    width={9}
+                    height={7}
+                    rotation={20 * (i + 1)}
+                    fill="#1d4ed8"
+                    stroke="#93c5fd"
+                    strokeWidth={1}
+                  />
+                ))}
+              </Group>
+            )}
+            {/* Thermal steam lines when heating */}
+            {isHeating && temp >= 60 && (
+              <Group>
+                <Line
+                  points={[width / 2 - 20, 10, width / 2 - 25, 2]}
+                  stroke="#94a3b8"
+                  strokeWidth={1.5}
+                  dash={[3, 2]}
+                />
+                <Line
+                  points={[width / 2, 8, width / 2, 0]}
+                  stroke="#94a3b8"
+                  strokeWidth={1.5}
+                  dash={[3, 2]}
+                />
+                <Line
+                  points={[width / 2 + 20, 10, width / 2 + 25, 2]}
+                  stroke="#94a3b8"
+                  strokeWidth={1.5}
+                  dash={[3, 2]}
+                />
+              </Group>
+            )}
+            {/* Dish labels */}
+            <KonvaText
+              text="CHINA DISH"
+              x={width / 2 - 28}
+              y={24}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#0f172a"
+            />
+            <KonvaText
+              text={`${temp}°C | ${satStatus.toUpperCase()}`}
+              x={width / 2 - 38}
+              y={height - 14}
+              fontSize={8}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill="#1e293b"
+            />
+          </Group>
+        );
+      }
+
+      case 'burner': {
+        const flameActive = object.properties.flameActive !== false;
+        const powerW = Number(object.properties.heatingPowerWatts ?? 450);
+
+        return (
+          <Group>
+            {/* Tripod Stand Legs */}
+            <Line points={[15, height, 35, 30]} stroke="#475569" strokeWidth={3} />
+            <Line
+              points={[width - 15, height, width - 35, 30]}
+              stroke="#475569"
+              strokeWidth={3}
+            />
+            <Line points={[width / 2, height, width / 2, 30]} stroke="#334155" strokeWidth={2} />
+            {/* Wire gauze platform */}
+            <Rect
+              x={20}
+              y={24}
+              width={width - 40}
+              height={8}
+              fill="#94a3b8"
+              stroke="#475569"
+              strokeWidth={1}
+              cornerRadius={2}
+            />
+            {/* Ceramic center of gauze */}
+            <Circle
+              x={width / 2}
+              y={28}
+              radius={8}
+              fill="#f1f5f9"
+              stroke="#cbd5e1"
+              strokeWidth={1}
+            />
+            {/* Burner Barrel */}
+            <Rect
+              x={width / 2 - 6}
+              y={55}
+              width={12}
+              height={height - 70}
+              fill="#b45309"
+              stroke="#78350f"
+              strokeWidth={1}
+            />
+            {/* Heavy Cast Iron Base */}
+            <Rect
+              x={width / 2 - 25}
+              y={height - 15}
+              width={50}
+              height={12}
+              fill="#1e293b"
+              cornerRadius={3}
+            />
+            {/* Bunsen Gas Flame */}
+            {flameActive && (
+              <Group>
+                {/* Outer blue flame cone */}
+                <Line
+                  points={[width / 2 - 10, 55, width / 2, 30, width / 2 + 10, 55]}
+                  fill="#0284c7"
+                  stroke="#0284c7"
+                  strokeWidth={1}
+                  opacity={0.85}
+                />
+                {/* Inner cyan hot core */}
+                <Line
+                  points={[width / 2 - 5, 55, width / 2, 38, width / 2 + 5, 55]}
+                  fill="#38bdf8"
+                  stroke="#38bdf8"
+                  strokeWidth={1}
+                  opacity={0.95}
+                />
+              </Group>
+            )}
+            <KonvaText
+              text={flameActive ? `${powerW}W FLAME` : 'BURNER (OFF)'}
+              x={width / 2 - 32}
+              y={height - 28}
+              fontSize={8}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill={flameActive ? '#f97316' : '#94a3b8'}
+            />
+          </Group>
+        );
+      }
+
+      case 'watch-glass': {
+        const isCovering = object.properties.isCoveringDish !== false;
+
+        return (
+          <Group>
+            {/* Curved shallow concave glass saucer */}
+            <Line
+              points={[8, 16, width / 2, height - 12, width - 8, 16]}
+              stroke={isSelected ? '#38bdf8' : '#0284c7'}
+              strokeWidth={isSelected ? 3 : 2}
+            />
+            <Line
+              points={[8, 16, width / 2, 22, width - 8, 16]}
+              stroke="#38bdf8"
+              strokeWidth={1.5}
+              opacity={0.8}
+            />
+            {/* Glass highlight reflections */}
+            <Line
+              points={[25, 20, width / 2 - 8, height - 16]}
+              stroke="#ffffff"
+              strokeWidth={2}
+              opacity={0.7}
+            />
+            <KonvaText
+              text="WATCH GLASS"
+              x={width / 2 - 28}
+              y={4}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#0369a1"
+            />
+            <KonvaText
+              text={isCovering ? 'Covering Dish' : 'Open'}
+              x={width / 2 - 20}
+              y={height - 10}
+              fontSize={7}
+              fontFamily="sans-serif"
+              fill="#64748b"
+            />
+          </Group>
+        );
+      }
+
       case 'generic-box':
       default: {
         const displayVal =

@@ -7,6 +7,9 @@ import {
 import {
   PH_TESTING_QUESTIONS,
   NATURAL_INDICATORS_QUESTIONS,
+  PAPER_CHROMATOGRAPHY_QUESTIONS,
+  DISPLACEMENT_REACTION_QUESTIONS,
+  CRYSTALLISATION_QUESTIONS,
 } from '../chemistry/chemistryQuestions';
 
 export const OHMS_LAW_QUESTIONS: ConceptualQuestion[] = [
@@ -101,5 +104,8 @@ export function getConceptualQuestions(experimentId: string): ConceptualQuestion
   if (experimentId === 'simple-pendulum') return SIMPLE_PENDULUM_QUESTIONS;
   if (experimentId === 'ph-testing') return PH_TESTING_QUESTIONS;
   if (experimentId === 'natural-indicators') return NATURAL_INDICATORS_QUESTIONS;
+  if (experimentId === 'paper-chromatography') return PAPER_CHROMATOGRAPHY_QUESTIONS;
+  if (experimentId === 'displacement-reaction') return DISPLACEMENT_REACTION_QUESTIONS;
+  if (experimentId === 'crystallisation') return CRYSTALLISATION_QUESTIONS;
   return [...OHMS_LAW_QUESTIONS, ...SERIES_PARALLEL_QUESTIONS];
 }
