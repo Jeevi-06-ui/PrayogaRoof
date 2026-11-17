@@ -122,7 +122,7 @@ describe('Application Pages', () => {
     });
 
     expect(screen.getByText(/Standard Laboratory Procedure/i)).toBeInTheDocument();
-    expect(screen.getByText(/Guided Mode/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Guided Mode/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Free Lab Canvas/i)).toBeInTheDocument();
     expect(screen.getByText(/Apparatus & Safety/i)).toBeInTheDocument();
   });

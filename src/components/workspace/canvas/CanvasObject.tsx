@@ -44,6 +44,198 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
     const renderType = eqDef?.renderType || 'generic-box';
 
     switch (renderType) {
+      case 'battery': {
+        const v = object.properties.voltage ?? 9.0;
+        const isOn = object.properties.powerSwitch !== false;
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#c2410c"
+              stroke={isSelected ? '#38bdf8' : '#7c2d12'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={10}
+            />
+            <Rect x={10} y={10} width={width - 20} height={40} fill="#1e293b" cornerRadius={6} />
+            <KonvaText
+              text={`${isOn ? Number(v).toFixed(1) : '0.0'} V`}
+              x={20}
+              y={20}
+              fontSize={18}
+              fontFamily="Courier New, monospace"
+              fontStyle="bold"
+              fill={isOn ? '#fb923c' : '#94a3b8'}
+            />
+            <KonvaText
+              text="DC BATTERY"
+              x={width - 85}
+              y={18}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#fdba74"
+            />
+            <KonvaText
+              text={object.title}
+              x={12}
+              y={56}
+              fontSize={11}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#ffffff"
+            />
+            <KonvaText text="+" x={32} y={height - 24} fontSize={14} fontStyle="bold" fill="#ffffff" />
+            <KonvaText text="-" x={102} y={height - 24} fontSize={16} fontStyle="bold" fill="#ffffff" />
+          </Group>
+        );
+      }
+
+      case 'switch': {
+        const isClosed = object.properties.isClosed !== false;
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#334155"
+              stroke={isSelected ? '#38bdf8' : '#1e293b'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            <Circle x={18} y={height / 2} radius={6} fill="#fbbf24" stroke="#d97706" strokeWidth={1} />
+            <Circle x={width - 18} y={height / 2} radius={6} fill="#fbbf24" stroke="#d97706" strokeWidth={1} />
+            {isClosed ? (
+              <Line
+                points={[18, height / 2, width - 18, height / 2]}
+                stroke="#fbbf24"
+                strokeWidth={4}
+                lineCap="round"
+              />
+            ) : (
+              <Line
+                points={[18, height / 2, width / 2, height / 2 - 20]}
+                stroke="#fbbf24"
+                strokeWidth={4}
+                lineCap="round"
+              />
+            )}
+            <KonvaText
+              text={isClosed ? 'CLOSED (ON)' : 'OPEN (OFF)'}
+              x={width / 2 - 38}
+              y={height - 18}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isClosed ? '#4ade80' : '#f87171'}
+            />
+            <KonvaText
+              text={object.title}
+              x={12}
+              y={6}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fill="#cbd5e1"
+            />
+          </Group>
+        );
+      }
+
+      case 'junction': {
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#1e293b"
+              stroke={isSelected ? '#38bdf8' : '#475569'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            <Line points={[width / 2, 8, width / 2, height - 8]} stroke="#94a3b8" strokeWidth={2} />
+            <Line points={[8, height / 2, width - 8, height / 2]} stroke="#94a3b8" strokeWidth={2} />
+            <Circle x={width / 2} y={height / 2} radius={7} fill="#38bdf8" />
+            <KonvaText
+              text="NODE"
+              x={width / 2 - 14}
+              y={height / 2 + 10}
+              fontSize={8}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#94a3b8"
+            />
+          </Group>
+        );
+      }
+
+      case 'ground': {
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#064e3b"
+              stroke={isSelected ? '#38bdf8' : '#047857'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            <Line points={[width / 2, 18, width / 2, 40]} stroke="#a7f3d0" strokeWidth={2.5} />
+            <Line points={[width / 2 - 20, 40, width / 2 + 20, 40]} stroke="#a7f3d0" strokeWidth={2.5} />
+            <Line points={[width / 2 - 13, 47, width / 2 + 13, 47]} stroke="#a7f3d0" strokeWidth={2} />
+            <Line points={[width / 2 - 6, 54, width / 2 + 6, 54]} stroke="#a7f3d0" strokeWidth={1.5} />
+            <KonvaText
+              text="GND (0V)"
+              x={width / 2 - 22}
+              y={height - 18}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill="#6ee7b7"
+            />
+          </Group>
+        );
+      }
+
+      case 'lamp': {
+        const isGlowing = Boolean(object.state.isEnergized);
+        return (
+          <Group>
+            <Rect
+              width={width}
+              height={height}
+              fill="#1e293b"
+              stroke={isSelected ? '#38bdf8' : '#334155'}
+              strokeWidth={isSelected ? 3 : 1.5}
+              cornerRadius={8}
+            />
+            <Circle
+              x={width / 2}
+              y={38}
+              radius={24}
+              fill={isGlowing ? '#fef08a' : '#e2e8f0'}
+              stroke={isGlowing ? '#eab308' : '#94a3b8'}
+              strokeWidth={2}
+              shadowColor="#eab308"
+              shadowBlur={isGlowing ? 16 : 0}
+            />
+            <Line
+              points={[width / 2 - 8, 44, width / 2, 28, width / 2 + 8, 44]}
+              stroke={isGlowing ? '#ea580c' : '#64748b'}
+              strokeWidth={2}
+            />
+            <KonvaText
+              text={isGlowing ? 'GLOWING' : 'OFF'}
+              x={width / 2 - 24}
+              y={height - 20}
+              fontSize={10}
+              fontFamily="sans-serif"
+              fontStyle="bold"
+              fill={isGlowing ? '#facc15' : '#94a3b8'}
+            />
+          </Group>
+        );
+      }
+
       case 'power-supply': {
         const v = object.properties.voltage ?? 0;
         const isOn = object.properties.powerSwitch !== false;

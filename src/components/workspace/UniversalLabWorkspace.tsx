@@ -518,6 +518,8 @@ export const UniversalLabWorkspace: React.FC<UniversalLabWorkspaceProps> = ({
           simulationResult={simulationResult}
           isCollapsed={isInspectorCollapsed}
           onToggleCollapse={() => setIsInspectorCollapsed(!isInspectorCollapsed)}
+          experimentId={experimentId}
+          initialTab={mode === 'guided' ? 'guide' : 'inspector'}
         />
       </div>
 

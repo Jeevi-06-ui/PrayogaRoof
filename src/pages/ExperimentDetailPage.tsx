@@ -259,15 +259,44 @@ export const ExperimentDetailPage: React.FC = () => {
       {/* ================= TAB CONTENT: GUIDED MODE ================= */}
       {activeTab === 'guided' && (
         <div className="space-y-6">
-          <div className="p-4 sm:p-5 rounded-2xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 flex items-start gap-3">
-            <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <div className="text-xs sm:text-sm text-blue-900 dark:text-blue-200">
-              <p className="font-bold">Guided Laboratory Walkthrough (Phase 1 Placeholder)</p>
-              <p className="mt-0.5 text-blue-800 dark:text-blue-300">
-                {experiment.guidedModeOverview} Step-by-step interactive simulations will launch in Phase 2. Review the structured procedure and learning objectives below.
-              </p>
+          {experiment.subjectId === 'physics' ? (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                    Interactive Guided Laboratory
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Follow guided steps, construct valid circuits, verify physical laws, and complete syllabus goals.
+                  </p>
+                </div>
+                <Link to={`/workspace/${experiment.id}`}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    leftIcon={<Sparkles className="w-4 h-4 text-blue-500" />}
+                  >
+                    Open Fullscreen Lab
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Embedded Guided Universal Laboratory */}
+              <div className="w-full">
+                <UniversalLabWorkspace experimentId={experiment.id} initialMode="guided" />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="p-4 sm:p-5 rounded-2xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 flex items-start gap-3">
+              <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <div className="text-xs sm:text-sm text-blue-900 dark:text-blue-200">
+                <p className="font-bold">Guided Laboratory Walkthrough (Phase 1 Placeholder)</p>
+                <p className="mt-0.5 text-blue-800 dark:text-blue-300">
+                  {experiment.guidedModeOverview} Review the structured procedure and learning objectives below.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Step by Step Sequence */}

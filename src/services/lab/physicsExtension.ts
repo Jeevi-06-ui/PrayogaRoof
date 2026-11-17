@@ -7,8 +7,63 @@ import {
   SimulationResult,
   LabDefinition,
 } from '../../types';
+import { solveDCCircuit } from '../circuit/circuitSolver';
 
 export const PHYSICS_EQUIPMENT: EquipmentDefinition[] = [
+  {
+    id: 'dc-battery',
+    name: 'DC Chemical Battery',
+    subjectId: 'physics',
+    category: 'instrument',
+    description: 'Electrochemical DC cell with positive (+) anode and negative (-) cathode terminals.',
+    iconName: 'BatteryCharging',
+    defaultWidth: 140,
+    defaultHeight: 90,
+    rotatable: true,
+    allowedRotations: [0, 90, 180, 270],
+    ports: [
+      {
+        id: 'pos',
+        name: '+ Positive Terminal',
+        type: 'electrical-positive',
+        xOffset: 35,
+        yOffset: 90,
+        direction: 'south',
+        color: '#ef4444',
+      },
+      {
+        id: 'neg',
+        name: '- Negative Terminal',
+        type: 'electrical-negative',
+        xOffset: 105,
+        yOffset: 90,
+        direction: 'south',
+        color: '#1e293b',
+      },
+    ],
+    propertyDefinitions: [
+      {
+        id: 'voltage',
+        label: 'Cell Potential',
+        type: 'number',
+        defaultValue: 9.0,
+        min: 1.5,
+        max: 24,
+        step: 0.5,
+        unit: 'V',
+        editable: true,
+      },
+      {
+        id: 'powerSwitch',
+        label: 'Circuit Active',
+        type: 'boolean',
+        defaultValue: true,
+        editable: true,
+      },
+    ],
+    renderType: 'battery',
+    colorTheme: '#ea580c',
+  },
   {
     id: 'dc-power-supply',
     name: 'DC Power Supply',
@@ -287,6 +342,83 @@ export const PHYSICS_EQUIPMENT: EquipmentDefinition[] = [
     colorTheme: '#eab308',
   },
   {
+    id: 'circuit-ground',
+    name: 'Circuit Ground (0V)',
+    subjectId: 'physics',
+    category: 'component',
+    description: 'Earth reference point providing a defined 0.0V potential baseline for electrical network calculations.',
+    iconName: 'ArrowDown',
+    defaultWidth: 90,
+    defaultHeight: 80,
+    rotatable: false,
+    ports: [
+      {
+        id: 'gnd',
+        name: 'Ground Node',
+        type: 'electrical-negative',
+        xOffset: 45,
+        yOffset: 20,
+        direction: 'north',
+        color: '#10b981',
+      },
+    ],
+    propertyDefinitions: [],
+    renderType: 'ground',
+    colorTheme: '#10b981',
+  },
+  {
+    id: 'wire-junction',
+    name: 'Wire Junction Node',
+    subjectId: 'physics',
+    category: 'component',
+    description: 'Low-impedance 4-way electrical junction node to interconnect multiple parallel branches.',
+    iconName: 'GitCommit',
+    defaultWidth: 80,
+    defaultHeight: 80,
+    rotatable: false,
+    ports: [
+      {
+        id: 'p1',
+        name: 'Port North',
+        type: 'electrical-positive',
+        xOffset: 40,
+        yOffset: 0,
+        direction: 'north',
+        color: '#64748b',
+      },
+      {
+        id: 'p2',
+        name: 'Port South',
+        type: 'electrical-negative',
+        xOffset: 40,
+        yOffset: 80,
+        direction: 'south',
+        color: '#64748b',
+      },
+      {
+        id: 'p3',
+        name: 'Port West',
+        type: 'electrical-positive',
+        xOffset: 0,
+        yOffset: 40,
+        direction: 'west',
+        color: '#64748b',
+      },
+      {
+        id: 'p4',
+        name: 'Port East',
+        type: 'electrical-negative',
+        xOffset: 80,
+        yOffset: 40,
+        direction: 'east',
+        color: '#64748b',
+      },
+    ],
+    propertyDefinitions: [],
+    renderType: 'junction',
+    colorTheme: '#64748b',
+  },
+  {
     id: 'convex-lens-bench',
     name: 'Optical Convex Lens',
     subjectId: 'physics',
@@ -505,10 +637,14 @@ export const PHYSICS_LAB_DEFINITIONS: LabDefinition[] = [
     subjectId: 'physics',
     allowedEquipmentIds: [
       'dc-power-supply',
+      'dc-battery',
       'standard-resistor',
       'dc-voltmeter',
       'dc-ammeter',
       'knife-switch',
+      'wire-junction',
+      'circuit-ground',
+      'indicator-lamp',
     ],
     initialObjects: [
       {
@@ -526,14 +662,14 @@ export const PHYSICS_LAB_DEFINITIONS: LabDefinition[] = [
       {
         id: 'res-1',
         equipmentId: 'standard-resistor',
-        title: 'Unknown Resistor',
+        title: 'Precision Resistor',
         x: 420,
         y: 120,
         rotation: 0,
         width: 130,
         height: 80,
         properties: { resistance: 10 },
-        state: { currentAmps: 0.5, voltageDrop: 5.0 },
+        state: { currentAmps: 0, voltageDrop: 0 },
       },
       {
         id: 'vm-1',
@@ -545,7 +681,7 @@ export const PHYSICS_LAB_DEFINITIONS: LabDefinition[] = [
         width: 140,
         height: 110,
         properties: { maxScale: 15 },
-        state: { measuredVoltage: 5.0 },
+        state: { measuredVoltage: 0 },
       },
       {
         id: 'am-1',
@@ -557,7 +693,7 @@ export const PHYSICS_LAB_DEFINITIONS: LabDefinition[] = [
         width: 140,
         height: 110,
         properties: { maxScale: 3 },
-        state: { measuredCurrent: 0.5 },
+        state: { measuredCurrent: 0 },
       },
     ],
     initialConnections: [],
@@ -573,52 +709,202 @@ export const PHYSICS_LAB_DEFINITIONS: LabDefinition[] = [
         id: 'step-2',
         stepNumber: 2,
         title: 'Form Series Circuit Loop',
-        instruction: 'Wire the Power Supply (+) to the Ammeter (+), Ammeter (-) to the Resistor, and Resistor return back to Power Supply (-).',
+        instruction: 'Wire the Power Supply (+) to the Ammeter (+), Ammeter (-) to the Resistor (p1), and Resistor (p2) return back to Power Supply (-).',
         targetGoalId: 'goal-loop',
       },
       {
         id: 'step-3',
         stepNumber: 3,
         title: 'Connect Voltmeter in Parallel',
-        instruction: 'Wire the Voltmeter terminals directly across the resistor to measure voltage difference.',
+        instruction: 'Wire the Voltmeter terminals directly across the resistor (pos to p1, neg to p2) to measure potential difference.',
         targetGoalId: 'goal-volt',
       },
       {
         id: 'step-4',
         stepNumber: 4,
         title: 'Vary Voltage and Record Observations',
-        instruction: 'Increase power supply voltage from 2V to 10V in 2V increments. Observe how current (I = V/R) increases proportionally.',
+        instruction: 'Increase power supply voltage from 2V to 10V in 2V increments. Observe how current (I = V/R) increases proportionally, validating V = IR.',
         targetGoalId: 'goal-readings',
       },
     ],
     goals: [
       {
         id: 'goal-wire',
-        description: 'Place electrical components onto working bench.',
+        description: 'Place DC power source, resistor, and meters onto working bench.',
         isCompleted: false,
         validatorType: 'equipment-placed',
       },
       {
         id: 'goal-loop',
-        description: 'Complete closed circuit between battery, ammeter, and resistor.',
+        description: 'Complete closed series circuit between battery, ammeter, and resistor.',
         isCompleted: false,
         validatorType: 'components-connected',
       },
       {
         id: 'goal-volt',
-        description: 'Connect voltmeter in parallel across resistor.',
+        description: 'Connect voltmeter in parallel across the resistor.',
         isCompleted: false,
         validatorType: 'components-connected',
       },
       {
         id: 'goal-readings',
-        description: 'Record 3 distinct voltage & current data points in the notebook.',
+        description: 'Record voltage & current data points in the notebook table and compare with V = IR.',
         isCompleted: false,
         validatorType: 'generic',
       },
     ],
     defaultNotebookNotes:
       "Ohm's Law Verification:\n- Formula: V = I × R\n- Observation: As voltage (V) was increased, the current (I) scaled linearly, confirming constant resistance slope R = ΔV / ΔI.",
+  },
+  {
+    experimentId: 'series-parallel-circuits',
+    title: 'Series and Parallel Circuits Analysis',
+    subjectId: 'physics',
+    allowedEquipmentIds: [
+      'dc-power-supply',
+      'dc-battery',
+      'standard-resistor',
+      'dc-voltmeter',
+      'dc-ammeter',
+      'knife-switch',
+      'wire-junction',
+      'circuit-ground',
+      'indicator-lamp',
+    ],
+    initialObjects: [
+      {
+        id: 'ps-1',
+        equipmentId: 'dc-power-supply',
+        title: '12V DC Voltage Source',
+        x: 80,
+        y: 100,
+        rotation: 0,
+        width: 170,
+        height: 120,
+        properties: { voltage: 12.0, powerSwitch: true },
+        state: { outputVoltage: 12.0, status: 'Active' },
+      },
+      {
+        id: 'res-1',
+        equipmentId: 'standard-resistor',
+        title: 'Resistor R1 (6Ω)',
+        x: 360,
+        y: 80,
+        rotation: 0,
+        width: 130,
+        height: 80,
+        properties: { resistance: 6 },
+        state: { currentAmps: 0, voltageDrop: 0 },
+      },
+      {
+        id: 'res-2',
+        equipmentId: 'standard-resistor',
+        title: 'Resistor R2 (6Ω)',
+        x: 360,
+        y: 200,
+        rotation: 0,
+        width: 130,
+        height: 80,
+        properties: { resistance: 6 },
+        state: { currentAmps: 0, voltageDrop: 0 },
+      },
+      {
+        id: 'am-1',
+        equipmentId: 'dc-ammeter',
+        title: 'Main Circuit Ammeter',
+        x: 80,
+        y: 260,
+        rotation: 0,
+        width: 140,
+        height: 110,
+        properties: { maxScale: 5 },
+        state: { measuredCurrent: 0 },
+      },
+      {
+        id: 'vm-1',
+        equipmentId: 'dc-voltmeter',
+        title: 'Branch Voltmeter',
+        x: 560,
+        y: 140,
+        rotation: 0,
+        width: 140,
+        height: 110,
+        properties: { maxScale: 15 },
+        state: { measuredVoltage: 0 },
+      },
+      {
+        id: 'sw-1',
+        equipmentId: 'knife-switch',
+        title: 'Master Switch',
+        x: 240,
+        y: 340,
+        rotation: 0,
+        width: 120,
+        height: 70,
+        properties: { isClosed: true },
+        state: { status: 'Closed' },
+      },
+    ],
+    initialConnections: [],
+    guidedSteps: [
+      {
+        id: 'sp-step-1',
+        stepNumber: 1,
+        title: 'Examine DC Source and Resistors',
+        instruction:
+          'Observe the 12V DC power supply and two 6 Ω resistors (R1 and R2). Notice the master switch and measurement meters on the bench.',
+      },
+      {
+        id: 'sp-step-2',
+        stepNumber: 2,
+        title: 'Construct Series Circuit (Req = R1 + R2 = 12 Ω)',
+        instruction:
+          'Connect the components sequentially: Power (+) to Ammeter (+), Ammeter (-) to R1 (p1), R1 (p2) to R2 (p1), R2 (p2) to Switch, and Switch back to Power (-). Observe total current drops to 1 A (12V / 12Ω).',
+      },
+      {
+        id: 'sp-step-3',
+        stepNumber: 3,
+        title: 'Measure Series Voltage Drops (V1 + V2 = Vtotal)',
+        instruction:
+          'Connect the Voltmeter across R1 to observe 6V drop, then across R2 to observe 6V. Kirchhoff’s Voltage Law confirms: 6V + 6V = 12V.',
+      },
+      {
+        id: 'sp-step-4',
+        stepNumber: 4,
+        title: 'Construct Parallel Network (1/Req = 1/R1 + 1/R2 -> Req = 3 Ω)',
+        instruction:
+          'Rewire R1 and R2 in parallel across the 12V supply using wire junctions. Observe total circuit current surges to 4 A (12V / 3Ω), with each branch carrying 2 A.',
+      },
+      {
+        id: 'sp-step-5',
+        stepNumber: 5,
+        title: 'Log Comparison in Experiment Notebook',
+        instruction:
+          'Record equivalent resistance, total current, and branch behavior in your notebook. Notice parallel connection lowers overall circuit impedance while series increases it.',
+      },
+    ],
+    goals: [
+      {
+        id: 'goal-series',
+        description: 'Construct series circuit with two 6Ω resistors across 12V (verify 1A current, 6V drops, 12Ω Req).',
+        isCompleted: false,
+        validatorType: 'components-connected',
+      },
+      {
+        id: 'goal-parallel',
+        description: 'Construct parallel circuit with two 6Ω resistors across 12V (verify 4A current, 2A branch currents, 3Ω Req).',
+        isCompleted: false,
+        validatorType: 'components-connected',
+      },
+      {
+        id: 'goal-compare',
+        description: 'Log and compare series vs parallel equivalent resistances in the notebook.',
+        isCompleted: false,
+        validatorType: 'generic',
+      },
+    ],
+    defaultNotebookNotes:
+      "Series and Parallel Resistor Networks:\n- Series Formula: Req = R1 + R2 = 6Ω + 6Ω = 12Ω\n  Series Current at 12V: I = 12V / 12Ω = 1.0 A\n  Voltage drops: V1 = 6V, V2 = 6V (V_total = 12V)\n\n- Parallel Formula: 1/Req = 1/R1 + 1/R2 = 1/6 + 1/6 = 2/6 = 1/3 => Req = 3.0Ω\n  Parallel Current at 12V: I_total = 12V / 3Ω = 4.0 A\n  Branch currents: I1 = 12V / 6Ω = 2.0 A, I2 = 12V / 6Ω = 2.0 A",
   },
   {
     experimentId: 'convex-lens',
@@ -747,61 +1033,52 @@ export const physicsExtension: SubjectLabExtension = {
   ): SimulationResult => {
     const updates: Record<string, Record<string, string | number | boolean>> = {};
     const messages: string[] = [];
+    const errors: string[] = [];
+    const warnings: string[] = [];
 
-    // Find Power Supply
-    const ps = objects.find((o) => o.equipmentId === 'dc-power-supply');
-    const isPowerOn = ps ? ps.properties.powerSwitch !== false : false;
-    const voltage = ps && isPowerOn ? Number(ps.properties.voltage ?? 0) : 0;
+    // 1. Electrical Circuit Simulation via Modified Nodal Analysis (MNA)
+    const hasElectrical = objects.some((o) =>
+      [
+        'dc-power-supply',
+        'dc-battery',
+        'standard-resistor',
+        'dc-voltmeter',
+        'dc-ammeter',
+        'knife-switch',
+        'wire-junction',
+        'circuit-ground',
+        'indicator-lamp',
+      ].includes(o.equipmentId)
+    );
 
-    if (ps) {
-      updates[ps.id] = {
-        outputVoltage: voltage,
-        status: isPowerOn ? (voltage > 0 ? 'Active (Supplying DC)' : 'Standby (0V)') : 'Power Off',
-      };
-    }
+    if (hasElectrical) {
+      const solverResult = solveDCCircuit(objects, connections);
 
-    // Evaluate connected resistors
-    const resistors = objects.filter((o) => o.equipmentId === 'standard-resistor');
-    for (const res of resistors) {
-      const resistance = Number(res.properties.resistance ?? 10);
+      errors.push(...solverResult.errors);
+      warnings.push(...solverResult.warnings);
+      if (solverResult.topologySummary) {
+        messages.push(solverResult.topologySummary);
+      }
+      messages.push(...solverResult.messages);
 
-      // Check if resistor is connected to power supply
-      const isConnected = connections.some(
-        (c) =>
-          (c.fromObjectId === res.id || c.toObjectId === res.id) &&
-          (c.fromObjectId === ps?.id || c.toObjectId === ps?.id)
-      );
-
-      const effectiveVoltage = isConnected && isPowerOn ? voltage : 0;
-      const current = resistance > 0 ? Number((effectiveVoltage / resistance).toFixed(3)) : 0;
-
-      updates[res.id] = {
-        voltageDrop: effectiveVoltage,
-        currentAmps: current,
-        powerWatts: Number((effectiveVoltage * current).toFixed(3)),
-      };
-    }
-
-    // Evaluate voltmeters
-    const voltmeters = objects.filter((o) => o.equipmentId === 'dc-voltmeter');
-    for (const vm of voltmeters) {
-      const isWired = connections.some((c) => c.fromObjectId === vm.id || c.toObjectId === vm.id);
-      const measured = isWired && isPowerOn ? voltage : 0;
-      updates[vm.id] = {
-        measuredVoltage: Number(measured.toFixed(2)),
-      };
-    }
-
-    // Evaluate ammeters
-    const ammeters = objects.filter((o) => o.equipmentId === 'dc-ammeter');
-    for (const am of ammeters) {
-      const firstRes = resistors[0];
-      const rVal = firstRes ? Number(firstRes.properties.resistance ?? 10) : 10;
-      const isWired = connections.some((c) => c.fromObjectId === am.id || c.toObjectId === am.id);
-      const measured = isWired && isPowerOn && rVal > 0 ? Number((voltage / rVal).toFixed(3)) : 0;
-      updates[am.id] = {
-        measuredCurrent: measured,
-      };
+      // Map solved states onto objectStateUpdates
+      for (const [objId, cState] of Object.entries(solverResult.componentStates)) {
+        updates[objId] = {
+          voltageDrop: cState.voltageDrop,
+          currentAmps: cState.current,
+          powerWatts: cState.power,
+          isEnergized: cState.isEnergized,
+          displayedReading:
+            cState.displayReading !== undefined
+              ? cState.displayReading
+              : cState.voltageDrop || cState.current,
+          measuredVoltage: cState.voltageDrop,
+          measuredCurrent: cState.current,
+          status: cState.statusText || (cState.isEnergized ? 'Energized' : 'Inactive'),
+          connectionStatus: cState.statusText || 'Connected',
+          ...(cState.extraProps || {}),
+        };
+      }
     }
 
     // Evaluate convex lens optical formula: 1/f = 1/v - 1/u => 1/v = 1/f + 1/u
@@ -853,10 +1130,10 @@ export const physicsExtension: SubjectLabExtension = {
     }
 
     return {
-      valid: true,
-      errors: [],
-      warnings: [],
-      messages,
+      valid: errors.length === 0,
+      errors,
+      warnings,
+      messages: Array.from(new Set(messages)),
       objectStateUpdates: updates,
     };
   },

@@ -60,6 +60,9 @@ export interface EquipmentDefinition {
   propertyDefinitions: PropertyDefinition[];
   renderType:
     | 'power-supply'
+    | 'battery'
+    | 'ground'
+    | 'junction'
     | 'resistor'
     | 'meter'
     | 'switch'
