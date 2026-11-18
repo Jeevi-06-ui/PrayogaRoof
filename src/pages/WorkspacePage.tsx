@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { UniversalLabWorkspace } from '../components/workspace/UniversalLabWorkspace';
+import { BiologyLabWorkspace } from '../experiments/biology';
 import { getExperimentById } from '../services/experimentRegistry';
 
 export const WorkspacePage: React.FC = () => {
@@ -24,8 +25,12 @@ export const WorkspacePage: React.FC = () => {
         </span>
       </div>
 
-      <div className="flex-1 min-h-0">
-        <UniversalLabWorkspace experimentId={activeExpId} initialMode="freelab" />
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        {experiment?.subjectId === 'biology' ? (
+          <BiologyLabWorkspace experimentId={activeExpId} />
+        ) : (
+          <UniversalLabWorkspace experimentId={activeExpId} initialMode="freelab" />
+        )}
       </div>
     </div>
   );

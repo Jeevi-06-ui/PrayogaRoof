@@ -1,127 +1,133 @@
-# PrayogaProof — Biology Module Integration Architecture
+# PrayogaProof — Biology Module Integration Guide
 
-**Branch:** `hitesh-biology`  
-**Biology Lead:** Hitesh  
-**Primary Folder:** `src/experiments/biology/`
+This document explains how the Biology Virtual Laboratory is integrated into the core architecture of PrayogaProof across routing, state management, laboratory workspaces, simulation media, viva voce grading, and mobile packaging.
 
 ---
 
-## 1. Architectural Principles
+## 1. Application Routing Integration
 
-1. **Strict Non-Destructive Extension:**  
-   The Biology module adds new capabilities to PrayogaProof without modifying or regressing existing Physics (25 experiments), Chemistry (27 experiments), or Mathematics (12 simulators).
-2. **Standardized Shared Infrastructure:**  
-   Reuses the core PrayogaProof layout (`<AppLayout>`), header (`Header.tsx`), sidebar (`Sidebar.tsx`), student context (`StudentContext.tsx`), and IndexedDB storage (`db.ts`).
-3. **Dual Laboratory Paradigms:**  
-   - **Microscope Studio:** Dedicated high-resolution specimen observation studio for cellular and histological experiments.
-   - **Biological Workbench:** Drag-and-drop apparatus assembly for experimental physiology, genetics, and biochemical assays on the shared multi-layer Konva canvas.
+### `src/App.tsx`
+The primary subject route is wired directly to the newly created `BiologyPage`:
+```tsx
+import BiologyPage from './pages/BiologyPage';
 
----
-
-## 2. Directory Structure
-
+// Inside AppRoutes:
+<Route path="subjects/biology" element={<BiologyPage />} />
 ```
-src/experiments/biology/
-├── index.ts                      # Clean external exports
-├── types/
-│   └── biologyTypes.ts           # Complete typed domain contracts
-├── models/
-│   ├── osmosisModel.ts           # Water potential & plasmolysis engine (Flagship)
-│   ├── microscopeEngine.ts       # Abbe diffraction & focal convolution engine
-│   ├── enzymeKineticsModel.ts    # Salivary amylase starch digestion (Phase 3)
-│   ├── geneticsModel.ts          # Punnett square combinatorics (Phase 4)
-│   ├── molecularBiologyModel.ts  # Replication & transcription/translation (Phase 4/5)
-│   └── physiologyModel.ts        # Cardiac, nephron & reflex conduction (Phase 5)
-├── components/
-│   ├── microscope/
-│   │   ├── MicroscopeStudio.tsx  # Interactive optical microscope studio
-│   │   ├── MicroscopeTurret.tsx  # Objective lens revolver (4x, 10x, 40x, 100x)
-│   │   ├── SpecimenCanvas.tsx    # Multi-layer optical stage & organelle callouts
-│   │   └── SlideSelector.tsx     # Slide tray and preparation mounts
-│   └── workbench/
-│       ├── BiologicalWorkbench.tsx # Shared 3-panel experimental laboratory
-│       ├── BiologyToolbar.tsx    # Guided vs Free lab, run/pause/reset controls
-│       └── BiologyInspector.tsx  # Property controls and auto-logging
-├── curriculum/
-│   ├── class10Biology.ts         # Life Processes, Control, Reproduction, Heredity
-│   ├── class11Biology.ts         # Morphology, Cell Cycle, Plant & Human Physiology
-│   ├── class12Biology.ts         # Genetics, Evolution, Biotech, Ecology
-│   └── neetQuestionBank.ts       # 300+ NCERT-verified NEET-UG practice MCQs
-└── services/
-    ├── biologyTutorService.ts    # Offline rule-based tutor & misconception engine
-    ├── practicalReportService.ts # PDF/print laboratory record generator
-    └── wrongAnswerEngine.ts      # Multi-step diagnostic remediation
-```
+This replaces the legacy `<ComingSoonPage subjectId="biology" />` placeholder, restoring immediate access from navigation headers, sidebars, and home screen subject cards.
 
 ---
 
-## 3. Integration with Shared Laboratory Registry (`src/services/lab/`)
+## 2. Subject Dashboard (`src/pages/BiologyPage.tsx`)
 
-### Registering `biologyExtension`:
-In `src/services/lab/registry.ts`, the `LAB_EXTENSIONS` object maps each subject:
+`BiologyPage` serves as the entry portal for the Biology ecosystem:
+- **Class Filtering:** Responsive tabs for `All`, `Foundation (Class 10)`, `Class 11`, and `Class 12`.
+- **Search & Tag Filtering:** Full-text search and NCERT/NEET category tag filters.
+- **Flagship Experiment Spotlight:** Prominent interactive card for the Osmosis experiment (`bio-osmosis`) featuring quick launch into guided or free lab modes.
+- **Microscope Quick-Launch:** Dedicated shortcut to open the DIN Achromatic Virtual Microscope Studio.
+- **NEET Preparation Banner:** Curated high-yield NEET biology topics and direct revision links.
+
+---
+
+## 3. Central Experiment Registry (`src/services/experimentRegistry.ts`)
+
+Biology is registered as an active subject alongside Physics, Chemistry, and Mathematics:
 ```typescript
-import { biologyExtension } from '../../experiments/biology/services/biologyExtension';
+{
+  id: 'biology',
+  name: 'Biology',
+  description: 'Explore the living world through virtual dissections, microscopy, and physiological simulations',
+  color: 'emerald',
+  icon: 'Microscope',
+  totalExperiments: 15,
+  availableExperiments: 15,
+  status: 'active',
+  curriculum: ['CBSE Class 10', 'CBSE Class 11', 'CBSE Class 12', 'NEET']
+}
+```
+All 15 experiments are fully registered in the `EXPERIMENTS` array with comprehensive metadata:
+- Class levels (`foundation`, `class-11`, `class-12`)
+- Categories (Plant Physiology, Cell Biology, Molecular Genetics, Human Physiology, Ecology)
+- Complete apparatus and reagent lists
+- Guided step-by-step procedures and observation parameters
+- Learning outcomes aligned with NCERT standards
+
+---
+
+## 4. Universal Lab Workspace & Biology Extension
+
+### `src/services/lab/biologyExtension.ts`
+Extends `SubjectLabExtension` with biological apparatus definitions:
+- `compound-microscope`, `test-tube-rack`, `spotting-tile-12well`, `water-bath`, `thistle-funnel-osmometer`, `conical-flask-respirometer`, `photosynthesis-funnel`, `dissection-tray`
+- Staining reagents: Safranin O, Methylene Blue, Acetocarmine, Lugol's Iodine, Sudan III, Benedict's, Biuret.
+
+### `src/services/lab/registry.ts`
+Registered in the master lab extension registry:
+```typescript
+import { biologyExtension } from './biologyExtension';
 
 export const LAB_EXTENSIONS: Record<string, SubjectLabExtension> = {
-  generic: genericExtension,
   physics: physicsExtension,
   chemistry: chemistryExtension,
-  biology: biologyExtension, // Pluggable biology laboratory extension
+  biology: biologyExtension,
 };
 ```
 
-### Biological Apparatus Definitions:
-- `compound-microscope`: Optical body, revolving nosepiece, coarse/fine adjustment.
-- `glass-slide`: Prepared and wet mount slides with specimen coverslips.
-- `dialysis-tubing`: Semipermeable membrane tube for osmosis demonstrations.
-- `petri-dish`: Culture dish with agar / nutrient media.
-- `respirometer-chamber`: Sealed chamber with KOH tube and U-tube manometer.
-- `staining-tray`: Dropwise safranin, methylene blue, acetocarmine, and iodine.
-- `hydrilla-beaker`: Photosynthesis inverted funnel and test-tube bubble trap.
-- `punnett-board`: Genetics allele drag-and-drop matrix board.
-
 ---
 
-## 4. Routing & Subject Integration
+## 5. Experiment Workspace Switcher (`BiologyLabWorkspace.tsx`)
 
-### 1. `src/App.tsx`:
-When Phase 2 is reached, the route `/subjects/biology` will transition from `ComingSoonPage` to `BiologyPage`:
+In both `src/pages/ExperimentDetailPage.tsx` and `src/pages/WorkspacePage.tsx`, Biology experiments route directly through `BiologyLabWorkspace`:
 ```tsx
-<Route path="subjects/biology" element={<BiologyPage />} />
+{experiment.subjectId === 'biology' ? (
+  <BiologyLabWorkspace
+    experimentId={experiment.id}
+    experimentTitle={experiment.title}
+    defaultMode="dedicated"
+  />
+) : (
+  <UniversalLabWorkspace experiment={experiment} mode={labMode} />
+)}
 ```
-
-### 2. `src/services/experimentRegistry.ts`:
-Updating `SUBJECTS` metadata for Biology:
-```typescript
-  {
-    id: 'biology',
-    name: 'Biology',
-    tagline: 'Cellular Systems, Physiology & Genetics',
-    description: 'Virtual microscopy, cellular processes, enzyme kinetics, genetics, and physiological dissection models.',
-    status: 'active',
-    accentColor: '#16a34a',
-    badgeBg: 'bg-emerald-100 dark:bg-emerald-950/60',
-    badgeText: 'text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
-    totalExperiments: 15,
-    availableExperiments: 15,
-    iconName: 'Dna',
-  }
-```
+`BiologyLabWorkspace` provides seamless 3-way mode switching:
+1. **Dedicated Scientific Simulator:** Launches the custom mathematical simulation engine for the specific experiment.
+2. **Virtual Microscope Studio:** Mounts specimen slides on the DIN achromatic stage with fine/coarse focus, oil immersion, and differential staining.
+3. **Biological Workbench:** Wet lab workbench with test tube rack, thermostatic heating water bath, and 12-well spotting tile.
 
 ---
 
-## 5. Persistence & Offline Caching Architecture
+## 6. Simulation Media & Voice Viva Voce System
 
-1. **IndexedDB Schema (`src/services/db.ts`):**
-   - Biology experiment saves, trial comparisons, and practical reports are serialized into the standard `workspaces` object store using unique IDs (`bio_osmosis_save_1`, `bio_mitosis_report_1`).
-   - Student quiz scores, completed milestones, and XP integrate seamlessly with `student_profile` and `experiment_progress`.
-2. **PWA Service Worker (`public/sw.js`):**
-   - All Biology SVG slide assets, microscope vector graphics, and question bank JSON data will be pre-cached in `CORE_ASSETS` (`prayogaproof-core-v1.2.0`), guaranteeing zero-dependency 100% offline functionality.
+### `src/services/learning/simulationMediaRegistry.ts`
+Every Biology experiment offers the standardized 5-tab pedagogical experience:
+- **7 Pedagogical Video/Audio Segments:**
+  1. Introduction & Historical Context (`intro`)
+  2. Theoretical Foundation & Laws (`theory`)
+  3. Apparatus & Reagent Overview (`apparatus`)
+  4. Step-by-Step Procedure (`procedure`)
+  5. Worked Example & Calculation (`worked-example`)
+  6. Detailed Scientific Explanation (`explanation`)
+  7. Common Mistakes & Precautions (`mistakes`)
+- **Speech Synthesis Engine:** Fully compatible with browser and mobile audio unlock policies, offering audible English narration for all segments.
+- **Viva Voce Assessment (40 Marks):** 5 randomized syllabus questions (8 marks each) mapped with `relevantSegmentId` to provide instantaneous audio-visual remediation upon incorrect answers.
 
 ---
 
-## 6. Testing Strategy
+## 7. Cross-Platform Mobile Packaging (Capacitor)
 
-- **Unit Tests (`tests/biology*Model.test.ts`):** Deterministic mathematical verification of all scientific algorithms with zero UI dependencies.
-- **Component Tests (`tests/biology*Integration.test.tsx`):** Verification of DOM rendering, controls, parameter changes, and report generation via React Testing Library.
-- **E2E Browser Tests (`e2e/biology.spec.ts`):** Playwright automated browser tests executing full laboratory workflows on mobile, tablet, and desktop viewports.
+The Biology module compiles seamlessly into native Android and iOS applications:
+- **Build Synchronization:**
+  ```bash
+  npm run build
+  node app/scripts/sync.mjs
+  ```
+  Copies all web assets into `app/android/app/src/main/assets/public/` and `app/ios/App/App/public/`.
+- **Android APK Build:**
+  ```bash
+  node app/scripts/build-apk.mjs
+  ```
+  Produces standalone installable package `app/builds/android/PrayogaProof-debug.apk` (5.27 MB).
+- **Touch & Mobile Optimizations:**
+  - Micro-touch sliders for coarse/fine focus knobs.
+  - Multi-touch drag-and-drop support for test tube rack and spotting tiles.
+  - Responsive layout adapts effortlessly to mobile, tablet, and desktop viewports.

@@ -21,7 +21,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     expect(ids).toContain('mathematics');
   });
 
-  it('should have Physics, Chemistry, and Mathematics active, Biology Coming Soon', () => {
+  it('should have Physics, Chemistry, Mathematics, and Biology active', () => {
     const physics = getSubjectById('physics');
     const chemistry = getSubjectById('chemistry');
     const biology = getSubjectById('biology');
@@ -29,7 +29,7 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
 
     expect(physics?.status).toBe('active');
     expect(chemistry?.status).toBe('active');
-    expect(biology?.status).toBe('coming-soon');
+    expect(biology?.status).toBe('active');
     expect(math?.status).toBe('active');
 
     expect(physics?.totalExperiments).toBe(25);
@@ -37,6 +37,9 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
 
     expect(chemistry?.totalExperiments).toBe(27);
     expect(chemistry?.availableExperiments).toBe(27);
+
+    expect(biology?.totalExperiments).toBe(15);
+    expect(biology?.availableExperiments).toBe(15);
 
     expect(math?.totalExperiments).toBe(12);
     expect(math?.availableExperiments).toBe(12);
@@ -211,14 +214,31 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     });
   });
 
-  it('should have complete metadata for every curriculum experiment (52 total, 52 implemented)', () => {
+  describe('Biology Curriculum (15 Experiments)', () => {
+    it('should have 15 biology experiments', () => {
+      const bio = getExperimentsBySubject('biology');
+      expect(bio).toHaveLength(15);
+    });
+
+    it('should cover Class 10 Foundation (5), Class 11 (6), and Class 12 (4)', () => {
+      const c10 = getExperimentsByClassLevel('biology', 'foundation');
+      const c11 = getExperimentsByClassLevel('biology', 'class-11');
+      const c12 = getExperimentsByClassLevel('biology', 'class-12');
+
+      expect(c10).toHaveLength(5);
+      expect(c11).toHaveLength(6);
+      expect(c12).toHaveLength(4);
+    });
+  });
+
+  it('should have complete metadata for every curriculum experiment (67 total, 67 implemented)', () => {
     const all = getAllActiveExperiments();
-    expect(all).toHaveLength(52);
+    expect(all).toHaveLength(67);
 
     const implemented = all.filter((e) => e.implementationStatus === 'implemented');
     const underDev = all.filter((e) => e.implementationStatus === 'under-development');
 
-    expect(implemented).toHaveLength(52);
+    expect(implemented).toHaveLength(67);
     expect(underDev).toHaveLength(0);
 
     for (const exp of all) {

@@ -766,6 +766,7 @@ const OSMOSIS_MEDIA: ExperimentSimulationMedia = {
       difficulty: 'easy',
       marks: 8,
       remediationHint: "Focus on the two defining criteria: solvent transport and presence of a semi-permeable membrane.",
+      relevantSegmentId: 'intro',
     },
     {
       id: 'viva-osmo-2',
@@ -782,6 +783,7 @@ const OSMOSIS_MEDIA: ExperimentSimulationMedia = {
       difficulty: 'easy',
       marks: 8,
       remediationHint: "Selective permeability is a property of intact, living biological membranes.",
+      relevantSegmentId: 'procedure',
     },
     {
       id: 'viva-osmo-3',
@@ -798,6 +800,7 @@ const OSMOSIS_MEDIA: ExperimentSimulationMedia = {
       difficulty: 'medium',
       marks: 8,
       remediationHint: "Review plant water relations: water potential equation Ψ_w = Ψ_s + Ψ_p.",
+      relevantSegmentId: 'worked-example',
     },
     {
       id: 'viva-osmo-4',
@@ -814,6 +817,7 @@ const OSMOSIS_MEDIA: ExperimentSimulationMedia = {
       difficulty: 'medium',
       marks: 8,
       remediationHint: "Exosmosis leads to flaccidity and plasmolysis in plant cells with rigid walls.",
+      relevantSegmentId: 'explanation',
     },
     {
       id: 'viva-osmo-5',
@@ -830,6 +834,7 @@ const OSMOSIS_MEDIA: ExperimentSimulationMedia = {
       difficulty: 'hard',
       marks: 8,
       remediationHint: "Water potential is a measure of free energy per unit volume relative to pure free water.",
+      relevantSegmentId: 'mistakes',
     },
   ],
   learningObjectives: [
@@ -1391,6 +1396,7 @@ const REGISTRY: Record<string, ExperimentSimulationMedia> = {
   'ohms-law': OHMS_LAW_MEDIA,
   'acid-base-titration': ACID_BASE_TITRATION_MEDIA,
   'osmosis': OSMOSIS_MEDIA,
+  'bio-osmosis': OSMOSIS_MEDIA,
   'quadratic': QUADRATIC_MEDIA,
 };
 

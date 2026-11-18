@@ -32,11 +32,11 @@ describe('Mathematics Module Integration', () => {
     expect(mathSubject?.availableExperiments).toBe(12);
   });
 
-  it('verifies Biology remains strictly Coming Soon', () => {
+  it('verifies Biology is active with 15 curriculum experiments', () => {
     const bioSubject = getSubjectById('biology');
     expect(bioSubject).toBeDefined();
-    expect(bioSubject?.status).toBe('coming-soon');
-    expect(bioSubject?.totalExperiments).toBe(0);
+    expect(bioSubject?.status).toBe('active');
+    expect(bioSubject?.totalExperiments).toBe(15);
   });
 
   it('renders MathematicsPage with banner, badges, controls, and sandboxed iframe', async () => {

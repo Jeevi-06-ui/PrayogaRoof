@@ -54,7 +54,7 @@ describe('Shared UI Components', () => {
     expect(screen.getByText('8%')).toBeInTheDocument();
   });
 
-  it('renders SubjectCard with Coming Soon for Biology', () => {
+  it('renders SubjectCard with Active Lab for Biology', () => {
     const biology = getSubjectById('biology')!;
     render(
       <BrowserRouter>
@@ -63,7 +63,7 @@ describe('Shared UI Components', () => {
     );
 
     expect(screen.getByText('Biology')).toBeInTheDocument();
-    expect(screen.getByText('Coming Soon')).toBeInTheDocument();
+    expect(screen.getByText('Active Lab')).toBeInTheDocument();
   });
 
   it('renders EmptyState and triggers action', () => {

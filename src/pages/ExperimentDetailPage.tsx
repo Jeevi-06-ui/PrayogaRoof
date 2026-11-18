@@ -16,6 +16,7 @@ import { Button } from '../components/shared/Button';
 import { Card } from '../components/shared/Card';
 import { UniversalLabWorkspace } from '../components/workspace/UniversalLabWorkspace';
 import { UnderDevelopmentWorkspace } from '../components/workspace/UnderDevelopmentWorkspace';
+import { BiologyLabWorkspace } from '../experiments/biology';
 import { Modal } from '../components/shared/Modal';
 import { EmptyState } from '../components/shared/EmptyState';
 import {
@@ -291,10 +292,19 @@ export const ExperimentDetailPage: React.FC = () => {
         {/* Embedded Interactive Laboratory Workspace */}
         {experiment.implementationStatus === 'implemented' ? (
           <div className="w-full">
-            <UniversalLabWorkspace
-              experimentId={experiment.id}
-              initialMode={labSubMode}
-            />
+            {experiment.subjectId === 'biology' ? (
+              <BiologyLabWorkspace
+                experimentId={experiment.id}
+                onLogObservation={(note) => {
+                  setNotes((prev) => (prev ? `${prev}\n${note}` : note));
+                }}
+              />
+            ) : (
+              <UniversalLabWorkspace
+                experimentId={experiment.id}
+                initialMode={labSubMode}
+              />
+            )}
           </div>
         ) : (
           <UnderDevelopmentWorkspace experimentId={experiment.id} />

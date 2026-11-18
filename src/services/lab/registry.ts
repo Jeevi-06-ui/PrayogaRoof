@@ -2,6 +2,7 @@ import { SubjectLabExtension } from './types';
 import { genericExtension } from './genericExtension';
 import { physicsExtension } from './physicsExtension';
 import { chemistryExtension } from './chemistryExtension';
+import { biologyExtension } from './biologyExtension';
 import {
   EquipmentDefinition,
   WorkspaceObject,
@@ -16,6 +17,7 @@ export const LAB_EXTENSIONS: Record<string, SubjectLabExtension> = {
   generic: genericExtension,
   physics: physicsExtension,
   chemistry: chemistryExtension,
+  biology: biologyExtension,
 };
 
 export function getExtensionBySubject(subjectId: SubjectId | 'generic'): SubjectLabExtension {
