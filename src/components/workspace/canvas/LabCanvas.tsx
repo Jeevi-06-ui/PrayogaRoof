@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Stage, Layer, Line } from 'react-konva';
+import type { KonvaEventObject } from 'konva/lib/Node';
 import { CanvasObject } from './CanvasObject';
 import { CanvasConnections } from './CanvasConnections';
 import { WorkspaceObject, WorkspaceConnection, PortDefinition } from '../../../types';
@@ -78,7 +79,7 @@ export const LabCanvas: React.FC<LabCanvasProps> = ({
     return () => observer.disconnect();
   }, []);
 
-  const handleStageMouseDown = (e: any) => {
+  const handleStageMouseDown = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
     // Clicked on empty canvas background
     if (e.target === e.target.getStage()) {
       onSelectObject(null);
@@ -89,10 +90,10 @@ export const LabCanvas: React.FC<LabCanvasProps> = ({
     }
   };
 
-  const handleStageMouseMove = (e: any) => {
+  const handleStageMouseMove = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
     if (!draftStart) return;
     const stage = e.target.getStage();
-    const pointer = stage.getPointerPosition();
+    const pointer = stage?.getPointerPosition();
     if (pointer) {
       // Transform pointer to canvas coordinate space taking zoom and pan into account
       const canvasX = (pointer.x - stagePosition.x) / scale;
@@ -119,14 +120,15 @@ export const LabCanvas: React.FC<LabCanvasProps> = ({
     [draftStart, onConnectPorts]
   );
 
-  // Generate grid lines
-  const gridLines: React.ReactNode[] = [];
-  if (showGrid) {
+  // Memoize grid lines to prevent rebuilding 168 nodes on every pointer move
+  const gridLines = useMemo(() => {
+    if (!showGrid) return null;
+    const lines: React.ReactNode[] = [];
     const width = 2400;
     const height = 1800;
 
     for (let x = 0; x < width; x += gridSize) {
-      gridLines.push(
+      lines.push(
         <Line
           key={`v-${x}`}
           points={[x, 0, x, height]}
@@ -137,7 +139,7 @@ export const LabCanvas: React.FC<LabCanvasProps> = ({
       );
     }
     for (let y = 0; y < height; y += gridSize) {
-      gridLines.push(
+      lines.push(
         <Line
           key={`h-${y}`}
           points={[0, y, width, y]}
@@ -147,12 +149,13 @@ export const LabCanvas: React.FC<LabCanvasProps> = ({
         />
       );
     }
-  }
+    return lines;
+  }, [showGrid, gridSize]);
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-h-[460px] overflow-hidden bg-slate-50 dark:bg-slate-950 select-none"
+      className="relative w-full h-full min-h-[360px] overflow-hidden bg-slate-50 dark:bg-slate-950 select-none touch-none"
     >
       {/* Feedback banner */}
       {feedbackMessage && (

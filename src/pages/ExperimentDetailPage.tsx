@@ -7,6 +7,7 @@ import {
   Plus,
   Trash2,
   FolderOpen,
+  Star,
 } from 'lucide-react';
 import { getExperimentById } from '../services/experimentRegistry';
 import { useStudent } from '../context/StudentContext';
@@ -37,7 +38,18 @@ export const ExperimentDetailPage: React.FC = () => {
   const { experimentId } = useParams<{ experimentId: string }>();
   const experiment = getExperimentById(experimentId || '');
 
-  const { progressMap, markStatus, addWorkspace, removeWorkspace } = useStudent();
+  const {
+    progressMap,
+    markStatus,
+    addWorkspace,
+    removeWorkspace,
+    recordAssessmentGrade,
+    recordViva,
+    toggleBookmark,
+    isBookmarked,
+    profile,
+  } = useStudent();
+  const [isStarred, setIsStarred] = useState<boolean>(false);
 
   // Top-level 5-section Learning Architecture
   const [activeTab, setActiveTab] = useState<ExperimentTabId>('overview');
@@ -72,7 +84,15 @@ export const ExperimentDetailPage: React.FC = () => {
     if (prog?.notes) {
       setNotes(prog.notes);
     }
-  }, [experimentId, progressMap]);
+
+    isBookmarked(experimentId).then(setIsStarred);
+  }, [experimentId, progressMap, isBookmarked]);
+
+  const handleToggleBookmark = async () => {
+    if (!experiment) return;
+    const nextStarred = await toggleBookmark(experiment.id, experiment.subjectId);
+    setIsStarred(nextStarred);
+  };
 
   if (!experiment || !simulationMedia) {
     return (
@@ -193,7 +213,17 @@ export const ExperimentDetailPage: React.FC = () => {
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<Star className={`w-4 h-4 ${isStarred ? 'fill-amber-400 text-amber-500' : 'text-slate-400'}`} />}
+            onClick={handleToggleBookmark}
+          >
+            {isStarred ? 'Bookmarked' : 'Bookmark'}
+          </Button>
+          <Button onClick={() => setActiveTab('lab')}>Perform Experiment</Button>
+          <Button onClick={() => setActiveTab('simulation')}>Load Simulation</Button>
           <Button
             variant={isCompleted ? 'success' : 'outline'}
             size="sm"
@@ -291,14 +321,26 @@ export const ExperimentDetailPage: React.FC = () => {
 
         {/* Embedded Interactive Laboratory Workspace */}
         {experiment.implementationStatus === 'implemented' ? (
-          <div className="w-full">
+          <div className="w-full h-[580px] sm:h-[660px] lg:h-[720px] rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md flex flex-col bg-white dark:bg-slate-900">
             {experiment.subjectId === 'biology' ? (
-              <BiologyLabWorkspace
-                experimentId={experiment.id}
-                onLogObservation={(note) => {
-                  setNotes((prev) => (prev ? `${prev}\n${note}` : note));
-                }}
-              />
+              <div className="h-full overflow-y-auto p-2 sm:p-4">
+                <BiologyLabWorkspace
+                  experimentId={experiment.id}
+                  onLogObservation={(note) => {
+                    setNotes((prev) => (prev ? `${prev}\n${note}` : note));
+                  }}
+                />
+              </div>
+            ) : experiment.subjectId === 'mathematics' ? (
+              <div className="w-full h-full flex flex-col bg-[#0B0F19]">
+                <iframe
+                  src={`/math-module/index.html#${experiment.id}`}
+                  title={experiment.title}
+                  aria-label={experiment.title}
+                  className="w-full h-full min-h-[560px] border-0 block"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-downloads"
+                />
+              </div>
             ) : (
               <UniversalLabWorkspace
                 experimentId={experiment.id}
@@ -394,6 +436,29 @@ export const ExperimentDetailPage: React.FC = () => {
         <VivaSection
           media={simulationMedia}
           onVivaComplete={() => setVivaCompleted(true)}
+          onAssessmentEvaluated={async (data) => {
+            setVivaCompleted(true);
+            await recordViva({
+              studentId: profile.id,
+              experimentId: experiment.id,
+              totalQuestions: 5,
+              correctAnswers: Math.round(data.vivaMarks / 8),
+              score: data.vivaMarks,
+              maxScore: 40,
+              answers: data.answers,
+              timeSpentSeconds: 120,
+            });
+            await recordAssessmentGrade({
+              studentId: profile.id,
+              experimentId: experiment.id,
+              labMarks: data.labMarks,
+              vivaMarks: data.vivaMarks,
+              totalMarks: data.totalMarks,
+              letterGrade: data.letterGrade,
+              xpAwarded: data.xpAwarded,
+            });
+            await markStatus(experiment.id, 'completed');
+          }}
           onRemediate={(segmentId, questionId) => {
             setRemediationTarget({ segmentId, questionId });
             setActiveTab('simulation');

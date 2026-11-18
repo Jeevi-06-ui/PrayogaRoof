@@ -84,14 +84,16 @@ export const NephronLab: React.FC = () => {
             <div className="space-y-1.5">
               <span className="text-xs text-slate-300">Systemic Hydration State:</span>
               <div className="grid grid-cols-3 gap-1.5">
-                {[
-                  { id: 'normal', label: 'Euhydrated' },
-                  { id: 'dehydrated', label: 'Dehydrated' },
-                  { id: 'overhydrated', label: 'Water Excess' },
-                ].map((h) => (
+                {(
+                  [
+                    { id: 'normal', label: 'Euhydrated' },
+                    { id: 'dehydrated', label: 'Dehydrated' },
+                    { id: 'overhydrated', label: 'Water Excess' },
+                  ] as const
+                ).map((h) => (
                   <button
                     key={h.id}
-                    onClick={() => setHydrationLevel(h.id as any)}
+                    onClick={() => setHydrationLevel(h.id)}
                     className={`p-2 rounded-xl text-xs font-medium transition-all ${
                       hydrationLevel === h.id
                         ? 'bg-teal-500 text-slate-950 font-bold'

@@ -120,16 +120,18 @@ export const FoodTestingLab: React.FC = () => {
               1. Select Food Extract
             </span>
             <div className="space-y-1.5">
-              {[
-                { id: 'potato', name: 'Potato Tuber Extract (Starch)' },
-                { id: 'glucose', name: 'Glucose Solution (Monosaccharide)' },
-                { id: 'albumin', name: 'Egg Albumin (Protein)' },
-                { id: 'oil', name: 'Vegetable Cooking Oil (Lipid)' },
-                { id: 'unknown-x', name: 'Unknown Food Sample X' },
-              ].map((s) => (
+              {(
+                [
+                  { id: 'potato', name: 'Potato Tuber Extract (Starch)' },
+                  { id: 'glucose', name: 'Glucose Solution (Monosaccharide)' },
+                  { id: 'albumin', name: 'Egg Albumin (Protein)' },
+                  { id: 'oil', name: 'Vegetable Cooking Oil (Lipid)' },
+                  { id: 'unknown-x', name: 'Unknown Food Sample X' },
+                ] as const
+              ).map((s) => (
                 <button
                   key={s.id}
-                  onClick={() => { setSelectedSample(s.id as any); handleReset(); }}
+                  onClick={() => { setSelectedSample(s.id); handleReset(); }}
                   className={`w-full text-left p-2.5 rounded-xl text-xs font-medium transition-all ${
                     selectedSample === s.id
                       ? 'bg-teal-500/20 text-teal-300 border border-teal-500/50 font-bold'
@@ -148,15 +150,17 @@ export const FoodTestingLab: React.FC = () => {
               2. Biochemical Assay
             </span>
             <div className="grid grid-cols-2 gap-2">
-              {[
-                { id: 'iodine', name: 'Iodine Test', desc: 'Starch' },
-                { id: 'benedict', name: 'Benedict Test', desc: 'Reducing Sugar' },
-                { id: 'biuret', name: 'Biuret Test', desc: 'Protein' },
-                { id: 'sudan', name: 'Sudan III Test', desc: 'Fats / Oil' },
-              ].map((t) => (
+              {(
+                [
+                  { id: 'iodine', name: 'Iodine Test', desc: 'Starch' },
+                  { id: 'benedict', name: 'Benedict Test', desc: 'Reducing Sugar' },
+                  { id: 'biuret', name: 'Biuret Test', desc: 'Protein' },
+                  { id: 'sudan', name: 'Sudan III Test', desc: 'Fats / Oil' },
+                ] as const
+              ).map((t) => (
                 <button
                   key={t.id}
-                  onClick={() => { setActiveTest(t.id as any); handleReset(); }}
+                  onClick={() => { setActiveTest(t.id); handleReset(); }}
                   className={`p-2.5 rounded-xl text-left border text-xs transition-all ${
                     activeTest === t.id
                       ? 'bg-teal-950/40 border-teal-500 text-teal-300 font-bold'

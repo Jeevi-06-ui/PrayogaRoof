@@ -98,9 +98,13 @@ export interface SavedWorkspace {
   };
 }
 
+export type UserRole = 'student' | 'teacher' | 'admin';
+
 export interface StudentProfile {
   id: string;
   name: string;
+  email?: string;
+  role?: UserRole;
   grade: string;
   schoolName: string;
   region: string;
@@ -109,6 +113,87 @@ export interface StudentProfile {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface UserProfile extends StudentProfile {
+  role: UserRole;
+  isGuest?: boolean;
+}
+
+export interface VivaAttemptRecord {
+  id: string;
+  studentId: string;
+  experimentId: string;
+  totalQuestions: number;
+  correctAnswers: number;
+  score: number;
+  maxScore: number;
+  answers: Array<{
+    questionId: string;
+    selectedIndex: number;
+    correctIndex: number;
+    marks: number;
+  }>;
+  timeSpentSeconds: number;
+  submittedAt: string;
+}
+
+export interface GradeRecord {
+  id: string;
+  studentId: string;
+  experimentId: string;
+  labMarks: number;
+  vivaMarks: number;
+  totalMarks: number;
+  letterGrade: 'A+' | 'A' | 'B' | 'C' | 'D';
+  xpAwarded: number;
+  awardedAt: string;
+}
+
+export interface XPTransaction {
+  id: string;
+  studentId: string;
+  amount: number;
+  reason: string;
+  sourceType: 'experiment_completion' | 'viva_score' | 'achievement' | 'daily_streak' | 'teacher_bonus';
+  sourceId: string;
+  idempotencyKey: string;
+  createdAt: string;
+}
+
+export interface UserAchievement {
+  id: string;
+  studentId: string;
+  achievementId: string;
+  title: string;
+  description: string;
+  badgeIcon: string;
+  category: string;
+  unlockedAt: string;
+}
+
+export interface Classroom {
+  id: string;
+  teacherId: string;
+  name: string;
+  subject: SubjectId | 'general_stem';
+  gradeLevel: string;
+  schoolName: string;
+  joinCode: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClassroomMembership {
+  id: string;
+  classroomId: string;
+  studentId: string;
+  status: 'active' | 'pending' | 'archived';
+  joinedAt: string;
+}
+
+export type SyncStatus = 'offline' | 'synced' | 'syncing' | 'error' | 'pending';
+
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -130,6 +215,11 @@ export interface OverallStats {
   physicsTotal: number;
   chemistryCompleted: number;
   chemistryTotal: number;
+  biologyCompleted: number;
+  biologyTotal: number;
+  mathematicsCompleted: number;
+  mathematicsTotal: number;
+  totalXP?: number;
 }
 
 export * from './workspace';

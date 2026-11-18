@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
+  Compass,
   Zap,
   FlaskConical,
   Dna,
@@ -12,9 +13,12 @@ import {
   Sun,
   Moon,
   Sparkles,
+  GraduationCap,
+  LogIn,
 } from 'lucide-react';
 import { useStudent } from '../../context/StudentContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -30,15 +34,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
 }) => {
   const { profile, stats } = useStudent();
+  const { user, role } = useAuth();
   const { effectiveTheme, toggleTheme } = useTheme();
   const location = useLocation();
 
-  const navLinks = [
+  interface NavLinkItem {
+    to: string;
+    label: string;
+    icon: React.ElementType;
+    badge?: string;
+    activeColor?: string;
+    comingSoon?: boolean;
+  }
+
+  const navLinks: NavLinkItem[] = [
     {
       to: '/dashboard',
       label: 'Dashboard',
       icon: LayoutDashboard,
       badge: undefined,
+    },
+    {
+      to: '/subjects',
+      label: 'Explore All Labs',
+      icon: Compass,
+      badge: `${stats.completedExperiments}/${stats.totalActiveExperiments}`,
+      activeColor: 'text-blue-600 dark:text-blue-400',
     },
     {
       to: '/workspace',
@@ -51,28 +72,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
       to: '/subjects/physics',
       label: 'Physics Lab',
       icon: Zap,
-      badge: `${stats.physicsCompleted}/5`,
+      badge: `${stats.physicsCompleted}/${stats.physicsTotal || 25}`,
       activeColor: 'text-blue-600 dark:text-blue-400',
     },
     {
       to: '/subjects/chemistry',
       label: 'Chemistry Lab',
       icon: FlaskConical,
-      badge: `${stats.chemistryCompleted}/5`,
+      badge: `${stats.chemistryCompleted}/${stats.chemistryTotal || 27}`,
       activeColor: 'text-emerald-600 dark:text-emerald-400',
     },
     {
       to: '/subjects/biology',
-      label: 'Biology',
+      label: 'Biology Lab',
       icon: Dna,
-      badge: 'Soon',
-      comingSoon: true,
+      badge: `${stats.biologyCompleted}/${stats.biologyTotal || 15}`,
+      activeColor: 'text-teal-600 dark:text-teal-400',
     },
     {
       to: '/subjects/mathematics',
       label: 'Mathematics Lab',
       icon: Calculator,
-      badge: 'Classes 10-12',
+      badge: `${stats.mathematicsCompleted}/${stats.mathematicsTotal || 12}`,
       activeColor: 'text-purple-600 dark:text-purple-400',
     },
     {
@@ -81,6 +102,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: User,
       badge: undefined,
     },
+    ...(role === 'teacher'
+      ? [
+          {
+            to: '/teacher',
+            label: 'Teacher Portal',
+            icon: GraduationCap,
+            badge: 'Educator',
+            activeColor: 'text-emerald-600 dark:text-emerald-400',
+          },
+        ]
+      : []),
+    ...(!user
+      ? [
+          {
+            to: '/auth',
+            label: 'Sign In / Register',
+            icon: LogIn,
+            badge: 'Sync',
+            activeColor: 'text-blue-600 dark:text-blue-400',
+          },
+        ]
+      : []),
   ];
 
   const handleLinkClick = () => {

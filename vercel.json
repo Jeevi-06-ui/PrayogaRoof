@@ -4,7 +4,15 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/math-module/(.*)",
+      "destination": "/math-module/$1"
+    },
+    {
+      "source": "/((?!api/|math-module/).*)",
       "destination": "/index.html"
     }
   ],

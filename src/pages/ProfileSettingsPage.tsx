@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   User,
   Download,
@@ -9,9 +10,16 @@ import {
   Laptop,
   Database,
   AlertTriangle,
+  Cloud,
+  RefreshCw,
+  LogOut,
+  LogIn,
+  GraduationCap,
 } from 'lucide-react';
 import { useStudent } from '../context/StudentContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
+import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/shared/Card';
 import { Button } from '../components/shared/Button';
 import { Breadcrumbs } from '../components/shared/Breadcrumbs';
@@ -20,8 +28,9 @@ import { exportStudentData } from '../services/studentProgressService';
 import { ThemeMode } from '../types';
 
 export const ProfileSettingsPage: React.FC = () => {
-  const { profile, updateProfile, stats, resetAll } = useStudent();
+  const { profile, updateProfile, stats, pendingSyncCount, triggerSync, resetAll } = useStudent();
   const { theme, setTheme } = useTheme();
+  const { user, role, signOut } = useAuth();
 
   // Local state for profile form
   const [name, setName] = useState(profile.name);
@@ -29,6 +38,14 @@ export const ProfileSettingsPage: React.FC = () => {
   const [schoolName, setSchoolName] = useState(profile.schoolName);
   const [region, setRegion] = useState(profile.region);
   const [isSavedSuccess, setIsSavedSuccess] = useState(false);
+
+  // Classroom join code state
+  const [joinCode, setJoinCode] = useState('');
+  const [joinStatus, setJoinStatus] = useState<{ success?: boolean; message?: string } | null>(null);
+  const [isJoining, setIsJoining] = useState(false);
+
+  // Sync state
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Reset confirmation modal
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -44,6 +61,42 @@ export const ProfileSettingsPage: React.FC = () => {
     });
     setIsSavedSuccess(true);
     setTimeout(() => setIsSavedSuccess(false), 3000);
+  };
+
+  const handleJoinClassroom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCode.trim()) return;
+
+    setIsJoining(true);
+    setJoinStatus(null);
+
+    try {
+      if (isSupabaseConfigured() && user) {
+        const { data, error } = await supabase.rpc('join_classroom_by_code', {
+          p_join_code: joinCode.trim(),
+        });
+        if (error) {
+          setJoinStatus({ success: false, message: error.message });
+        } else if (data) {
+          setJoinStatus({ success: data.success, message: data.message });
+        }
+      } else {
+        setJoinStatus({
+          success: true,
+          message: `Classroom code ${joinCode.trim().toUpperCase()} validated in offline simulation mode!`,
+        });
+      }
+    } catch (err: unknown) {
+      setJoinStatus({ success: false, message: (err as Error).message });
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    await triggerSync();
+    setIsSyncing(false);
   };
 
   const handleExportData = async () => {
@@ -170,6 +223,137 @@ export const ProfileSettingsPage: React.FC = () => {
                 Save Profile
               </Button>
             </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Multi-User Cloud Account & Sync Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Cloud className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <span>Multi-User Account &amp; Cloud Sync</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm text-slate-900 dark:text-white">
+                  {user ? user.email : 'Guest Explorer (Offline Profile)'}
+                </span>
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                  {role}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                {user
+                  ? 'Authenticated via Supabase Auth • Secure PostgreSQL storage active'
+                  : 'Currently working in local storage. Sign in to sync progress across devices.'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {user ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isSyncing}
+                    onClick={handleManualSync}
+                    leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />}
+                  >
+                    Sync Now ({pendingSyncCount})
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    onClick={() => signOut()}
+                    leftIcon={<LogOut className="w-3.5 h-3.5" />}
+                  >
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <Link to="/auth">
+                  <Button variant="primary" size="sm" leftIcon={<LogIn className="w-3.5 h-3.5" />}>
+                    Sign In / Register
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Teacher Quick Navigation */}
+          {role === 'teacher' && (
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 flex items-center justify-between">
+              <div>
+                <h4 className="font-bold text-sm text-emerald-900 dark:text-emerald-100">
+                  Educator Portal Access
+                </h4>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+                  Manage authorized classrooms, student rosters, and curriculum competency reports.
+                </p>
+              </div>
+              <Link to="/teacher">
+                <Button variant="primary" size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+                  Open Teacher Portal
+                </Button>
+              </Link>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Classroom Enrollment Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <GraduationCap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            <span>Join a Teacher&apos;s Classroom</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleJoinClassroom} className="space-y-3">
+            <p className="text-xs text-slate-500">
+              Enter the 6-character classroom code provided by your STEM teacher to submit laboratory evaluations directly to their roster.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                placeholder="e.g. PRY-10A"
+                className="flex-1 px-3 py-2 rounded-xl font-mono uppercase tracking-wider text-sm border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                disabled={isJoining || !joinCode.trim()}
+              >
+                {isJoining ? 'Joining...' : 'Join Classroom'}
+              </Button>
+            </div>
+
+            {joinStatus && (
+              <div
+                className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                  joinStatus.success
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                    : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+                }`}
+              >
+                {joinStatus.success ? (
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                )}
+                <span>{joinStatus.message}</span>
+              </div>
+            )}
           </form>
         </CardContent>
       </Card>

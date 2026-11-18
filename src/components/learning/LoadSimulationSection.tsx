@@ -13,7 +13,7 @@
  * - "Return to Virtual Lab" action button
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import {
   ArrowLeft,
   CheckCircle,
@@ -45,7 +45,7 @@ interface LoadSimulationSectionProps {
   onClearRemediation?: () => void;
 }
 
-export const LoadSimulationSection: React.FC<LoadSimulationSectionProps> = ({
+const TheorySimulationSection: React.FC<LoadSimulationSectionProps> = ({
   media,
   onReturnToLab,
   remediationTarget,
@@ -443,6 +443,35 @@ export const LoadSimulationSection: React.FC<LoadSimulationSectionProps> = ({
 
       {/* Embedded Audio Diagnostics & Verification Panel (Developer & Instructor Tools) */}
       <AudioDiagnosticsPanel />
+    </div>
+  );
+};
+
+import { getDemonstrationScript } from '../../services/demonstrations/registry';
+
+const DemonstrationPlayer = lazy(() => import('../demonstrations/DemonstrationPlayer'));
+export const LoadSimulationSection: React.FC<LoadSimulationSectionProps> = (props) => {
+  const demoScript = getDemonstrationScript(props.media.experimentId);
+
+  if (demoScript) {
+    return (
+      <Suspense fallback={<p>Loading experiment canvas…</p>}>
+        <DemonstrationPlayer
+          script={demoScript}
+          segmentId={props.remediationTarget?.segmentId}
+          onReturnToLab={props.onReturnToLab}
+          onReturnToViva={props.onClearRemediation}
+        />
+      </Suspense>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p role="status" className="rounded-xl border p-4">
+        Live laboratory demonstration: NOT STARTED for this experiment. The material below is a theory explanation, not a demonstration of apparatus operations.
+      </p>
+      <TheorySimulationSection {...props} />
     </div>
   );
 };

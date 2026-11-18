@@ -6,7 +6,7 @@ import { StudentProvider } from '../src/context/StudentContext';
 import { ThemeProvider } from '../src/context/ThemeContext';
 import { MathematicsPage } from '../src/pages/MathematicsPage';
 import { DashboardPage } from '../src/pages/DashboardPage';
-import { ComingSoonPage } from '../src/pages/ComingSoonPage';
+import { BiologyPage } from '../src/pages/BiologyPage';
 import { getSubjectById } from '../src/services/experimentRegistry';
 import { resetAllData } from '../src/services/studentProgressService';
 
@@ -97,16 +97,16 @@ describe('Mathematics Module Integration', () => {
     expect(enterMathLabLink).toBeInTheDocument();
   });
 
-  it('confirms ComingSoonPage still renders for Biology without change', () => {
+  it('confirms Biology Virtual Laboratory renders with active experiments', () => {
     renderWithProviders(
       <MemoryRouter initialEntries={['/subjects/biology']}>
         <Routes>
-          <Route path="/subjects/biology" element={<ComingSoonPage subjectId="biology" />} />
+          <Route path="/subjects/biology" element={<BiologyPage />} />
         </Routes>
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Biology Laboratory')).toBeInTheDocument();
-    expect(screen.getByText(/Curriculum Development Phase/i)).toBeInTheDocument();
+    expect(screen.getByText('Biology Virtual Laboratory')).toBeInTheDocument();
+    expect(screen.getByText(/NEET-UG Aligned/i)).toBeInTheDocument();
   });
 });

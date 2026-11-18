@@ -49,14 +49,16 @@ export const HeartCirculationLab: React.FC = () => {
 
   // Animated cardiac cycle loop
   useEffect(() => {
-    let timer: any = null;
+    let timer: ReturnType<typeof setInterval> | null = null;
     if (isPlaying) {
       const stepDurationMs = (60000 / bpm) / 4;
       timer = setInterval(() => {
         setPhaseIndex((prev) => (prev + 1) % phases.length);
       }, stepDurationMs);
     }
-    return () => clearInterval(timer);
+    return () => {
+      if (timer) clearInterval(timer);
+    };
   }, [isPlaying, bpm]);
 
   return (

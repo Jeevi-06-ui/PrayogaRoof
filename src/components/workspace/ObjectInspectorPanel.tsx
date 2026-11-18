@@ -70,6 +70,7 @@ interface ObjectInspectorPanelProps {
   onToggleCollapse?: () => void;
   experimentId?: string;
   initialTab?: 'inspector' | 'guide' | 'notebook' | 'questions' | 'telemetry' | 'reagents';
+  className?: string;
 }
 
 export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
@@ -93,6 +94,7 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
   onToggleCollapse,
   experimentId = 'ohms-law',
   initialTab = 'inspector',
+  className,
 }) => {
   const [activeTab, setActiveTab] = useState<
     'inspector' | 'guide' | 'notebook' | 'questions' | 'telemetry' | 'reagents'
@@ -1078,7 +1080,12 @@ export const ObjectInspectorPanel: React.FC<ObjectInspectorPanelProps> = ({
   }
 
   return (
-    <aside className="w-72 sm:w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col h-full flex-shrink-0 select-none">
+    <aside
+      className={
+        className ||
+        'w-72 sm:w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col h-full flex-shrink-0 select-none'
+      }
+    >
       {/* Tab Navigation Header */}
       <div className="p-2 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div className="flex gap-1 overflow-x-auto no-scrollbar">

@@ -74,7 +74,11 @@ try {
   }
 
   const targetApk = path.join(outputDir, 'PrayogaProof-debug.apk');
+  const targetFixedApk = path.join(outputDir, 'PrayogaProof-mobile-fixed.apk');
+  const targetAuthFixedApk = path.join(outputDir, 'PrayogaProof-auth-fixed.apk');
   fs.copyFileSync(generatedApk, targetApk);
+  fs.copyFileSync(generatedApk, targetFixedApk);
+  fs.copyFileSync(generatedApk, targetAuthFixedApk);
 
   const stats = fs.statSync(targetApk);
   const sizeMb = (stats.size / (1024 * 1024)).toFixed(2);

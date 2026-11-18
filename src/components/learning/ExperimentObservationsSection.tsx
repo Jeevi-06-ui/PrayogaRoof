@@ -20,7 +20,7 @@ import {
   Calculator,
 } from 'lucide-react';
 import { Button } from '../shared/Button';
-import { updateExperimentProgress } from '../../services/studentProgressService';
+import { updateExperimentProgress, saveObservations, getObservations } from '../../services/studentProgressService';
 
 export interface ObservationRow {
   id: string;
@@ -94,11 +94,31 @@ export const ExperimentObservationsSection: React.FC<ExperimentObservationsSecti
     setNotes(initialNotes);
   }, [initialNotes]);
 
+  // Load persisted observations from IndexedDB
+  useEffect(() => {
+    getObservations(experimentId).then((saved) => {
+      if (saved && saved.length > 0) {
+        setTrials(
+          saved.map((s) => ({
+            id: s.id,
+            trial: s.trial,
+            inputParam: s.inputParam,
+            measuredParam: s.measuredParam,
+            calculatedParam: s.calculatedParam,
+            notes: s.notes,
+          }))
+        );
+      }
+    });
+  }, [experimentId]);
+
   useEffect(() => {
     if (onTrialsCountChange) {
       onTrialsCountChange(trials.length);
     }
-  }, [trials.length]);
+    // Auto-persist trials to IndexedDB
+    saveObservations(experimentId, trials).catch(console.warn);
+  }, [trials, experimentId, onTrialsCountChange]);
 
   const handleAddTrial = () => {
     if (!newInput || !newMeasured) return;

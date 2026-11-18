@@ -119,8 +119,8 @@ describe('Phase A: ExperimentDetailPage 5-Tab Architecture', () => {
     fireEvent.click(screen.getByRole('button', { name: /Watch Simulation/i }));
 
     // In Load Simulation section
-    expect(screen.getByText('7 Topic Segments')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Return to Virtual Lab/i })).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Live experiment demonstration' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Return to your experiment/i })).toBeInTheDocument();
   });
 
   it('preserves Virtual Lab workspace mounted in DOM when switching tabs', async () => {
@@ -138,7 +138,7 @@ describe('Phase A: ExperimentDetailPage 5-Tab Architecture', () => {
 
     // Now switch to "Load Simulation"
     fireEvent.click(within(nav).getByRole('button', { name: /Load Simulation/i }));
-    expect(screen.getByText('7 Topic Segments')).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Live experiment demonstration' })).toBeInTheDocument();
 
     // Verify Guided Mode is still present in DOM (hidden container, not unmounted!)
     expect(screen.getAllByText(/Guided Mode/i).length).toBeGreaterThanOrEqual(1);
@@ -152,42 +152,21 @@ describe('Phase A: ExperimentDetailPage 5-Tab Architecture', () => {
   });
 });
 
-describe('Phase A: Dedicated LoadSimulationSection', () => {
-  it('renders all 7 topic segments, synchronized transcript, worked example, and errors', () => {
-    const media = getSimulationMedia('ohms-law');
-    const onReturnMock = () => {};
-
-    render(<LoadSimulationSection media={media} onReturnToLab={onReturnMock} />);
-
-    // 7 topic segments
-    expect(screen.getAllByText(/1\. Introduction & Learning Objectives/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/2\. Apparatus & Circuit Setup/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/3\. Step-by-Step Procedure/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/4\. Observations & Real-time Measurements/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/5\. Scientific Law & Theoretical Explanation/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/6\. Solved Numerical Worked Example/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/7\. Common Errors & Precautionary Measures/i).length).toBeGreaterThanOrEqual(1);
-
-    // Synchronized transcript
-    expect(screen.getByText(/Synchronized Transcript/i)).toBeInTheDocument();
-
-    // Solved Numerical Worked Example
-    expect(screen.getByText('Solved Numerical Worked Example')).toBeInTheDocument();
-    expect(screen.getAllByText(/5\.00 Ω/i).length).toBeGreaterThanOrEqual(1);
-
-    // Common Laboratory Errors
-    expect(screen.getByText(/Common Laboratory Errors & Precautions/i)).toBeInTheDocument();
+describe('Live LoadSimulationSection', () => {
+  it('loads the real canvas with ten procedural steps and transcript', async () => {
+    render(<LoadSimulationSection media={getSimulationMedia('ohms-law')} onReturnToLab={() => {}} />);
+    expect(await screen.findByTestId('demo-canvas')).toBeInTheDocument();
+    expect(within(screen.getByRole('combobox', { name: 'Demonstration step' })).getAllByRole('option')).toHaveLength(10);
+    expect(screen.getByText('Read demonstration transcript')).toBeInTheDocument();
+    expect(screen.getByTestId('demo-caption')).toHaveTextContent('Verify Ohm');
   });
-
-  it('switches active segment when a topic segment card is clicked', () => {
-    const media = getSimulationMedia('ohms-law');
-    render(<LoadSimulationSection media={media} onReturnToLab={() => {}} />);
-
-    // Click on Segment 5
-    fireEvent.click(screen.getAllByText(/5\. Scientific Law & Theoretical Explanation/i)[0]);
-
-    // Transcript updates to segment 5
-    expect(screen.getByText(/Synchronized Transcript: 5. Scientific Law/i)).toBeInTheDocument();
+  it('seeks to measurements and renders calculations from the actual model', async () => {
+    render(<LoadSimulationSection media={getSimulationMedia('ohms-law')} onReturnToLab={() => {}} />);
+    const steps = await screen.findByRole('combobox', { name: 'Demonstration step' });
+    fireEvent.change(steps, { target: { value: '6' } });
+    expect(screen.getByTestId('demo-calculation')).toHaveTextContent('12.00 V / 2.00 A = 6.00 Ω');
+    fireEvent.click(screen.getByRole('button', { name: 'Try It Yourself' }));
+    expect(screen.getByRole('heading', { name: 'Fresh practice workspace' })).toBeInTheDocument();
   });
 });
 

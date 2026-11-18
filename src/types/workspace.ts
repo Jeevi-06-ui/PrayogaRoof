@@ -231,7 +231,7 @@ export interface LabGoal {
   description: string;
   isCompleted: boolean;
   validatorType: 'equipment-placed' | 'components-connected' | 'property-matched' | 'generic';
-  validatorParams?: Record<string, any>;
+  validatorParams?: Record<string, unknown>;
 }
 
 export interface LabDefinition {

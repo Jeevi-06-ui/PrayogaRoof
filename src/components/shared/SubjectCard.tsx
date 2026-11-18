@@ -24,7 +24,7 @@ export const SubjectCard: React.FC<SubjectCardProps> = ({
       case 'chemistry':
         return <FlaskConical className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />;
       case 'biology':
-        return <Dna className="w-6 h-6 text-amber-600 dark:text-amber-400" />;
+        return <Dna className="w-6 h-6 text-teal-600 dark:text-teal-400" />;
       case 'mathematics':
         return <Calculator className="w-6 h-6 text-purple-600 dark:text-purple-400" />;
     }
@@ -37,9 +37,9 @@ export const SubjectCard: React.FC<SubjectCardProps> = ({
       case 'chemistry':
         return 'hover:border-emerald-400 dark:hover:border-emerald-600 group-hover:ring-emerald-100 dark:group-hover:ring-emerald-950/40';
       case 'biology':
-        return 'hover:border-amber-400 dark:hover:border-amber-600 group-hover:ring-amber-100 dark:group-hover:ring-amber-950/40';
+        return 'hover:border-teal-400 dark:hover:border-teal-600 group-hover:ring-teal-100 dark:group-hover:ring-teal-950/40';
       case 'mathematics':
-        return 'hover:border-purple-400 dark:hover:border-purple-600 group-hover:ring-purple-100 dark:group-hover:ring-purple-950/40';
+        return 'hover:border-purple-400 dark:hover:border-purple-600 group-hover:ring-purple-100 dark:group-purple-950/40';
     }
   };
 
@@ -95,6 +95,8 @@ export const SubjectCard: React.FC<SubjectCardProps> = ({
                     ? 'bg-blue-600 dark:bg-blue-500'
                     : subject.id === 'chemistry'
                     ? 'bg-emerald-600 dark:bg-emerald-500'
+                    : subject.id === 'biology'
+                    ? 'bg-teal-600 dark:bg-teal-500'
                     : 'bg-purple-600 dark:bg-purple-500'
                 }`}
                 style={{ width: `${progressPercent}%` }}
@@ -105,6 +107,8 @@ export const SubjectCard: React.FC<SubjectCardProps> = ({
                 ? 'text-blue-600 dark:text-blue-400'
                 : subject.id === 'chemistry'
                 ? 'text-emerald-600 dark:text-emerald-400'
+                : subject.id === 'biology'
+                ? 'text-teal-600 dark:text-teal-400'
                 : 'text-purple-600 dark:text-purple-400'
             }`}>
               <span>Enter {subject.name} Lab</span>

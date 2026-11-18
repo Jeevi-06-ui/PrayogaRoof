@@ -19,6 +19,7 @@ interface ToolCataloguePanelProps {
   onAddEquipment: (equipmentId: string) => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  className?: string;
 }
 
 export const ToolCataloguePanel: React.FC<ToolCataloguePanelProps> = ({
@@ -26,6 +27,7 @@ export const ToolCataloguePanel: React.FC<ToolCataloguePanelProps> = ({
   onAddEquipment,
   isCollapsed = false,
   onToggleCollapse,
+  className,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -86,7 +88,12 @@ export const ToolCataloguePanel: React.FC<ToolCataloguePanelProps> = ({
   }
 
   return (
-    <aside className="w-64 sm:w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full flex-shrink-0 select-none">
+    <aside
+      className={
+        className ||
+        'w-64 sm:w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full flex-shrink-0 select-none'
+      }
+    >
       {/* Panel Header */}
       <div className="p-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div>

@@ -1,5 +1,7 @@
 import { WorkspaceObject, WorkspaceConnection, SimulationResult } from '../../types';
 import { getEquipmentDefinition, getLabDefinition, runSimulation, validateConnection } from '../lab/registry';
+import { createEmptyContainer, createContainerWithSubstance, transferLiquid } from '../chemistry/chemistryEngine';
+import { ContainerLiquidState } from '../chemistry/chemistryTypes';
 
 export type DemoAction =
   | { kind: 'select'; equipmentId: string }
@@ -9,17 +11,22 @@ export type DemoAction =
   | { kind: 'set'; id: string; property: string; value: string | number | boolean }
   | { kind: 'connect'; connection: WorkspaceConnection }
   | { kind: 'disconnect'; id: string }
+  | { kind: 'transfer'; fromId: string; toId: string; volumeMl: number }
   | { kind: 'run' };
 export interface DemoStep {
   id: string;
   title: string;
   narration: string;
+  audioUrl?: string;
   duration: number;
   actions: Array<{ at: number; action: DemoAction }>;
 }
 export interface DemoScript {
   experimentId: string;
   title: string;
+  equipmentIds: string[];
+  calculation?: { stepIds: string[]; objectId: string; numeratorKey: string; denominatorKey: string;
+    numeratorUnit: string; denominatorUnit: string; formula: string; resultUnit: string };
   steps: DemoStep[];
   segmentSteps: Record<string, string>;
 }
@@ -61,7 +68,38 @@ export function demoFrame(script: DemoScript, stepIndex: number, elapsed: number
       } else if (action.kind === 'run') {
         frame.result = runSimulation(frame.objects, frame.connections, lab.subjectId);
         frame.objects = frame.objects.map(o => ({ ...o, state: { ...o.state, ...frame.result!.objectStateUpdates[o.id] } }));
-      } else {
+      } else if (action.kind === 'transfer') {
+        const fromObj = frame.objects.find(o => o.id === action.fromId);
+        const toObj = frame.objects.find(o => o.id === action.toId);
+        if (!fromObj || !toObj) throw new Error(`Missing object for transfer: ${action.fromId} -> ${action.toId}`);
+        let fromContainer = (fromObj.state as unknown as Record<string, unknown>)?.liquidContainer as ContainerLiquidState | undefined;
+        let toContainer = (toObj.state as unknown as Record<string, unknown>)?.liquidContainer as ContainerLiquidState | undefined;
+        if (!fromContainer) {
+          const reagent = String(fromObj.properties?.reagentSolution ?? fromObj.properties?.substance ?? 'pure-water');
+          const vol = Number(fromObj.properties?.liquidVolume ?? fromObj.properties?.volume ?? 50);
+          const cap = Number(fromObj.properties?.capacityMl ?? fromObj.properties?.capacity ?? 100);
+          fromContainer = createContainerWithSubstance(reagent, vol, cap);
+        }
+        if (!toContainer) {
+          const cap = Number(toObj.properties?.capacityMl ?? toObj.properties?.capacity ?? 50);
+          const vol = Number(toObj.properties?.liquidVolume ?? toObj.properties?.volume ?? 0);
+          if (vol > 0) {
+            const reagent = String(toObj.properties?.reagentSolution ?? toObj.properties?.substance ?? 'pure-water');
+            toContainer = createContainerWithSubstance(reagent, vol, cap);
+          } else {
+            toContainer = createEmptyContainer(cap);
+          }
+        }
+        const transferRes = transferLiquid(fromContainer, toContainer, action.volumeMl);
+        fromObj.state = { ...fromObj.state, liquidContainer: transferRes.sourceNewState as unknown as string };
+        toObj.state = { ...toObj.state, liquidContainer: transferRes.destinationNewState as unknown as string };
+        if (fromObj.properties && 'liquidVolume' in fromObj.properties) {
+          fromObj.properties.liquidVolume = transferRes.sourceRemainingMl;
+        }
+        if (toObj.properties && 'liquidVolume' in toObj.properties) {
+          toObj.properties.liquidVolume = transferRes.destinationTotalMl;
+        }
+      } else if (action.kind === 'move' || action.kind === 'rotate' || action.kind === 'set') {
         const obj = frame.objects.find(o => o.id === action.id);
         if (!obj) throw new Error(`Missing object ${action.id}`);
         if (action.kind === 'move') {
@@ -72,7 +110,7 @@ export function demoFrame(script: DemoScript, stepIndex: number, elapsed: number
           const eq = getEquipmentDefinition(obj.equipmentId)!;
           if (!eq.rotatable || (eq.allowedRotations && !eq.allowedRotations.includes(action.degrees))) throw new Error('Unsupported rotation');
           obj.rotation = action.degrees;
-        } else {
+        } else if (action.kind === 'set') {
           const property = getEquipmentDefinition(obj.equipmentId)?.propertyDefinitions.find(p => p.id === action.property);
           if (!property || typeof action.value !== typeof property.defaultValue ||
             (typeof action.value === 'number' && (!Number.isFinite(action.value) ||
@@ -86,7 +124,7 @@ export function demoFrame(script: DemoScript, stepIndex: number, elapsed: number
 }
 
 export interface DemoNarrator {
-  speak(text: string, rate: number, end: () => void, error: (message: string) => void): void;
+  speak(text: string, rate: number, end: () => void, error: (message: string) => void, audioUrl?: string): void;
   pause(): void;
   resume(): void;
   stop(): void;
@@ -103,17 +141,17 @@ export class DemoController {
   private token = 0;
   constructor(readonly script: DemoScript, private voice: DemoNarrator, private changed: () => void) {}
   private narrate() {
-    this.voice.stop();
     const token = ++this.token;
+    this.voice.stop();
     this.speechDone = !this.narration;
     if (this.narration) this.voice.speak(this.script.steps[this.index].narration, this.speed,
       () => { if (token === this.token) this.speechDone = true; },
-      message => { if (token === this.token) { this.error = message; this.playing = false; this.changed(); } });
+      message => { if (token === this.token) { this.error = message; this.playing = false; this.started = false; this.changed(); } }, this.script.steps[this.index].audioUrl);
   }
   play() {
     this.error = '';
     this.playing = true;
-    if (!this.started) { this.started = true; this.narrate(); } else this.voice.resume();
+    if (!this.started) { this.started = true; this.narrate(); } else if (this.narration && !this.speechDone) this.voice.resume();
     this.changed();
   }
   pause() { this.playing = false; this.voice.pause(); this.changed(); }

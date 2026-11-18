@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import {
   WorkspaceObject,
   WorkspaceConnection,
@@ -27,19 +27,24 @@ import {
   createWorkspace,
   deleteWorkspace,
 } from '../../services/studentProgressService';
-import { FolderOpen, Trash2 } from 'lucide-react';
+import { FolderOpen, Trash2, Sliders, BookOpen, Plus } from 'lucide-react';
 import { UnderDevelopmentWorkspace } from './UnderDevelopmentWorkspace';
+import { registerBackHandler } from '../../services/mobile/mobileBackHandler';
 
 interface UniversalLabWorkspaceProps {
   experimentId: string;
   initialMode?: LabMode;
+  startEmpty?: boolean;
   onWorkspaceSaved?: (workspace: SavedWorkspace) => void;
+  onBack?: () => void;
 }
 
 export const UniversalLabWorkspace: React.FC<UniversalLabWorkspaceProps> = ({
   experimentId,
   initialMode = 'guided',
+  startEmpty = false,
   onWorkspaceSaved,
+  onBack,
 }) => {
   // 1. Resolve Lab Definition
   const resolvedLabDef = useMemo(() => {
@@ -63,11 +68,11 @@ export const UniversalLabWorkspace: React.FC<UniversalLabWorkspaceProps> = ({
 
   // 3. State Management
   const [objects, setObjects] = useState<WorkspaceObject[]>(() => {
-    return labDef.initialObjects ? JSON.parse(JSON.stringify(labDef.initialObjects)) : [];
+    return !startEmpty && labDef.initialObjects ? JSON.parse(JSON.stringify(labDef.initialObjects)) : [];
   });
 
   const [connections, setConnections] = useState<WorkspaceConnection[]>(() => {
-    return labDef.initialConnections
+    return !startEmpty && labDef.initialConnections
       ? JSON.parse(JSON.stringify(labDef.initialConnections))
       : [];
   });
@@ -104,6 +109,18 @@ export const UniversalLabWorkspace: React.FC<UniversalLabWorkspaceProps> = ({
   // Panels collapsed toggles for responsive screens
   const [isCatalogueCollapsed, setIsCatalogueCollapsed] = useState<boolean>(false);
   const [isInspectorCollapsed, setIsInspectorCollapsed] = useState<boolean>(false);
+
+  // Mobile bottom sheet drawer: null | 'equipment' | 'properties' | 'observations'
+  const [mobileDrawer, setMobileDrawer] = useState<'equipment' | 'properties' | 'observations' | null>(null);
+
+  // Register mobile back button handler when a drawer is open
+  useEffect(() => {
+    if (!mobileDrawer) return;
+    return registerBackHandler(() => {
+      setMobileDrawer(null);
+      return true;
+    });
+  }, [mobileDrawer]);
 
   // Load Saved Workspaces Modal
   const [isLoadModalOpen, setIsLoadModalOpen] = useState<boolean>(false);
@@ -387,6 +404,14 @@ export const UniversalLabWorkspace: React.FC<UniversalLabWorkspaceProps> = ({
       if (ws.canvasState && Array.isArray(ws.canvasState.elements)) {
         const loadedObjects: WorkspaceObject[] = ws.canvasState.elements.map((el, i) => {
           const eq = getEquipmentDefinition(el.type) || equipmentCatalogue[0];
+          const sanitizedProps: Record<string, string | number | boolean> = {};
+          if (el.props && typeof el.props === 'object') {
+            for (const [k, v] of Object.entries(el.props)) {
+              if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+                sanitizedProps[k] = v;
+              }
+            }
+          }
           return {
             id: el.id || `loaded-${i}`,
             equipmentId: el.type,
@@ -396,7 +421,7 @@ export const UniversalLabWorkspace: React.FC<UniversalLabWorkspaceProps> = ({
             rotation: el.rotation || 0,
             width: eq?.defaultWidth || 140,
             height: eq?.defaultHeight || 100,
-            properties: (el.props as any) || {},
+            properties: sanitizedProps,
             state: {},
           };
         });
@@ -460,9 +485,10 @@ export const UniversalLabWorkspace: React.FC<UniversalLabWorkspaceProps> = ({
         onToggleGridSnap={() => setGridSnap(!gridSnap)}
         experimentTitle={labDef.title}
         isSaving={isSaving}
+        onBack={onBack}
       />
 
-      {/* Main Three-Panel Working Layout */}
+      {/* Main Responsive Working Layout */}
       <div
         className="flex-1 flex overflow-hidden relative"
         onDragOver={(e) => e.preventDefault()}
@@ -477,16 +503,18 @@ export const UniversalLabWorkspace: React.FC<UniversalLabWorkspaceProps> = ({
           }
         }}
       >
-        {/* Left Panel: Searchable Equipment Catalogue */}
-        <ToolCataloguePanel
-          equipmentCatalogue={equipmentCatalogue}
-          onAddEquipment={(eqId) => handleAddEquipment(eqId)}
-          isCollapsed={isCatalogueCollapsed}
-          onToggleCollapse={() => setIsCatalogueCollapsed(!isCatalogueCollapsed)}
-        />
+        {/* Left Panel: Searchable Equipment Catalogue (Desktop only: hidden lg:flex) */}
+        <div className="hidden lg:flex h-full flex-shrink-0">
+          <ToolCataloguePanel
+            equipmentCatalogue={equipmentCatalogue}
+            onAddEquipment={(eqId) => handleAddEquipment(eqId)}
+            isCollapsed={isCatalogueCollapsed}
+            onToggleCollapse={() => setIsCatalogueCollapsed(!isCatalogueCollapsed)}
+          />
+        </div>
 
-        {/* Center: Large Interactive Working Canvas */}
-        <main className="flex-1 h-full overflow-hidden relative">
+        {/* Center: Large Interactive Working Canvas (100% width on mobile) */}
+        <main className="flex-1 h-full w-full overflow-hidden relative min-w-0">
           <ErrorBoundary fallbackTitle="Canvas Canvas Engine Error">
             <LabCanvas
               objects={simulatedObjects}
@@ -504,32 +532,193 @@ export const UniversalLabWorkspace: React.FC<UniversalLabWorkspaceProps> = ({
               feedbackMessage={feedback}
             />
           </ErrorBoundary>
+
+          {/* Mobile Laboratory Bottom Action Bar (Phones & Small screens < lg) */}
+          <div className="lg:hidden absolute bottom-3 left-3 right-3 z-20 flex items-center justify-around gap-2 p-1.5 rounded-2xl bg-slate-900/90 dark:bg-slate-900/95 backdrop-blur-md border border-slate-700/80 shadow-2xl text-white">
+            <button
+              type="button"
+              onClick={() => setMobileDrawer('equipment')}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all min-h-[44px] ${
+                mobileDrawer === 'equipment'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-slate-300 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <Plus className="w-4 h-4 text-blue-400" />
+              <span>Tools ({equipmentCatalogue.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMobileDrawer('properties')}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all min-h-[44px] ${
+                mobileDrawer === 'properties'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-slate-300 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <Sliders className="w-4 h-4 text-emerald-400" />
+              <span className="truncate max-w-[90px] sm:max-w-[130px]">
+                {selectedObject ? selectedObject.title : 'Properties'}
+              </span>
+              {selectedObject && (
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMobileDrawer('observations')}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all min-h-[44px] ${
+                mobileDrawer === 'observations'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-slate-300 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <BookOpen className="w-4 h-4 text-amber-400" />
+              <span>
+                {mode === 'guided'
+                  ? `Step ${guidedStepIndex + 1}/${Math.max(1, labDef.guidedSteps.length)}`
+                  : 'Notes'}
+              </span>
+            </button>
+          </div>
         </main>
 
-        {/* Right Panel: Selected-Object Properties & Contextual Notebook */}
-        <ObjectInspectorPanel
-          objects={objects}
-          selectedObject={selectedObject}
-          selectedConnection={selectedConnection}
-          connections={connections}
-          onUpdateProperty={handleUpdateProperty}
-          onUpdateTitle={handleUpdateTitle}
-          onRotateObject={handleRotateObject}
-          onDeleteObject={handleDeleteObject}
-          onDeleteConnection={handleDeleteConnection}
-          guidedSteps={labDef.guidedSteps}
-          goals={labDef.goals}
-          currentStepIndex={guidedStepIndex}
-          onSelectStepIndex={setGuidedStepIndex}
-          notebook={notebook}
-          onUpdateNotebook={(updates) => setNotebook((prev) => ({ ...prev, ...updates }))}
-          simulationResult={simulationResult}
-          isCollapsed={isInspectorCollapsed}
-          onToggleCollapse={() => setIsInspectorCollapsed(!isInspectorCollapsed)}
-          experimentId={experimentId}
-          initialTab={mode === 'guided' ? 'guide' : 'inspector'}
-        />
+        {/* Right Panel: Selected-Object Properties & Contextual Notebook (Desktop only: hidden lg:flex) */}
+        <div className="hidden lg:flex h-full flex-shrink-0">
+          <ObjectInspectorPanel
+            objects={objects}
+            selectedObject={selectedObject}
+            selectedConnection={selectedConnection}
+            connections={connections}
+            onUpdateProperty={handleUpdateProperty}
+            onUpdateTitle={handleUpdateTitle}
+            onRotateObject={handleRotateObject}
+            onDeleteObject={handleDeleteObject}
+            onDeleteConnection={handleDeleteConnection}
+            guidedSteps={labDef.guidedSteps}
+            goals={labDef.goals}
+            currentStepIndex={guidedStepIndex}
+            onSelectStepIndex={setGuidedStepIndex}
+            notebook={notebook}
+            onUpdateNotebook={(updates) => setNotebook((prev) => ({ ...prev, ...updates }))}
+            simulationResult={simulationResult}
+            isCollapsed={isInspectorCollapsed}
+            onToggleCollapse={() => setIsInspectorCollapsed(!isInspectorCollapsed)}
+            experimentId={experimentId}
+            initialTab={mode === 'guided' ? 'guide' : 'inspector'}
+          />
+        </div>
       </div>
+
+      {/* Mobile Bottom Sheet Overlay for Tools, Properties, and Observations */}
+      {mobileDrawer && (
+        <div className="lg:hidden fixed inset-0 z-40 flex flex-col justify-end">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+            onClick={() => setMobileDrawer(null)}
+            aria-hidden="true"
+          />
+
+          {/* Drawer Container */}
+          <div className="relative z-50 bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col max-h-[80vh] overflow-hidden animate-in slide-in-from-bottom duration-250 safe-bottom">
+            {/* Header with Title and Done button */}
+            <div className="p-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-1 rounded-full bg-slate-300 dark:bg-slate-700 mr-2" />
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+                  {mobileDrawer === 'equipment' && 'Apparatus & Equipment Catalogue'}
+                  {mobileDrawer === 'properties' &&
+                    (selectedObject ? `${selectedObject.title} Properties` : 'Properties & Controls')}
+                  {mobileDrawer === 'observations' &&
+                    (mode === 'guided' ? 'Guided Lab Walkthrough' : 'Observations & Notebook')}
+                </h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMobileDrawer(null)}
+                className="text-xs font-bold min-h-[36px]"
+              >
+                Done
+              </Button>
+            </div>
+
+            {/* Drawer Body */}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              {mobileDrawer === 'equipment' && (
+                <ToolCataloguePanel
+                  equipmentCatalogue={equipmentCatalogue}
+                  onAddEquipment={(eqId) => {
+                    const cx = Math.round((-stagePosition.x + 180) / scale);
+                    const cy = Math.round((-stagePosition.y + 160) / scale);
+                    handleAddEquipment(eqId, cx, cy);
+                    setMobileDrawer(null);
+                    showFeedback('Apparatus added to laboratory canvas!', 'success');
+                  }}
+                  className="w-full bg-transparent border-0 flex flex-col h-full"
+                />
+              )}
+
+              {mobileDrawer === 'properties' && (
+                <ObjectInspectorPanel
+                  objects={objects}
+                  selectedObject={selectedObject}
+                  selectedConnection={selectedConnection}
+                  connections={connections}
+                  onUpdateProperty={handleUpdateProperty}
+                  onUpdateTitle={handleUpdateTitle}
+                  onRotateObject={handleRotateObject}
+                  onDeleteObject={(id) => {
+                    handleDeleteObject(id);
+                    setMobileDrawer(null);
+                  }}
+                  onDeleteConnection={(id) => {
+                    handleDeleteConnection(id);
+                    setMobileDrawer(null);
+                  }}
+                  guidedSteps={labDef.guidedSteps}
+                  goals={labDef.goals}
+                  currentStepIndex={guidedStepIndex}
+                  onSelectStepIndex={setGuidedStepIndex}
+                  notebook={notebook}
+                  onUpdateNotebook={(updates) => setNotebook((prev) => ({ ...prev, ...updates }))}
+                  simulationResult={simulationResult}
+                  experimentId={experimentId}
+                  initialTab="inspector"
+                  className="w-full bg-transparent border-0 flex flex-col h-full"
+                />
+              )}
+
+              {mobileDrawer === 'observations' && (
+                <ObjectInspectorPanel
+                  objects={objects}
+                  selectedObject={selectedObject}
+                  selectedConnection={selectedConnection}
+                  connections={connections}
+                  onUpdateProperty={handleUpdateProperty}
+                  onUpdateTitle={handleUpdateTitle}
+                  onRotateObject={handleRotateObject}
+                  onDeleteObject={handleDeleteObject}
+                  onDeleteConnection={handleDeleteConnection}
+                  guidedSteps={labDef.guidedSteps}
+                  goals={labDef.goals}
+                  currentStepIndex={guidedStepIndex}
+                  onSelectStepIndex={setGuidedStepIndex}
+                  notebook={notebook}
+                  onUpdateNotebook={(updates) => setNotebook((prev) => ({ ...prev, ...updates }))}
+                  simulationResult={simulationResult}
+                  experimentId={experimentId}
+                  initialTab={mode === 'guided' ? 'guide' : 'notebook'}
+                  className="w-full bg-transparent border-0 flex flex-col h-full"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Load Workspace from IndexedDB Modal */}
       <Modal

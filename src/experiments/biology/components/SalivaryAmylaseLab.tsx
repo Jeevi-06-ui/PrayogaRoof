@@ -65,7 +65,7 @@ export const SalivaryAmylaseLab: React.FC = () => {
 
   // Timer interval
   useEffect(() => {
-    let timer: any = null;
+    let timer: ReturnType<typeof setInterval> | null = null;
     if (isRunning) {
       timer = setInterval(() => {
         setElapsedMinutes((prev) => {
@@ -77,7 +77,9 @@ export const SalivaryAmylaseLab: React.FC = () => {
         });
       }, 800);
     }
-    return () => clearInterval(timer);
+    return () => {
+      if (timer) clearInterval(timer);
+    };
   }, [isRunning, achromicTimeMinutes]);
 
   const handleReset = () => {

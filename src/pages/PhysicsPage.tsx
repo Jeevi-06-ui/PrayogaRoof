@@ -74,13 +74,13 @@ export const PhysicsPage: React.FC = () => {
             <p className="text-2xl font-black mt-0.5">
               {stats.physicsCompleted}{' '}
               <span className="text-xs font-normal text-blue-200">
-                / 5 Foundation Done • 25 Total Labs
+                / {stats.physicsTotal || 25} Labs Completed
               </span>
             </p>
             <div className="w-full bg-blue-950/60 rounded-full h-2 mt-2.5 overflow-hidden">
               <div
                 className="bg-blue-400 h-full rounded-full transition-all duration-300"
-                style={{ width: `${(stats.physicsCompleted / 5) * 100}%` }}
+                style={{ width: `${(stats.physicsCompleted / (stats.physicsTotal || 25)) * 100}%` }}
               />
             </div>
           </div>

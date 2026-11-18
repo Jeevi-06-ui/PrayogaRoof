@@ -7,6 +7,8 @@ const tools = [
 ] as const;
 export const ohmsLawDemo: DemoScript = {
   experimentId: 'ohms-law', title: "Ohm's Law — laboratory demonstration",
+  equipmentIds: tools.map(([, equipmentId]) => equipmentId),
+  calculation: { stepIds: ['calculate', 'result'], objectId: 'resistor', numeratorKey: 'voltageDrop', denominatorKey: 'currentAmps', numeratorUnit: 'V', denominatorUnit: 'A', formula: 'R = V / I', resultUnit: 'Ω' },
   segmentSteps: { intro: 'intro', apparatus: 'selection', procedure: 'setup', observation: 'measure', explanation: 'result', 'worked-example': 'calculate', mistakes: 'mistake' },
   steps: [
     step('intro', '1. Objective', 'Verify Ohm’s law using the same laboratory apparatus as your interactive workspace. We will measure current at a fixed resistance and compare voltage divided by current.'),

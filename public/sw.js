@@ -43,6 +43,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Bypass Service Worker cache for API calls, Supabase cloud endpoints, and auth
+  if (
+    request.url.includes('/api/') ||
+    request.url.includes('supabase.co') ||
+    request.url.includes('/auth/v1') ||
+    request.url.includes('/rest/v1')
+  ) {
+    return;
+  }
+
   // Handle SPA Navigation requests (HTML pages)
   if (request.mode === 'navigate') {
     event.respondWith(

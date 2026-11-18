@@ -47,7 +47,7 @@ export const OsmosisLab: React.FC = () => {
 
   // Live timer effect
   useEffect(() => {
-    let interval: any = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (isPlaying) {
       interval = setInterval(() => {
         setElapsedMinutes((prev) => {
@@ -59,7 +59,9 @@ export const OsmosisLab: React.FC = () => {
         });
       }, 500);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [isPlaying]);
 
   const handleReset = () => {

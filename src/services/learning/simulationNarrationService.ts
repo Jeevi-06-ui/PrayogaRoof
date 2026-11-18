@@ -39,6 +39,19 @@ export interface NarrationStatus {
   isOfflineReady: boolean;
 }
 
+declare global {
+  interface Window {
+    AndroidTTS?: {
+      speak: (text: string, rate?: number, pitch?: number) => void;
+      pause?: () => void;
+      resume?: () => void;
+      stop: () => void;
+      isAvailable?: () => boolean;
+      testVoice?: (phrase?: string) => void;
+    };
+  }
+}
+
 export type NarrationSubscriber = (status: NarrationStatus) => void;
 
 class SimulationNarrationService {
@@ -74,18 +87,24 @@ class SimulationNarrationService {
   public init(): void {
     if (this.isInitialized || typeof window === 'undefined') return;
 
-    if ('speechSynthesis' in window) {
+    if ('speechSynthesis' in window && window.speechSynthesis) {
       this.loadVoices();
 
       // Some browsers load voices asynchronously and fire `voiceschanged`
-      if (window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = () => {
-          this.loadVoices();
-        };
+      try {
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+          window.speechSynthesis.onvoiceschanged = () => {
+            this.loadVoices();
+          };
+        }
+        if (typeof window.speechSynthesis.addEventListener === 'function') {
+          window.speechSynthesis.addEventListener('voiceschanged', () => {
+            this.loadVoices();
+          });
+        }
+      } catch {
+        // Safe fallback if WebView restricts speech synthesis events
       }
-      window.speechSynthesis.addEventListener('voiceschanged', () => {
-        this.loadVoices();
-      });
 
       // Periodic check in case voiceschanged event doesn't fire on some platforms
       setTimeout(() => {
@@ -107,10 +126,12 @@ class SimulationNarrationService {
    * Loads and categorizes available browser speech voices
    */
   private loadVoices(): void {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    if (typeof window === 'undefined' || !('speechSynthesis' in window) || !window.speechSynthesis) return;
 
     try {
-      const voices = window.speechSynthesis.getVoices();
+      const voices = typeof window.speechSynthesis.getVoices === 'function'
+        ? window.speechSynthesis.getVoices()
+        : [];
       if (!voices || voices.length === 0) return;
 
       this.availableVoices = voices;
@@ -215,8 +236,43 @@ class SimulationNarrationService {
       }
     }
 
+    // OPTION 0: Native Android Text-to-Speech via Capacitor Bridge
+    const androidTTS = typeof window !== 'undefined' ? window.AndroidTTS : null;
+    if (androidTTS && typeof androidTTS.isAvailable === 'function' && androidTTS.isAvailable()) {
+      try {
+        if (this.isMuted) {
+          androidTTS.stop?.();
+        } else {
+          androidTTS.speak(cleanText, this.rate, 1.0);
+        }
+        this.state = 'playing';
+        this.source = 'speech-synthesis';
+        this.errorMessage = undefined;
+        this.notifySubscribers();
+
+        // Approximate duration for completion callback
+        const words = cleanText.split(/\s+/).length;
+        const durationMs = Math.max(2000, (words / (140 * this.rate)) * 60 * 1000);
+        setTimeout(() => {
+          if (this.state === 'playing') {
+            this.state = 'idle';
+            this.notifySubscribers();
+            options?.onEnd?.();
+          }
+        }, durationMs);
+        return;
+      } catch (err) {
+        console.warn('[PrayogaProof Narration] AndroidTTS error, falling back:', err);
+      }
+    }
+
     // OPTION B: Browser SpeechSynthesis text-to-speech
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    if (
+      typeof window === 'undefined' ||
+      !('speechSynthesis' in window) ||
+      !window.speechSynthesis ||
+      typeof SpeechSynthesisUtterance === 'undefined'
+    ) {
       this.state = 'error';
       this.source = 'none';
       this.errorMessage =
@@ -228,7 +284,9 @@ class SimulationNarrationService {
 
     try {
       // Cancel any stuck speech in the browser engine
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
 
       // Ensure voices are loaded
       if (this.availableVoices.length === 0) {
@@ -376,9 +434,21 @@ class SimulationNarrationService {
    * Pauses active narration
    */
   public pause(): void {
+    const androidTTS = typeof window !== 'undefined' ? window.AndroidTTS : null;
+    if (androidTTS && typeof androidTTS.stop === 'function') {
+      try {
+        androidTTS.stop();
+        this.state = 'paused';
+        this.notifySubscribers();
+        return;
+      } catch {}
+    }
+
     if (this.source === 'speech-synthesis' || this.activeUtterance) {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.pause();
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
+        try {
+          window.speechSynthesis.pause();
+        } catch {}
         this.state = 'paused';
         this.notifySubscribers();
       }
@@ -394,9 +464,20 @@ class SimulationNarrationService {
    */
   public resume(): void {
     if (this.source === 'speech-synthesis' || this.activeUtterance) {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      const androidTTS = typeof window !== 'undefined' ? window.AndroidTTS : null;
+      if (androidTTS && typeof androidTTS.speak === 'function' && this.currentText) {
+        this.speak(this.currentText, {
+          segmentId: this.currentSegmentId,
+          rate: this.rate,
+        });
+        return;
+      }
+
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
         if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
+          try {
+            window.speechSynthesis.resume();
+          } catch {}
           this.state = 'playing';
           this.notifySubscribers();
         } else if (this.currentText) {
@@ -436,7 +517,14 @@ class SimulationNarrationService {
   }
 
   private stopInternal(notify: boolean): void {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    const androidTTS = typeof window !== 'undefined' ? window.AndroidTTS : null;
+    if (androidTTS && typeof androidTTS.stop === 'function') {
+      try {
+        androidTTS.stop();
+      } catch {}
+    }
+
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
       try {
         window.speechSynthesis.cancel();
       } catch {
@@ -581,7 +669,8 @@ class SimulationNarrationService {
    */
   public getStatus(): NarrationStatus {
     const isSpeechSupported =
-      typeof window !== 'undefined' && 'speechSynthesis' in window;
+      (typeof window !== 'undefined' && 'speechSynthesis' in window && !!window.speechSynthesis) ||
+      (typeof window !== 'undefined' && !!window.AndroidTTS?.isAvailable?.());
 
     return {
       state: this.state,

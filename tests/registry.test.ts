@@ -231,14 +231,31 @@ describe('Experiment & Subject Registry (52 Curriculum Experiments Scope)', () =
     });
   });
 
-  it('should have complete metadata for every curriculum experiment (67 total, 67 implemented)', () => {
+  describe('Mathematics Curriculum (12 Simulators)', () => {
+    it('should have 12 mathematics experiments', () => {
+      const math = getExperimentsBySubject('mathematics');
+      expect(math).toHaveLength(12);
+    });
+
+    it('should cover Class 10 Foundation (6), Class 11 (3), and Class 12 (3)', () => {
+      const c10 = getExperimentsByClassLevel('mathematics', 'foundation');
+      const c11 = getExperimentsByClassLevel('mathematics', 'class-11');
+      const c12 = getExperimentsByClassLevel('mathematics', 'class-12');
+
+      expect(c10).toHaveLength(6);
+      expect(c11).toHaveLength(3);
+      expect(c12).toHaveLength(3);
+    });
+  });
+
+  it('should have complete metadata for every curriculum experiment (79 total, 79 implemented)', () => {
     const all = getAllActiveExperiments();
-    expect(all).toHaveLength(67);
+    expect(all).toHaveLength(79);
 
     const implemented = all.filter((e) => e.implementationStatus === 'implemented');
     const underDev = all.filter((e) => e.implementationStatus === 'under-development');
 
-    expect(implemented).toHaveLength(67);
+    expect(implemented).toHaveLength(79);
     expect(underDev).toHaveLength(0);
 
     for (const exp of all) {

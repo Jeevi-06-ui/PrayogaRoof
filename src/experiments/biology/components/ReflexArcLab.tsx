@@ -66,13 +66,15 @@ export const ReflexArcLab: React.FC = () => {
             <div className="space-y-1.5">
               <span className="text-xs text-slate-300">Stimulus Mechanism:</span>
               <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: 'patellar-tap', label: 'Patellar Knee Tap' },
-                  { id: 'thermal-pin', label: 'Thermal Pain Withdrawal' },
-                ].map((st) => (
+                {(
+                  [
+                    { id: 'patellar-tap', label: 'Patellar Knee Tap' },
+                    { id: 'thermal-pin', label: 'Thermal Pain Withdrawal' },
+                  ] as const
+                ).map((st) => (
                   <button
                     key={st.id}
-                    onClick={() => { setStimulusType(st.id as any); handleReset(); }}
+                    onClick={() => { setStimulusType(st.id); handleReset(); }}
                     className={`p-2.5 rounded-xl text-xs font-medium transition-all ${
                       stimulusType === st.id
                         ? 'bg-amber-500 text-slate-950 font-bold'

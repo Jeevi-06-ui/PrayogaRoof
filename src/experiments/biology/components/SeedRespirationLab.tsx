@@ -30,7 +30,7 @@ export const SeedRespirationLab: React.FC = () => {
   }, [liquidRiseCm]);
 
   useEffect(() => {
-    let timer: any = null;
+    let timer: ReturnType<typeof setInterval> | null = null;
     if (isPlaying) {
       timer = setInterval(() => {
         setElapsedMinutes((prev) => {
@@ -42,7 +42,9 @@ export const SeedRespirationLab: React.FC = () => {
         });
       }, 500);
     }
-    return () => clearInterval(timer);
+    return () => {
+      if (timer) clearInterval(timer);
+    };
   }, [isPlaying]);
 
   const handleReset = () => {
@@ -86,14 +88,16 @@ export const SeedRespirationLab: React.FC = () => {
             <div className="space-y-1.5">
               <span className="text-xs text-slate-300 font-medium">Seed Condition:</span>
               <div className="grid grid-cols-3 gap-1.5">
-                {[
-                  { id: 'germinating', label: 'Germinating' },
-                  { id: 'boiled', label: 'Boiled Control' },
-                  { id: 'dry', label: 'Dry Dormant' },
-                ].map((s) => (
+                {(
+                  [
+                    { id: 'germinating', label: 'Germinating' },
+                    { id: 'boiled', label: 'Boiled Control' },
+                    { id: 'dry', label: 'Dry Dormant' },
+                  ] as const
+                ).map((s) => (
                   <button
                     key={s.id}
-                    onClick={() => { setSeedType(s.id as any); handleReset(); }}
+                    onClick={() => { setSeedType(s.id); handleReset(); }}
                     className={`p-2 rounded-xl text-xs font-medium truncate transition-all ${
                       seedType === s.id
                         ? 'bg-teal-500 text-slate-950 font-bold'

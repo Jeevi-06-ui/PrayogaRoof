@@ -125,7 +125,7 @@ export const VirtualMicroscopeStudio: React.FC<VirtualMicroscopeStudioProps> = (
     let hueRotate = 0;
     let saturate = 1;
     let brightness = microscopeState.lightIntensityPercent / 90;
-    let contrast = (microscopeState.irisDiaphragmPercent / 70);
+    const contrast = (microscopeState.irisDiaphragmPercent / 70);
 
     if (stain === 'safranin') {
       hueRotate = 330;
@@ -328,19 +328,21 @@ export const VirtualMicroscopeStudio: React.FC<VirtualMicroscopeStudioProps> = (
               Differential Stain
             </span>
             <div className="grid grid-cols-2 gap-1.5">
-              {[
-                { id: 'safranin', label: 'Safranin O (Pink)' },
-                { id: 'methylene-blue', label: 'Methylene Blue' },
-                { id: 'acetocarmine', label: 'Acetocarmine' },
-                { id: 'iodine', label: "Lugol's Iodine" },
-                { id: 'unstained', label: 'Unstained Native' },
-              ].map((st) => (
+              {(
+                [
+                  { id: 'safranin', label: 'Safranin O (Pink)' },
+                  { id: 'methylene-blue', label: 'Methylene Blue' },
+                  { id: 'acetocarmine', label: 'Acetocarmine' },
+                  { id: 'iodine', label: "Lugol's Iodine" },
+                  { id: 'unstained', label: 'Unstained Native' },
+                ] as const
+              ).map((st) => (
                 <button
                   key={st.id}
                   onClick={() =>
                     setMicroscopeState((prev) => ({
                       ...prev,
-                      activeStain: st.id as any,
+                      activeStain: st.id,
                     }))
                   }
                   className={`px-2.5 py-1.5 rounded-lg text-xs font-medium text-left truncate transition-colors ${

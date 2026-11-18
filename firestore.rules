@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for secure validation
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidUserDocument(data) {
+      return data.keys().hasAll(['email', 'displayName', 'createdAt', 'updatedAt'])
+        && data.email is string
+        && data.displayName is string
+        && data.role in ['student', 'teacher', 'admin'];
+    }
+
+    // User Profile and isolated student data tree
+    match /users/{userId} {
+      // Students can only read and write their own profile
+      allow read: if isOwner(userId);
+      
+      // On create, ensure authenticated user matches and sets their own UID
+      allow create: if isOwner(userId) && isValidUserDocument(request.resource.data);
+      
+      // On update, prevent modifying immutable security fields like role to escalate privileges
+      allow update: if isOwner(userId) 
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) 
+            || resource.data.role == request.resource.data.role);
+
+      allow delete: if false; // Profiles cannot be deleted directly via client SDK
+
+      // Subcollections: progress, workspaces, observations, viva, grades
+      match /{subcollection=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Default deny for all other unmatched collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

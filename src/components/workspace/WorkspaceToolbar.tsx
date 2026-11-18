@@ -11,6 +11,7 @@ import {
   Grid,
   Sparkles,
   BookOpen,
+  ChevronLeft,
 } from 'lucide-react';
 import { Button } from '../shared/Button';
 import { LabMode } from '../../types';
@@ -33,6 +34,7 @@ interface WorkspaceToolbarProps {
   onToggleGridSnap: () => void;
   experimentTitle: string;
   isSaving?: boolean;
+  onBack?: () => void;
 }
 
 export const WorkspaceToolbar: React.FC<WorkspaceToolbarProps> = ({
@@ -53,14 +55,26 @@ export const WorkspaceToolbar: React.FC<WorkspaceToolbarProps> = ({
   onToggleGridSnap,
   experimentTitle,
   isSaving,
+  onBack,
 }) => {
   return (
-    <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-4 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar select-none">
-      {/* Left Group: Experiment Name & Mode Switcher */}
-      <div className="flex items-center gap-3 flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
-          <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate max-w-[140px] sm:max-w-[200px]">
+    <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-2 sm:px-4 flex items-center justify-between gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar select-none">
+      {/* Left Group: Back Button, Experiment Name & Mode Switcher */}
+      <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="p-1.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+            title="Go back to experiment details"
+            aria-label="Back to experiment"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        )}
+
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse flex-shrink-0" />
+          <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate max-w-[100px] sm:max-w-[200px]">
             {experimentTitle}
           </span>
         </div>

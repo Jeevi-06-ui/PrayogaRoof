@@ -98,10 +98,10 @@ describe('LoadSimulationSection Audible Voice Features', () => {
     vi.clearAllMocks();
   });
 
-  it('renders the prominent "Play Simulation with Voice" button', () => {
+  it('renders the live demonstration play button', async () => {
     render(<LoadSimulationSection media={media} onReturnToLab={() => {}} />);
 
-    const playVoiceBtn = screen.getByRole('button', { name: /Play Simulation with Voice/i });
+    const playVoiceBtn = await screen.findByRole('button', { name: /^Play$/i }, { timeout: 5000 });
     expect(playVoiceBtn).toBeInTheDocument();
   });
 
@@ -110,7 +110,7 @@ describe('LoadSimulationSection Audible Voice Features', () => {
 
     render(<LoadSimulationSection media={media} onReturnToLab={() => {}} />);
 
-    const playVoiceBtn = screen.getByRole('button', { name: /Play Simulation with Voice/i });
+    const playVoiceBtn = await screen.findByRole('button', { name: /^Play$/i });
     fireEvent.click(playVoiceBtn);
 
     await waitFor(() => {
@@ -134,11 +134,11 @@ describe('LoadSimulationSection Audible Voice Features', () => {
       />
     );
 
-    expect(screen.getByText(/Viva Voce Remediation Mode/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Play Explanation with Voice/i })).toBeInTheDocument();
+    expect(await screen.findByText(/Viva review: press Play/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Play$/i })).toBeInTheDocument();
 
     // Trigger explanation voice
-    const playExplanationBtn = screen.getByRole('button', { name: /Play Explanation with Voice/i });
+    const playExplanationBtn = screen.getByRole('button', { name: /^Play$/i });
     fireEvent.click(playExplanationBtn);
 
     await waitFor(() => {

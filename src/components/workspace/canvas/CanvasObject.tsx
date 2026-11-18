@@ -1,5 +1,6 @@
 import React from 'react';
 import { Group, Rect, Text as KonvaText, Circle, Line } from 'react-konva';
+import type { KonvaEventObject } from 'konva/lib/Node';
 import { WorkspaceObject, PortDefinition } from '../../../types';
 import { getEquipmentDefinition } from '../../../services/lab/registry';
 import { getSubstanceById } from '../../../services/chemistry/chemicalRegistry';
@@ -27,7 +28,7 @@ export const CanvasObject: React.FC<CanvasObjectProps> = ({
   const width = object.width || eqDef?.defaultWidth || 140;
   const height = object.height || eqDef?.defaultHeight || 100;
 
-  const handleDragEnd = (e: any) => {
+  const handleDragEnd = (e: KonvaEventObject<DragEvent>) => {
     let finalX = e.target.x();
     let finalY = e.target.y();
 

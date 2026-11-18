@@ -24,8 +24,20 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
 # Test outputs
 test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Native mobile build outputs
+*.apk
+*.aab
+*.app
+app/builds/
+app/ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
